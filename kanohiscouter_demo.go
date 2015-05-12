@@ -8,7 +8,9 @@ import (
 func demo() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
-	cap1_conf := snippets.CaptureConfig{""}
+	cap1_conf := snippets.CaptureConfig{
+		Uri: "",
+	}
 	cap1 := snippets.Capture{}
 	cap1.SetUp(cap1_conf)
 	tb.AddSource("cap1", &cap1)
