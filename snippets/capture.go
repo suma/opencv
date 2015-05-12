@@ -34,7 +34,7 @@ func (c *Capture) SetUp(config CaptureConfig) error {
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	var buf bridge.MatVec3b
 	config := c.config
-	for { // TODO add stop command
+	for { // TODO add stop command and using goroutine
 		if config.CaptureFromMFile {
 			bridge.VideoCapture_Read(c.vcap, buf)
 			if buf == nil {
@@ -42,6 +42,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			}
 			if config.FrameSkip > 0 {
 				for i := 0; i < config.FrameSkip; i++ {
+					// TODO considering biding cost
 					bridge.VideoCapture_Grab(c.vcap)
 				}
 			}
@@ -51,15 +52,25 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 				continue
 			}
 		}
+
+		// TODO create frame processor configuration, very difficult...
+		// TODO confirm time stamp using, create in C++ is better?
+		now := time.Now()
+		inow, _ := tuple.ToInt(tuple.Timestamp(now))
+		fp := bridge.FrameProcessor_SetUp(nil)
+		f := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraId)
+
+		var m = tuple.Map{
+			"frame": tuple.Blob(f),
+		}
+		t := tuple.Tuple{
+			Data:          m,
+			Timestamp:     now,
+			ProcTimestamp: now,
+			Trace:         make([]tuple.TraceEvent, 0),
+		}
+		w.Write(ctx, &t)
 	}
-	// TOBE get frames
-	now := time.Now()
-	t := tuple.Tuple{
-		Timestamp:     now,
-		ProcTimestamp: now,
-		Trace:         make([]tuple.TraceEvent, 0),
-	}
-	w.Write(ctx, &t)
 	return nil
 }
 
