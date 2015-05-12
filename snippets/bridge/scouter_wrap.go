@@ -22,7 +22,8 @@ func FrameProcessor_Apply(fp FrameProcessor, buf MatVec3b,
 	var frame Frame
 	var frameLength int
 	C.FrameProcessor_Apply(
-		C.FrameProcessor(fp), C.MatVec3b(buf), timestamp, camreraId,
-		frame, frameLength)
-	return C.GoBytes(unsafe.Pointer(f), frameLength)
+		C.FrameProcessor(fp), C.MatVec3b(buf),
+		C.longlong(timestamp), C.int(cameraId),
+		C.Frame(frame), C.int(frameLength))
+	return C.GoBytes(unsafe.Pointer(frame), C.int(frameLength))
 }
