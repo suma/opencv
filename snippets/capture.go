@@ -9,10 +9,10 @@ import (
 )
 
 type CaptureConfig struct {
-	CameraId         int
-	Uri              string
-	CaptureFromMFile bool
-	FrameSkip        int
+	CameraID        int
+	URI             string
+	CaptureFromFile bool
+	FrameSkip       int
 }
 
 type Capture struct {
@@ -22,9 +22,9 @@ type Capture struct {
 
 func (c *Capture) SetUp(config CaptureConfig) error {
 	c.config = config
-	vcap := bridge.VideoCapture_Open(config.Uri)
+	vcap := bridge.VideoCapture_Open(config.URI)
 	if vcap == nil {
-		return fmt.Errorf("error opening video stream or file : %v", config.Uri)
+		return fmt.Errorf("error opening video stream or file : %v", config.URI)
 	}
 	c.vcap = vcap
 
@@ -35,7 +35,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	var buf bridge.MatVec3b
 	config := c.config
 	for { // TODO add stop command and using goroutine
-		if config.CaptureFromMFile {
+		if config.CaptureFromFile {
 			bridge.VideoCapture_Read(c.vcap, buf)
 			if buf == nil {
 				return fmt.Errorf("cannot read a new frame")
@@ -58,7 +58,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
 		fp := bridge.FrameProcessor_SetUp(nil)
-		f := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraId)
+		f := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraID)
 
 		var m = tuple.Map{
 			"frame": tuple.Blob(f),

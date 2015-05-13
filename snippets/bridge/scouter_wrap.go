@@ -18,12 +18,12 @@ func FrameProcessor_SetUp(config FrameProcessorConfig) FrameProcessor {
 }
 
 func FrameProcessor_Apply(fp FrameProcessor, buf MatVec3b,
-	timestamp int64, cameraId int) []byte {
+	timestamp int64, cameraID int) []byte {
 	var frame Frame
 	var frameLength int
 	C.FrameProcessor_Apply(
 		C.FrameProcessor(fp), C.MatVec3b(buf),
-		C.longlong(timestamp), C.int(cameraId),
+		C.longlong(timestamp), C.int(cameraID),
 		C.Frame(frame), C.int(frameLength))
 	return C.GoBytes(unsafe.Pointer(frame), C.int(frameLength))
 }

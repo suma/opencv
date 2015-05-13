@@ -9,7 +9,7 @@ func demo() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
 	cap1_conf := snippets.CaptureConfig{
-		Uri: "",
+		URI: "",
 	}
 	cap1 := snippets.Capture{}
 	cap1.SetUp(cap1_conf)

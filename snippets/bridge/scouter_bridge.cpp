@@ -7,7 +7,7 @@ FrameProcessor FrameProcessor_SetUp(FrameProcessorConfig config) {
 }
 
 void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
-                             long long timestamp, int cameraId,
+                             long long timestamp, int cameraID,
                              Frame frame, int frameLength) {
   return;
 }
