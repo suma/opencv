@@ -3,12 +3,14 @@
 #include <string.h>
 #include <opencv2/opencv.hpp>
 
-VideoCapture VideoCapture_Open(char* uri) {
-  cv::VideoCapture *vcap;
-  if (!vcap->open(uri)) {
-    return NULL;
-  }
-  return vcap;
+int VideoCapture_Open(char* uri, VideoCapture vcap) {
+  cv::VideoCapture tempVcap; // TODO default constructor
+  //if (!tempVcap.open(uri)) {
+  //  return 0;
+  //}
+  free(vcap);
+  vcap = &tempVcap;
+  return 1;
 }
 
 int VideoCapture_IsOpened(VideoCapture vcap) {
@@ -16,13 +18,14 @@ int VideoCapture_IsOpened(VideoCapture vcap) {
   return vc->isOpened();
 }
 
-void VideoCapture_Read(VideoCapture vcap, MatVec3b buf) {
-  cv::VideoCapture* vc = (cv::VideoCapture*) vcap;
+int VideoCapture_Read(VideoCapture vcap, MatVec3b buf) {
+  cv::VideoCapture *vc = (cv::VideoCapture*) vcap;
   cv::Mat_<cv::Vec3b> *result = (cv::Mat_<cv::Vec3b>*) buf;
   if (!vc->read(*result)) {
-    buf = NULL;
+    return 0;
   }
   buf = &result;
+  return 1;
 }
 
 void VideoCapture_Grab(VideoCapture vcap) {
@@ -30,12 +33,12 @@ void VideoCapture_Grab(VideoCapture vcap) {
   vc->grab();
 }
 
-MatVec3b MatVec3b_Clone(MatVec3b buf) {
+void MatVec3b_Clone(MatVec3b buf, MatVec3b cloneBuf) {
   cv::Mat_<cv::Vec3b> *mat = (cv::Mat_<cv::Vec3b>*) buf;
-  cv::Mat_<cv::Vec3b> result, *resultptr;
+  cv::Mat_<cv::Vec3b> result;
   result = mat->clone();
-  resultptr = &result;
-  return resultptr;
+  free(cloneBuf);
+  cloneBuf = &result;
 }
 
 int MatVec3b_Empty(MatVec3b buf) {

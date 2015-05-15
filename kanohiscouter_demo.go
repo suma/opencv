@@ -15,5 +15,11 @@ func demo() (core.StaticTopology, error) {
 	cap1.SetUp(cap1_conf)
 	tb.AddSource("cap1", &cap1)
 
+	ds_conf := snippets.DetectSimpleConfig{}
+	ds := snippets.DetectSimple{
+		Config: ds_conf,
+	}
+	tb.AddBox("detect_simple", &ds)
+
 	return tb.Build()
 }

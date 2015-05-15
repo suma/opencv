@@ -1,6 +1,7 @@
 package snippets
 
 import (
+	"C"
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
 	"pfi/sensorbee/sensorbee/core"
@@ -22,8 +23,9 @@ type Capture struct {
 
 func (c *Capture) SetUp(config CaptureConfig) error {
 	c.config = config
-	vcap := bridge.VideoCapture_Open(config.URI)
-	if vcap == nil {
+	var vcap bridge.VideoCapture
+	ok := bridge.VideoCapture_Open(config.URI, vcap)
+	if !ok {
 		return fmt.Errorf("error opening video stream or file : %v", config.URI)
 	}
 	c.vcap = vcap
@@ -31,13 +33,42 @@ func (c *Capture) SetUp(config CaptureConfig) error {
 	return nil
 }
 
+func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, errChan chan error) {
+	if !bridge.VideoCapture_IsOpened(vcap) {
+		errChan <- fmt.Errorf("video stream or file closed")
+		return
+	}
+	var tmpBuf bridge.MatVec3b
+	ok := bridge.VideoCapture_Read(vcap, tmpBuf)
+	if !ok {
+		errChan <- fmt.Errorf("cannot read a new frame")
+		return
+	}
+	bridge.MatVec3b_Clone(tmpBuf, buf)
+}
+
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
-	var buf bridge.MatVec3b
 	config := c.config
+	var rootBuf, buf bridge.MatVec3b
+	var rootBufErr error
+	if !config.CaptureFromFile {
+		errChan := make(chan error)
+		go func(rootBuf bridge.MatVec3b) {
+			for {
+				grab(c.vcap, rootBuf, errChan)
+				select {
+				case err := <-errChan:
+					rootBufErr = err
+					break
+				}
+			}
+		}(rootBuf)
+	}
+
 	for { // TODO add stop command and using goroutine
 		if config.CaptureFromFile {
-			bridge.VideoCapture_Read(c.vcap, buf)
-			if buf == nil {
+			ok := bridge.VideoCapture_Read(c.vcap, buf)
+			if !ok {
 				return fmt.Errorf("cannot read a new frame")
 			}
 			if config.FrameSkip > 0 {
@@ -47,7 +78,10 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 				}
 			}
 		} else {
-			buf = bridge.MatVec3b_Clone(buf)
+			if rootBufErr != nil {
+				return rootBufErr
+			}
+			bridge.MatVec3b_Clone(rootBuf, buf)
 			if bridge.MatVec3b_Empty(buf) {
 				continue
 			}
@@ -57,8 +91,12 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
-		fp := bridge.FrameProcessor_SetUp(nil)
-		f := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraID)
+		var fp bridge.FrameProcessor
+		bridge.FrameProcessor_SetUp(fp, nil)
+		f, ok := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraID)
+		if !ok {
+			return fmt.Errorf("cannot read a new frame")
+		}
 
 		var m = tuple.Map{
 			"frame": tuple.Blob(f),
@@ -71,6 +109,10 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		}
 		w.Write(ctx, &t)
 	}
+	return nil
+}
+
+func (c *Capture) Stop(ctx *core.Context) error {
 	return nil
 }
 

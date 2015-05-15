@@ -9,12 +9,18 @@ extern "C" {
 
 typedef void* FrameProcessorConfig;
 typedef void* FrameProcessor;
-typedef void* Frame; // = pointer, want to use []uint8_t
+typedef void* DetectorConfig;
+typedef void* Detector;
+typedef void* DetectionResult;
 
-FrameProcessor FrameProcessor_SetUp(FrameProcessorConfig config);
-void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
-                             long long timestamp, int cameraID,
-                             Frame frame, int frameLength);
+void FrameProcessor_SetUp(FrameProcessor fp, FrameProcessorConfig config);
+int FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
+                          long long timestamp, int cameraID, char* frame);
+
+void Detector_SetUp(Detector detector, DetectorConfig config);
+int Detector_Detect(Detector detector, char* frame, char* dr);
+unsigned long long Scouter_GetEpochms();
+int DetectDrawResult(char* frame, char* dr, unsigned long long ms, char* resultFrame);
 
 #ifdef __cplusplus
 }
