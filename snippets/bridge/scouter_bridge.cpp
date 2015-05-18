@@ -1,120 +1,84 @@
 #include "scouter_bridge.h"
 
 #include <stdlib.h>
+#include <string>
 #include <msgpack.hpp>
 #include <opencv2/opencv.hpp>
-//#include <scouter-core/frame.hpp>
-//#include <scouter-core/frame_processor.hpp>
-//#include <scouter-core/detection_result.hpp>
-//#include <scouter-core/detector.hpp>
-//#include <scouter-core/epochms.hpp>
+#include <scouter-core/frame.hpp>
+#include <scouter-core/frame_processor.hpp>
+#include <scouter-core/detection_result.hpp>
+#include <scouter-core/detector.hpp>
+#include <scouter-core/epochms.hpp>
 
 void FrameProcessor_SetUp(FrameProcessor fp, FrameProcessorConfig config) {
-  /*
   scouter::FrameProcessor::Config *c = (scouter::FrameProcessor::Config*) config;
   scouter::FrameProcessor tempFp(*c);
-  free(fp);
   fp = &tempFp;
-  */
 }
 
-int FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
-                          long long timestamp, int cameraID, char* frame) {
-  /*
+void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
+                          long long timestamp, int cameraID,
+                          Frame frame, char* frByte, int* frLength) {
   scouter::FrameProcessor *fp = (scouter::FrameProcessor*) frameProcessor;
   cv::Mat_<cv::Vec3b> *mat = (cv::Mat_<cv::Vec3b>*) buf;
 
   scouter::FrameMeta meta(timestamp, cameraID);
   scouter::Frame f = fp->apply(*mat, meta);
-  */
+  frame = *f;
 
   msgpack::sbuffer buffer;
   msgpack::packer<msgpack::sbuffer> pk(&buffer);
-  pk.pack(999); // TOBE replace f
+  pk.pack(f);
 
-  free(frame);
-  int size = buffer.size() * sizeof(char);
-  frame = (char *)malloc(size);
-  if (frame == NULL) {
-    return 0;
-  }
-  frame = buffer.data();
-  return 1;
+  char *tmp = buffer.data();
+  *frByte = *tmp;
+  *frLength = buffer.size();
 }
 
 void Detector_SetUp(Detector detector, DetectorConfig config) {
-  /*
   Detector::Config *c = (Detector::Config*) config;
   Detector tempDetector(*c)
-  free(detector)
   detector = &tempDetector;
-  */
 }
 
-int Detector_Detect(Detector detector, char* frame, char* dr) {
-  /*
-  msgpack::unpacked frameMsg;
-  msgpack::unpack(&frameMsg, frame, sizeof(frame)); // sizeof is ok?
-  msgpack::object frameObj = frameMsg.get();
-  scouter::Frame frame;
-  frameObj.convert(&frame);
+void Detector_Detect(Detector detector, Frame frame,
+                     DetectionResult dr, char* drByte, int* drLength) {
+  scouter::Frame* fr = (scouter::Frame*) frame;
 
   scouter::Detector *d = (scouter::Detector*) detector;
-  scouter::DetectionResult result = d->detect(frame);
+  scouter::DetectionResult detected = d->detect(*fr);
+  dr = *detected;
 
   msgpack::sbuffer buffer;
   msgpack::packer<msgpack::sbuffer> pk(&buffer);
-  pk.pack(result);
+  pk.pack(detected);
 
-  free(dr);
-  int size = buffer.size * sizeof(char);
-  dr = (char *)malloc(size);
-  if (dr == NULL) {
-    return 0;
-  }
-
-  dr = buffer.data();
-  */
-  return 1;
+  char *tmp = buffer.data();
+  *drByte = *tmp;
+  *drLength = buffer.size();
 }
 
 unsigned long long Scouter_GetEpochms() {
-  return 0; //scouter::get_epochms();
+  return scouter::get_epochms();
 }
 
-int DetectDrawResult(char* frame, char* dr, unsigned long long ms, char* resultFrame) {
-  /*
-  msgpack::unpacked frameMsg;
-  msgpack::unpack(&frameMsg, frame, sizeof(frame)); // sizeof is ok?
-  msgpack::object frameObj = frameMsg.get();
-  scouter::Frame scouterFrame;
-  frameObj.convert(&scouterFrame);
+void DetectDrawResult(Frame frame, DetectionResult dr, unsigned long long ms,
+                      MatVec3b draw, char* drwByte, int* drwLength) {
+  scouter::Frame* fr = (scouter::Frame*) frame;
+  scouter::DetectionResult detected = (scouter::DetectionResult*) dr;
 
-  msgpack::unpacked drMsg;
-  msgpack::unpack(&drMsg, dr, sizeof(dr)); // sizeof is ok?
-  msgpack::object drObj = drMsg.get();
-  scouter::DetectionResult detectionResult;
-  drObj.convert(&detectionResult);
-
-  cv::Mat_<cv::Vec3b> c = draw_result(scouterFrame, detectonResult, ms);
+  cv::Mat_<cv::Vec3b> c = draw_result(*fr, *detected, ms);
+  draw = *c
 
   msgpack::sbuffer buffer;
   msgpack::packer<msgpack::sbuffer> pk(&buffer);
   pk.pack(c);
 
-  free(resultFrame);
-  int size = c.size * sizeof(char);
-  c = (char *)malloc(size);
-  if (c == NULL) {
-    return 0;
-  }
-
-  resultFrame = buffer.data();
-  */
-  return 1;
+  char *tmp = buffer.data();
+  *drwByte = *tmp;
+  *drwLength = buffer.size();
 }
 
-/*
 cv::Mat_<cv::Vec3b> draw_result(
     const scouter::Frame& frame,
     const scouter::DetectionResult& dr,
@@ -131,5 +95,4 @@ cv::Mat_<cv::Vec3b> draw_result(
               cv::Scalar(255, 0, 0));
   return c;
 }
-*/
 

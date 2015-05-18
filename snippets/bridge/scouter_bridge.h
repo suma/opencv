@@ -9,18 +9,22 @@ extern "C" {
 
 typedef void* FrameProcessorConfig;
 typedef void* FrameProcessor;
+typedef void* Frame;
 typedef void* DetectorConfig;
 typedef void* Detector;
 typedef void* DetectionResult;
 
 void FrameProcessor_SetUp(FrameProcessor fp, FrameProcessorConfig config);
-int FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
-                          long long timestamp, int cameraID, char* frame);
+void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
+                         long long timestamp, int cameraID,
+                         Frame frame, char* frByte, int* frLength);
 
 void Detector_SetUp(Detector detector, DetectorConfig config);
-int Detector_Detect(Detector detector, char* frame, char* dr);
+void Detector_Detect(Detector detector, Frame frame,
+                    DetectionResult dr, char* drByte, int* drLength);
 unsigned long long Scouter_GetEpochms();
-int DetectDrawResult(char* frame, char* dr, unsigned long long ms, char* resultFrame);
+void DetectDrawResult(Frame frame, DetectionResult dr, unsigned long long ms,
+                     MatVec3b draw, char* drwByte, int* drwLength);
 
 #ifdef __cplusplus
 }

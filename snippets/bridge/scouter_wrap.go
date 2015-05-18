@@ -5,12 +5,14 @@ package bridge
 */
 import "C"
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
 
 type FrameProcessorConfig C.FrameProcessorConfig
 type FrameProcessor C.FrameProcessor
+type Frame C.Frame
 type DetectorConfig C.DetectorConfig
 type Detector C.Detector
 type DetectionResult C.DetectionResult
@@ -21,45 +23,47 @@ func FrameProcessor_SetUp(fp FrameProcessor, config FrameProcessorConfig) {
 
 // must C.free(unsafe.Pointer(b)) ???
 func FrameProcessor_Apply(fp FrameProcessor, buf MatVec3b,
-	timestamp int64, cameraID int) ([]byte, bool) {
-	var b []byte
+	timestamp int64, cameraID int) (Frame, []byte) {
+	var fr Frame
+	b := make([]byte, 1)
+	var l int
 
-	data := (*reflect.SliceHeader)(unsafe.Pointer(&b)).Data
-	err := C.FrameProcessor_Apply(
+	//data := (*reflect.SliceHeader)(unsafe.Pointer(&b)).Data
+	C.FrameProcessor_Apply(
 		C.FrameProcessor(fp), C.MatVec3b(buf),
-		C.longlong(timestamp), C.int(cameraID), (*C.char)(unsafe.Pointer(data)))
-	ok := err != 0
-	return b, ok
+		C.longlong(timestamp), C.int(cameraID), C.Frame(fr),
+		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+	frByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
+	return fr, frByte
 }
 
 func Detector_SetUp(detector Detector, config DetectorConfig) {
 	C.Detector_SetUp(C.Detector(detector), C.DetectorConfig(config))
 }
 
-func Detector_Detect(detector Detector, frame []byte) ([]byte, bool) {
-	var dr []byte
+func Detector_Detect(detector Detector, frame Frame) (DetectionResult, []byte) {
+	var dr DetectionResult
+	b := make([]byte, 1)
+	var l int
 
-	frameData := (*reflect.SliceHeader)(unsafe.Pointer(&frame)).Data
-	drData := (*reflect.SliceHeader)(unsafe.Pointer(&dr)).Data
-	err := C.Detector_Detect(C.Detector(detector), (*C.char)(unsafe.Pointer(frameData)),
-		(*C.char)(unsafe.Pointer(drData)))
-	ok := err != 0
-	return dr, ok
+	C.Detector_Detect(C.Detector(detector), C.Frame(frame), C.DetectionResult(dr),
+		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+	drByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
+	return dr, drByte
 }
 
 func Scouter_GetEpochms() uint64 {
 	return uint64(C.Scouter_GetEpochms())
 }
 
-func DetectDrawResult(frame []byte, dr []byte, ms uint64) ([]byte, bool) {
-	var resultFrame []byte
+func DetectDrawResult(frame Frame, dr DetectionResult, ms uint64) (MatVec3b, []byte) {
+	var draw MatVec3b
+	b := make([]byte, 1)
+	var l int
 
-	frameData := (*reflect.SliceHeader)(unsafe.Pointer(&frame)).Data
-	drData := (*reflect.SliceHeader)(unsafe.Pointer(&dr)).Data
-	rfData := (*reflect.SliceHeader)(unsafe.Pointer(&resultFrame)).Data
-	err := C.DetectDrawResult(
-		(*C.char)(unsafe.Pointer(frameData)), (*C.char)(unsafe.Pointer(drData)), C.ulonglong(ms),
-		(*C.char)(unsafe.Pointer(rfData)))
-	ok := err != 0
-	return resultFrame, ok
+	C.DetectDrawResult(
+		C.Frame(frame), C.DetectionResult(dr), C.ulonglong(ms),
+		C.MatVec3b(draw), (*C.char)(unsafe.Pointer(b)), (*C.int)(unsafe.Pointer(&l)))
+	drwByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
+	return draw, drwByte
 }

@@ -5,10 +5,9 @@
 
 int VideoCapture_Open(char* uri, VideoCapture vcap) {
   cv::VideoCapture tempVcap; // TODO default constructor
-  //if (!tempVcap.open(uri)) {
-  //  return 0;
-  //}
-  free(vcap);
+  if (!tempVcap.open(uri)) {
+    return 0;
+  }
   vcap = &tempVcap;
   return 1;
 }
@@ -37,7 +36,6 @@ void MatVec3b_Clone(MatVec3b buf, MatVec3b cloneBuf) {
   cv::Mat_<cv::Vec3b> *mat = (cv::Mat_<cv::Vec3b>*) buf;
   cv::Mat_<cv::Vec3b> result;
   result = mat->clone();
-  free(cloneBuf);
   cloneBuf = &result;
 }
 
