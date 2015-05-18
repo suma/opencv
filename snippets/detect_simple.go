@@ -36,19 +36,14 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 		return fmt.Errorf("frame data must be []byte type")
 	}
 
+	frPointer := bridge.ConvertToFramePointer(frame)
 	s := bridge.Scouter_GetEpochms()
-	dr, ok := bridge.Detector_Detect(d.detector, frame)
-	if !ok {
-		return fmt.Errorf("cannot detect a frame")
-	}
+	dr, derByte := bridge.Detector_Detect(d.detector, frPointer)
 	ms := bridge.Scouter_GetEpochms() - s
-	resultFrame, ok := bridge.DetectDrawResult(frame, dr, ms)
-	if !ok {
-		return fmt.Errorf("cannot put detection result on frame image")
-	}
+	_, drwByte := bridge.DetectDrawResult(frPointer, dr, ms)
 
-	m["detection_result"] = tuple.Blob(dr)
-	m["result_frame"] = tuple.Blob(resultFrame)
+	m["detection_result"] = tuple.Blob(drByte)
+	m["result_frame"] = tuple.Blob(drwByte)
 
 	return nil
 }

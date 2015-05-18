@@ -57,6 +57,14 @@ void Detector_Detect(Detector detector, Frame frame,
   *drByte = *tmp;
   *drLength = buffer.size();
 }
+void ConvertToFramePointer(char* frByte, Frame frame) {
+  msgpack::unpacked frMsg;
+  msgpack::unpack(&frMsg, frByte, sizeof(frByte));
+  msgpack::object frObj = frMsg.get();
+  scouter::Frame fr;
+  frObj.convert(&fr);
+  frame = *fr;
+}
 
 unsigned long long Scouter_GetEpochms() {
   return scouter::get_epochms();

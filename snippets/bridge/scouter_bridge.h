@@ -22,6 +22,7 @@ void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
 void Detector_SetUp(Detector detector, DetectorConfig config);
 void Detector_Detect(Detector detector, Frame frame,
                     DetectionResult dr, char* drByte, int* drLength);
+void ConvertToFramePointer(char* frByte, Frame frame);
 unsigned long long Scouter_GetEpochms();
 void DetectDrawResult(Frame frame, DetectionResult dr, unsigned long long ms,
                      MatVec3b draw, char* drwByte, int* drwLength);

@@ -19,6 +19,7 @@ type CaptureConfig struct {
 type Capture struct {
 	config CaptureConfig
 	vcap   bridge.VideoCapture
+	fp     bridge.FrameProcessor
 }
 
 func (c *Capture) SetUp(config CaptureConfig) error {
@@ -29,6 +30,10 @@ func (c *Capture) SetUp(config CaptureConfig) error {
 		return fmt.Errorf("error opening video stream or file : %v", config.URI)
 	}
 	c.vcap = vcap
+
+	var fp bridge.FrameProcessor
+	bridge.FrameProcessor_SetUp(fp, nil)
+	c.fp = fp
 
 	return nil
 }
@@ -91,12 +96,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
-		var fp bridge.FrameProcessor
-		bridge.FrameProcessor_SetUp(fp, nil)
-		f, ok := bridge.FrameProcessor_Apply(fp, buf, inow, config.CameraID)
-		if !ok {
-			return fmt.Errorf("cannot read a new frame")
-		}
+		_, f := bridge.FrameProcessor_Apply(c.fp, buf, inow, config.CameraID)
 
 		var m = tuple.Map{
 			"frame": tuple.Blob(f),

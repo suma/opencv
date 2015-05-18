@@ -52,6 +52,12 @@ func Detector_Detect(detector Detector, frame Frame) (DetectionResult, []byte) {
 	return dr, drByte
 }
 
+func ConvertToFramePointer(fr []byte) {
+	var f Frame
+	C.ConvertToFramePointer((*C.char)(unsafe.Pointer(&fr)), C.Frame(f))
+	return f
+}
+
 func Scouter_GetEpochms() uint64 {
 	return uint64(C.Scouter_GetEpochms())
 }
