@@ -8,6 +8,7 @@ import (
 )
 
 type DetectSimpleConfig struct {
+	PlayerFlag bool
 }
 
 type DetectSimple struct {
@@ -23,27 +24,27 @@ func (d *DetectSimple) Init(ctx *core.Context) error {
 }
 
 func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
-	m, err := t.Data.AsMap()
+	f, err := t.Data.Get("frame")
 	if err != nil {
 		return fmt.Errorf("cannot get frame data")
 	}
-	f, err := m.Get("frame")
-	if err != nil {
-		return fmt.Errorf("cannot get frame data in map")
-	}
 	frame, err := f.AsBlob()
 	if err != nil {
-		return fmt.Errorf("frame data must be []byte type")
+		return fmt.Errorf("frame data must be byte array type")
 	}
 
 	frPointer := bridge.ConvertToFramePointer(frame)
 	s := bridge.Scouter_GetEpochms()
-	dr, derByte := bridge.Detector_Detect(d.detector, frPointer)
-	ms := bridge.Scouter_GetEpochms() - s
-	_, drwByte := bridge.DetectDrawResult(frPointer, dr, ms)
+	dr, drByte := bridge.Detector_Detect(d.detector, frPointer)
 
-	m["detection_result"] = tuple.Blob(drByte)
-	m["result_frame"] = tuple.Blob(drwByte)
+	t.Data["detection_result"] = tuple.Blob(drByte)
+	t.Data["detection_time"] = tuple.Timestamp(t.Timestamp) // same as frame create time
+
+	if d.Config.PlayerFlag {
+		ms := bridge.Scouter_GetEpochms() - s
+		drwByte := bridge.DetectDrawResult(frPointer, dr, ms)
+		t.Data["detection_draw_result"] = tuple.Blob(drwByte)
+	}
 
 	return nil
 }

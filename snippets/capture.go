@@ -104,7 +104,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		t := tuple.Tuple{
 			Data:          m,
 			Timestamp:     now,
-			ProcTimestamp: now,
+			ProcTimestamp: now, // TODO video capture create time
 			Trace:         make([]tuple.TraceEvent, 0),
 		}
 		w.Write(ctx, &t)

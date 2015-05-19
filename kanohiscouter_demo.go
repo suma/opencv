@@ -21,5 +21,11 @@ func demo() (core.StaticTopology, error) {
 	}
 	tb.AddBox("detect_simple", &ds)
 
+	rc_conf := snippets.RecognizeCaffeConfig{}
+	rc := snippets.RecognizeCaffe{
+		Config: rc_conf,
+	}
+	tb.AddBox("recognize_caffe", &rc)
+
 	return tb.Build()
 }

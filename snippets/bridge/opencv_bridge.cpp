@@ -5,9 +5,9 @@
 
 int VideoCapture_Open(char* uri, VideoCapture vcap) {
   cv::VideoCapture tempVcap; // TODO default constructor
-  if (!tempVcap.open(uri)) {
-    return 0;
-  }
+  // if (!tempVcap.open(uri)) {
+  //   return 0;
+  // }
   vcap = &tempVcap;
   return 1;
 }
