@@ -15,6 +15,9 @@ typedef void* Detector;
 typedef void* DetectionResult;
 typedef void* RecognizeConfig;
 typedef void* ImageTaggerCaffes;
+typedef void* Integrator;
+typedef void* IntegratorConfig;
+typedef void* TrackingResult;
 
 void FrameProcessor_SetUp(FrameProcessor fp, FrameProcessorConfig config);
 void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
@@ -35,6 +38,11 @@ void ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffes taggers, Frame frame, D
 void RecognizeDrawResult(Frame frame, DetectionResult dr,
                          char* drwByte, int* drwLength);
 void ConvertToDetectionResultPointer(char* drByte, DetectionResult dr);
+
+void IntegratorSetUp(Integrator integrator, IntegratorConfig config);
+void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
+int Integrator_TrackerReady(Integrator integrator);
+void Integrator_Track(Integrator integrator, TrackingResult tr, char* trByte, int* trLength);
 
 #ifdef __cplusplus
 }

@@ -51,6 +51,7 @@ func (rc *RecognizeCaffe) Process(ctx *core.Context, t *tuple.Tuple, w core.Writ
 	governor(fr, dr, rc)
 	recognize(fr, dr, t, rc)
 
+	w.Write(ctx, t)
 	return nil
 }
 

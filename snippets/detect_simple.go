@@ -46,6 +46,7 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 		t.Data["detection_draw_result"] = tuple.Blob(drwByte)
 	}
 
+	w.Write(ctx, t)
 	return nil
 }
 

@@ -27,5 +27,11 @@ func demo() (core.StaticTopology, error) {
 	}
 	tb.AddBox("recognize_caffe", &rc)
 
+	itr_conf := snippets.IntegrateConfig{}
+	itr := snippets.Integrate{
+		Config: itr_conf,
+	}
+	tb.AddBox("integrate", &itr)
+
 	return tb.Build()
 }

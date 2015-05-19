@@ -121,3 +121,17 @@ void RecognizeDrawResult(Frame frame, DetectionResult dr,
 void ConvertToDetectionResultPointer(char* drByte, DetectionResult dr) {
 
 }
+
+void IntegratorSetUp(Integrator integrator, IntegratorConfig config) {
+
+}
+void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr) {
+
+}
+int Integrator_TrackerReady(Integrator integrator) {
+  return 1;
+}
+void  Integrator_Track(Integrator integrator, TrackingResult tr, char* trByte, int* trLength) {
+
+}
+
