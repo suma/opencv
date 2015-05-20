@@ -48,7 +48,7 @@ func Detector_Detect(detector Detector, frame Frame) (DetectionResult, []byte) {
 	var l int
 
 	C.Detector_Detect(C.Detector(detector), C.Frame(frame), C.DetectionResult(dr),
-		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
 	drByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
 	return dr, drByte
 }
@@ -63,7 +63,7 @@ func DetectDrawResult(frame Frame, dr DetectionResult, ms uint64) []byte {
 
 	C.DetectDrawResult(
 		C.Frame(frame), C.DetectionResult(dr), C.ulonglong(ms),
-		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
 	drwByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
 	return drwByte
 }
@@ -86,7 +86,7 @@ func ImageTaggerCaffe_PredictTagsBatch(taggers ImageTaggerCaffes,
 
 	C.ImageTaggerCaffe_PredictTagsBatch(C.ImageTaggerCaffes(taggers), C.Frame(frame),
 		C.DetectionResult(dr), C.DetectionResult(resultDr),
-		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
 	retByte := C.GoBytes(unsafe.Pointer(&resultDr), C.int(l))
 	return resultDr, retByte
 }
@@ -96,7 +96,7 @@ func RecognizeDrawResult(frame Frame, dr DetectionResult) []byte {
 	var l int
 
 	C.RecognizeDrawResult(C.Frame(frame), C.DetectionResult(dr),
-		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
 	drwByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
 	return drwByte
 }
@@ -126,7 +126,7 @@ func Integrator_Track(integrator Integrator) (TrackingResult, []byte) {
 	var l int
 
 	C.Integrator_Track(C.Integrator(integrator), C.TrackingResult(tr),
-		(*C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
+		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
 	trByte := C.GoBytes(unsafe.Pointer(&tr), C.int(l))
 	return tr, trByte
 }

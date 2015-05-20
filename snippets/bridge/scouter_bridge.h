@@ -26,23 +26,23 @@ void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
 
 void Detector_SetUp(Detector detector, DetectorConfig config);
 void Detector_Detect(Detector detector, Frame frame,
-                    DetectionResult dr, char* drByte, int* drLength);
+                    DetectionResult dr, char** drByte, int* drLength);
 unsigned long long Scouter_GetEpochms();
 void DetectDrawResult(Frame frame, DetectionResult dr, unsigned long long ms,
-                      char* drwByte, int* drwLength);
+                      char** drwByte, int* drwLength);
 void ConvertToFramePointer(char* frByte, Frame frame);
 
 void ImageTaggerCaffe_SetUp(ImageTaggerCaffes taggers, RecognizeConfig config);
 void ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffes taggers, Frame frame, DetectionResult dr,
-                                       DetectionResult resultDr, char* retByte, int* retLength);
+                                       DetectionResult resultDr, char** retByte, int* retLength);
 void RecognizeDrawResult(Frame frame, DetectionResult dr,
-                         char* drwByte, int* drwLength);
+                         char** drwByte, int* drwLength);
 void ConvertToDetectionResultPointer(char* drByte, DetectionResult dr);
 
 void IntegratorSetUp(Integrator integrator, IntegratorConfig config);
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
 int Integrator_TrackerReady(Integrator integrator);
-void Integrator_Track(Integrator integrator, TrackingResult tr, char* trByte, int* trLength);
+void Integrator_Track(Integrator integrator, TrackingResult tr, char** trByte, int* trLength);
 
 #ifdef __cplusplus
 }
