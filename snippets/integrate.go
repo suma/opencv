@@ -8,13 +8,18 @@ import (
 )
 
 type IntegrateConfig struct {
+	PlayerFlag bool
 }
 
 type Integrate struct {
-	Config IntegrateConfig
+	Config     IntegrateConfig
+	integrator bridge.Integrator
 }
 
 func (itr *Integrate) Init(ctx *core.Context) error {
+	var integrator bridge.Integrator
+	bridge.IntegratorSetUp(integrator, nil) // TODO configuration
+	itr.integrator = integrator
 	return nil
 }
 
@@ -40,13 +45,20 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	fr := bridge.ConvertToFramePointer(frame)
 	dr := bridge.ConvertToDetectionResultPointer(detectionResult)
 
-	tracking(fr, dr, itr)
+	bridge.Integrator_Push(itr.integrator, fr, dr)
+	if bridge.Integrator_TrackerReady(itr.integrator) {
+		return nil // TODO set empty tracking result?
+	}
 
+	_, trByte := bridge.Integrator_Track(itr.integrator)
+	t.Data["tracking_result"] = tuple.Blob(trByte)
+
+	if itr.Config.PlayerFlag {
+		// TODO draw result for debug
+	}
+
+	w.Write(ctx, t)
 	return nil
-}
-
-func tracking(fr bridge.Frame, dr bridge.DetectionResult, itr *Integrate) {
-
 }
 
 func (itr *Integrate) InputConstraints() (*core.BoxInputConstraints, error) {

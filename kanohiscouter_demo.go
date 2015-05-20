@@ -19,19 +19,25 @@ func demo() (core.StaticTopology, error) {
 	ds := snippets.DetectSimple{
 		Config: ds_conf,
 	}
-	tb.AddBox("detect_simple", &ds)
+	tb.AddBox("detect_simple", &ds).Input("cap1")
 
 	rc_conf := snippets.RecognizeCaffeConfig{}
 	rc := snippets.RecognizeCaffe{
 		Config: rc_conf,
 	}
-	tb.AddBox("recognize_caffe", &rc)
+	tb.AddBox("recognize_caffe", &rc).Input("detect_simple")
 
 	itr_conf := snippets.IntegrateConfig{}
 	itr := snippets.Integrate{
 		Config: itr_conf,
 	}
-	tb.AddBox("integrate", &itr)
+	tb.AddBox("integrate", &itr).Input("recognize_caffe")
+
+	sender_conf := snippets.DataSenderConfig{}
+	sender := snippets.DataSender{
+		Config: sender_conf,
+	}
+	tb.AddSink("data_sender", &sender).Input("integrate")
 
 	return tb.Build()
 }
