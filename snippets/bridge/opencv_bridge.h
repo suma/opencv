@@ -1,6 +1,8 @@
 #ifndef _OPENCV_BRIDGE_H_
 #define _OPENCV_BRIDGE_H_
 
+#include "util.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
