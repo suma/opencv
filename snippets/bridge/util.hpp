@@ -10,7 +10,7 @@ template<class T>
 ByteArray serializeObject(const T& obj) {
   msgpack::sbuffer buf;
   msgpack::packer<msgpack::sbuffer> pk(&buf);
-  pk.pack(*obj);
+  pk.pack(obj);
   return toByteArray(buf.data(), buf.size());
 }
 

@@ -10,7 +10,7 @@
 #include <scouter-core/epochms.hpp>
 
 struct ByteArray Frame_Serialize(Frame f) {
-  return serializeObject(static_cast<scouter::Frame*>(f));
+  return serializeObject(*static_cast<scouter::Frame*>(f));
 }
 
 Frame Freme_Deserialize(struct ByteArray src) {
@@ -22,7 +22,7 @@ void Frame_Delete(Frame f) {
 }
 
 struct ByteArray DetectionResult_Serialize(DetectionResult dr) {
-  return serializeObject(static_cast<scouter::DetectionResult*>(dr));
+  return serializeObject(*static_cast<scouter::DetectionResult*>(dr));
 }
 
 DetectionResult DetectionResult_Deserialize(struct ByteArray src) {
