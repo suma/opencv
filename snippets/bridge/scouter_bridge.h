@@ -7,30 +7,36 @@
 extern "C" {
 #endif
 
+typedef void* Frame;
+typedef void* DetectionResult;
 typedef void* FrameProcessorConfig;
 typedef void* FrameProcessor;
-typedef void* Frame;
 typedef void* DetectorConfig;
 typedef void* Detector;
-typedef void* DetectionResult;
 typedef void* RecognizeConfig;
 typedef void* ImageTaggerCaffes;
 typedef void* Integrator;
 typedef void* IntegratorConfig;
 typedef void* TrackingResult;
 
-void FrameProcessor_SetUp(FrameProcessor fp, FrameProcessorConfig config);
-void FrameProcessor_Apply(FrameProcessor frameProcessor, MatVec3b buf,
-                          long long timestamp, int cameraID,
-                          Frame frame, char** frByte, int* frLength);
+struct ByteArray Frame_Serialize(Frame f);
+Frame Freme_Deserialize(struct ByteArray src);
+void Frame_Delete(Frame f);
 
-void Detector_SetUp(Detector detector, DetectorConfig config);
-void Detector_Detect(Detector detector, Frame frame,
-                    DetectionResult dr, char** drByte, int* drLength);
+struct ByteArray DetectionResult_Serialize(DetectionResult dr);
+DetectionResult DetectionResult_Deserialize(struct ByteArray src);
+void DetectionResult_Delete(DetectionResult dr);
+
+FrameProcessor FrameProcessor_New(FrameProcessorConfig config);
+void FrameProcessor_Delete(FrameProcessor fp);
+Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
+                           long long timestamp, int cameraID);
+
+Detector Detector_New(DetectorConfig config);
+void Detector_Delete(Detector detector);
+DetectionResult Detector_Detect(Detector detector, Frame frame);
+MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms);
 unsigned long long Scouter_GetEpochms();
-void DetectDrawResult(Frame frame, DetectionResult dr, unsigned long long ms,
-                      char** drwByte, int* drwLength);
-void ConvertToFramePointer(char* frByte, Frame frame);
 
 void ImageTaggerCaffe_SetUp(ImageTaggerCaffes taggers, RecognizeConfig config);
 void ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffes taggers, Frame frame, DetectionResult dr,

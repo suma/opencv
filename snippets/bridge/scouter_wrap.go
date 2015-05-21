@@ -1,77 +1,112 @@
 package bridge
 
 /*
+#cgo linux pkg-config: scouter-core
+#cgo darwin pkg-config: scouter-core
+#cgo linux pkg-config: pficv
+#cgo darwin pkg-config: pficv
 #include "scouter_bridge.h"
+#include "util.h"
 */
 import "C"
-import (
-	"unsafe"
-)
 
-type FrameProcessorConfig C.FrameProcessorConfig
-type FrameProcessor C.FrameProcessor
-type Frame C.Frame
-type DetectorConfig C.DetectorConfig
-type Detector C.Detector
-type DetectionResult C.DetectionResult
+type Frame struct {
+	p C.Frame
+}
+
+type DetectionResult struct {
+	p C.DetectionResult
+}
+
+type FrameProcessorConfig struct {
+	p C.FrameProcessorConfig
+}
+
+type FrameProcessor struct {
+	p C.FrameProcessor
+}
+
+type DetectorConfig struct {
+	p C.DetectorConfig
+}
+
+type Detector struct {
+	p C.Detector
+}
+
 type RecognizeConfig C.RecognizeConfig
 type ImageTaggerCaffes C.ImageTaggerCaffes
 type IntegratorConfig C.IntegratorConfig
 type Integrator C.Integrator
 type TrackingResult C.TrackingResult
 
-func FrameProcessor_SetUp(fp FrameProcessor, config FrameProcessorConfig) {
-	C.FrameProcessor_SetUp(C.FrameProcessor(fp), C.FrameProcessorConfig(config))
+func (f Frame) Serialize() []byte {
+	b := C.Frame_Serialize(f.p)
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
 }
 
-func FrameProcessor_Apply(fp FrameProcessor, buf MatVec3b,
-	timestamp int64, cameraID int) (Frame, []byte) {
-	var fr Frame
-	b := make([]byte, 1)
-	var l int
-
-	C.FrameProcessor_Apply(
-		C.FrameProcessor(fp), C.MatVec3b(buf),
-		C.longlong(timestamp), C.int(cameraID), C.Frame(fr),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	frByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
-	return fr, frByte
+func DeserializeFrame(f []byte) Frame {
+	b := toByteArray(f)
+	defer C.ByteArray_Release(b)
+	return Frame{p: C.Freme_Deserialize(b)}
 }
 
-func Detector_SetUp(detector Detector, config DetectorConfig) {
-	C.Detector_SetUp(C.Detector(detector), C.DetectorConfig(config))
+func (f Frame) Delete() {
+	C.Frame_Delete(f.p)
+	f.p = nil
 }
 
-func Detector_Detect(detector Detector, frame Frame) (DetectionResult, []byte) {
-	var dr DetectionResult
-	b := make([]byte, 1)
-	var l int
+func (d DetectionResult) Serialize() []byte {
+	b := C.DetectionResult_Serialize(d.p)
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
+}
 
-	C.Detector_Detect(C.Detector(detector), C.Frame(frame), C.DetectionResult(dr),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	drByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
-	return dr, drByte
+func DeserializeDetectionResult(d []byte) DetectionResult {
+	b := toByteArray(d)
+	defer C.ByteArray_Release(b)
+	return DetectionResult{p: C.DetectionResult_Deserialize(b)}
+}
+
+func (d DetectionResult) Delete() {
+	C.DetectionResult_Delete(d.p)
+	d.p = nil
+}
+
+func NewFrameProcessor(config FrameProcessorConfig) FrameProcessor {
+	return FrameProcessor{p: C.FrameProcessor_New(config.p)}
+}
+
+func (fp *FrameProcessor) Delete() {
+	C.FrameProcessor_Delete(fp.p)
+	fp.p = nil
+}
+
+func (fp *FrameProcessor) Apply(buf MatVec3b, timestamp int64,
+	cameraID int) Frame {
+	return Frame{p: C.FrameProcessor_Apply(fp.p, buf.p, C.longlong(timestamp), C.int(cameraID))}
+}
+
+func NewDetector(config DetectorConfig) Detector {
+	return Detector{p: C.Detector_New(config.p)}
+}
+
+func (d *Detector) Delete() {
+	C.Detector_Delete(d.p)
+	d.p = nil
+}
+
+func (d *Detector) Detect(f Frame) DetectionResult {
+	return DetectionResult{p: C.Detector_Detect(d.p, f.p)}
+}
+
+func DetectDrawResult(f Frame, dr DetectionResult, ms uint64) MatVec3b {
+	return MatVec3b{p: C.DetectDrawResult(f.p, dr.p, C.longlong(ms))}
 }
 
 func Scouter_GetEpochms() uint64 {
 	return uint64(C.Scouter_GetEpochms())
-}
-
-func DetectDrawResult(frame Frame, dr DetectionResult, ms uint64) []byte {
-	b := make([]byte, 1)
-	var l int
-
-	C.DetectDrawResult(
-		C.Frame(frame), C.DetectionResult(dr), C.ulonglong(ms),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	drwByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
-	return drwByte
-}
-
-func ConvertToFramePointer(fr []byte) Frame {
-	var f Frame
-	C.ConvertToFramePointer((*C.char)(unsafe.Pointer(&fr)), C.Frame(f))
-	return f
 }
 
 func ImageTaggerCaffe_SetUp(taggers ImageTaggerCaffes, config RecognizeConfig) {
@@ -80,53 +115,23 @@ func ImageTaggerCaffe_SetUp(taggers ImageTaggerCaffes, config RecognizeConfig) {
 
 func ImageTaggerCaffe_PredictTagsBatch(taggers ImageTaggerCaffes,
 	frame Frame, dr DetectionResult) (DetectionResult, []byte) {
-	var resultDr DetectionResult
-	b := make([]byte, 1)
-	var l int
-
-	C.ImageTaggerCaffe_PredictTagsBatch(C.ImageTaggerCaffes(taggers), C.Frame(frame),
-		C.DetectionResult(dr), C.DetectionResult(resultDr),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	retByte := C.GoBytes(unsafe.Pointer(&resultDr), C.int(l))
-	return resultDr, retByte
+	return DetectionResult{}, []byte{}
 }
 
 func RecognizeDrawResult(frame Frame, dr DetectionResult) []byte {
-	b := make([]byte, 1)
-	var l int
-
-	C.RecognizeDrawResult(C.Frame(frame), C.DetectionResult(dr),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	drwByte := C.GoBytes(unsafe.Pointer(&b), C.int(l))
-	return drwByte
-}
-
-func ConvertToDetectionResultPointer(drByte []byte) DetectionResult {
-	var dr DetectionResult
-	C.ConvertToDetectionResultPointer((*C.char)(unsafe.Pointer(&drByte)), C.DetectionResult(dr))
-	return dr
+	return []byte{}
 }
 
 func IntegratorSetUp(integrator Integrator, config IntegratorConfig) {
-	C.IntegratorSetUp(C.Integrator(integrator), C.IntegratorConfig(config))
 }
 
 func Integrator_Push(integrator Integrator, frame Frame, dr DetectionResult) {
-	C.Integrator_Push(C.Integrator(integrator), C.Frame(frame), C.DetectionResult(dr))
 }
 
 func Integrator_TrackerReady(integrator Integrator) bool {
-	i := C.Integrator_TrackerReady(C.Integrator(integrator))
-	return i != 0
+	return false
 }
 
 func Integrator_Track(integrator Integrator) (TrackingResult, []byte) {
-	var tr TrackingResult
-	b := make([]byte, 1)
-	var l int
-
-	C.Integrator_Track(C.Integrator(integrator), C.TrackingResult(tr),
-		(**C.char)(unsafe.Pointer(&b)), (*C.int)(unsafe.Pointer(&l)))
-	trByte := C.GoBytes(unsafe.Pointer(&tr), C.int(l))
-	return tr, trByte
+	return nil, []byte{}
 }

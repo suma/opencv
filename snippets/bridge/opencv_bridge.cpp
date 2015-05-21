@@ -1,45 +1,55 @@
 #include "opencv_bridge.h"
+#include "util.hpp"
 
 #include <string.h>
 #include <opencv2/opencv.hpp>
 
-int VideoCapture_Open(char* uri, VideoCapture vcap) {
-  cv::VideoCapture tempVcap; // TODO default constructor
-  if (!tempVcap.open(uri)) {
-     return 0;
-  }
-  vcap = &tempVcap;
-  return 1;
+MatVec3b MatVec3b_New() {
+  return new MatVec3b();
 }
 
-int VideoCapture_IsOpened(VideoCapture vcap) {
-  cv::VideoCapture* vc = (cv::VideoCapture*) vcap;
-  return vc->isOpened();
+struct ByteArray MatVec3b_ToJpegData(MatVec3b m, int quality){
+  cv::Mat_<cv::Vec3b>& mat = *static_cast<cv::Mat_<cv::Vec3b>*>(m);
+  std::vector<int> param(2);
+  param[0] = CV_IMWRITE_JPEG_QUALITY;
+  param[1] = quality;
+  std::vector<uchar> data;
+  cv::imencode(".jpg", mat, data, param);
+  return toByteArray(reinterpret_cast<const char*>(&data[0]), data.size());
 }
 
-int VideoCapture_Read(VideoCapture vcap, MatVec3b buf) {
-  cv::VideoCapture *vc = (cv::VideoCapture*) vcap;
-  cv::Mat_<cv::Vec3b> *result = (cv::Mat_<cv::Vec3b>*) buf;
-  if (!vc->read(*result)) {
-    return 0;
-  }
-  buf = &result;
-  return 1;
+void MatVec3b_Delete(MatVec3b m) {
+  delete static_cast<cv::Mat_<cv::Vec3b>*>(m);
 }
 
-void VideoCapture_Grab(VideoCapture vcap) {
-  cv::VideoCapture* vc = (cv::VideoCapture*) vcap;
-  vc->grab();
+void MatVec3b_CopyTo(MatVec3b src, MatVec3b dst) {
+  static_cast<cv::Mat_<cv::Vec3b>*>(src)->copyTo(*static_cast<cv::Mat_<cv::Vec3b>*>(dst));
 }
 
-void MatVec3b_Clone(MatVec3b buf, MatVec3b cloneBuf) {
-  cv::Mat_<cv::Vec3b> *mat = (cv::Mat_<cv::Vec3b>*) buf;
-  cv::Mat_<cv::Vec3b> result;
-  result = mat->clone();
-  cloneBuf = &result;
+int MatVec3b_Empty(MatVec3b m) {
+  return static_cast<cv::Mat_<cv::Vec3b>*>(m)->empty();
 }
 
-int MatVec3b_Empty(MatVec3b buf) {
-  cv::Mat_<cv::Vec3b> *mat = (cv::Mat_<cv::Vec3b>*) buf;
-  return mat->empty();
+VideoCapture VideoCapture_New() {
+  return new cv::VideoCapture();
+}
+
+void VideoCapture_Delete(VideoCapture v) {
+  delete static_cast<cv::VideoCapture*>(v);
+}
+
+int VideoCapture_Open(VideoCapture v, const char* uri) {
+  return static_cast<cv::VideoCapture*>(v)->open(uri);
+}
+
+int VideoCapture_IsOpened(VideoCapture v) {
+  return static_cast<cv::VideoCapture*>(v)->isOpened();
+}
+
+int VideoCapture_Read(VideoCapture v, MatVec3b buf) {
+  return static_cast<cv::VideoCapture*>(v)->read(*static_cast<cv::Mat_<cv::Vec3b>*>(buf));
+}
+
+void VideoCapture_Grab(VideoCapture v) {
+  static_cast<cv::VideoCapture*>(v)->grab();
 }

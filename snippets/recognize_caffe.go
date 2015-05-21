@@ -18,8 +18,8 @@ type RecognizeCaffe struct {
 
 type FrameInfo struct {
 	index int
-	fr    bridge.Frame
-	dr    bridge.DetectionResult
+	fr    []byte
+	dr    []byte
 }
 
 func (rc *RecognizeCaffe) Init(ctx *core.Context) error {
@@ -27,39 +27,50 @@ func (rc *RecognizeCaffe) Init(ctx *core.Context) error {
 }
 
 func (rc *RecognizeCaffe) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
-	f, err := t.Data.Get("frame")
+	fi, err := getFrameInfo(t)
 	if err != nil {
-		return fmt.Errorf("cannot get frame data")
-	}
-	frame, err := f.AsBlob()
-	if err != nil {
-		return fmt.Errorf("frame data must be byte array type")
+		return err
 	}
 
-	d, err := t.Data.Get("detection_result")
-	if err != nil {
-		return fmt.Errorf("cannot get detection result")
-	}
-	detectionResult, err := d.AsBlob()
-	if err != nil {
-		return fmt.Errorf("detection result data must be byte array type")
-	}
-
-	fr := bridge.ConvertToFramePointer(frame)
-	dr := bridge.ConvertToDetectionResultPointer(detectionResult)
-
-	governor(fr, dr, rc)
-	recognize(fr, dr, t, rc)
+	rc.governor(fi)
+	rc.recognize(fi, t)
 
 	w.Write(ctx, t)
 	return nil
 }
 
-func governor(fr bridge.Frame, dr bridge.DetectionResult, rc *RecognizeCaffe) {
+func getFrameInfo(t *tuple.Tuple) (FrameInfo, error) {
+	f, err := t.Data.Get("frame")
+	if err != nil {
+		return FrameInfo{}, fmt.Errorf("cannot get frame data")
+	}
+	frame, err := f.AsBlob()
+	if err != nil {
+		return FrameInfo{}, fmt.Errorf("frame data must be byte array type")
+	}
+
+	d, err := t.Data.Get("detection_result")
+	if err != nil {
+		return FrameInfo{}, fmt.Errorf("cannot get detection result")
+	}
+	detectionResult, err := d.AsBlob()
+	if err != nil {
+		return FrameInfo{}, fmt.Errorf("detection result data must be byte array type")
+	}
+
+	return FrameInfo{
+		fr: frame,
+		dr: detectionResult}, nil
+}
+
+func (rc *RecognizeCaffe) governor(fi FrameInfo) {
 	// join where meta.time is equal
 }
 
-func recognize(fr bridge.Frame, dr bridge.DetectionResult, t *tuple.Tuple, rc *RecognizeCaffe) {
+func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
+	fr := bridge.DeserializeFrame(fi.fr)
+	dr := bridge.DeserializeDetectionResult(fi.dr)
+
 	var taggers bridge.ImageTaggerCaffes
 	bridge.ImageTaggerCaffe_SetUp(taggers, nil) // TODO set up recognize configuration
 	recogDr, recogDrByte := bridge.ImageTaggerCaffe_PredictTagsBatch(taggers, fr, dr)
@@ -70,6 +81,9 @@ func recognize(fr bridge.Frame, dr bridge.DetectionResult, t *tuple.Tuple, rc *R
 		drwResult := bridge.RecognizeDrawResult(fr, recogDr)
 		t.Data["recognize_draw_result"] = tuple.Blob(drwResult)
 	}
+
+	fr.Delete()
+	dr.Delete() // TODO user defer
 }
 
 func (rc *RecognizeCaffe) InputConstraints() (*core.BoxInputConstraints, error) {

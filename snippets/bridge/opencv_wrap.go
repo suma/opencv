@@ -3,37 +3,71 @@ package bridge
 /*
 #cgo linux pkg-config: opencv
 #cgo darwin pkg-config: opencv
+#include <stdlib.h>
+#include "util.h"
 #include "opencv_bridge.h"
 */
 import "C"
+import (
+	"unsafe"
+)
 
-type VideoCapture C.VideoCapture
-type MatVec3b C.MatVec3b
-
-func VideoCapture_Open(uri string, vcap VideoCapture) bool {
-	ok := C.VideoCapture_Open(C.CString(uri), C.VideoCapture(vcap))
-	return ok != 0
+type MatVec3b struct {
+	p C.MatVec3b
 }
 
-func VideoCapture_IsOpened(vcap VideoCapture) bool {
-	isOpened := C.VideoCapture_IsOpened(C.VideoCapture(vcap))
+func NewMatVec3b() MatVec3b {
+	return MatVec3b{p: C.MatVec3b_New()}
+}
+
+func (m *MatVec3b) ToJpegData(quality int) []byte {
+	b := C.MatVec3b_ToJpegData(m.p, C.int(quality))
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
+}
+
+func (m *MatVec3b) Delete() {
+	C.MatVec3b_Delete(m.p)
+	m.p = nil
+}
+
+func (m *MatVec3b) CopyTo(dst MatVec3b) {
+	C.MatVec3b_CopyTo(m.p, dst.p)
+}
+
+func (m *MatVec3b) Empty() bool {
+	isEmpty := C.MatVec3b_Empty(m.p)
+	return isEmpty != 0
+}
+
+type VideoCapture struct {
+	p C.VideoCapture
+}
+
+func NewVideoCapture() VideoCapture {
+	return VideoCapture{p: C.VideoCapture_New()}
+}
+
+func (v *VideoCapture) Delete() {
+	C.VideoCapture_Delete(v.p)
+	v.p = nil
+}
+
+func (v *VideoCapture) Open(uri string) bool {
+	c_uri := C.CString(uri)
+	defer C.free(unsafe.Pointer(c_uri))
+	return C.VideoCapture_Open(v.p, c_uri) != 0
+}
+
+func (v *VideoCapture) IsOpened() bool {
+	isOpened := C.VideoCapture_IsOpened(v.p)
 	return isOpened != 0
 }
 
-func VideoCapture_Read(vcap VideoCapture, buf MatVec3b) bool {
-	ok := C.VideoCapture_Read(C.VideoCapture(vcap), C.MatVec3b(buf))
-	return ok != 0
+func (v *VideoCapture) Read(m MatVec3b) bool {
+	return C.VideoCapture_Read(v.p, m.p) != 0
 }
 
-func VideoCapture_Grab(vcap VideoCapture) {
-	C.VideoCapture_Grab(C.VideoCapture(vcap))
-}
-
-func MatVec3b_Clone(buf MatVec3b, cloneBuf MatVec3b) {
-	C.MatVec3b_Clone(C.MatVec3b(buf), C.MatVec3b(cloneBuf))
-}
-
-func MatVec3b_Empty(buf MatVec3b) bool {
-	isEmpty := C.MatVec3b_Empty(C.MatVec3b(buf))
-	return isEmpty != 0
+func (v *VideoCapture) Grab() {
+	C.VideoCapture_Grab(v.p)
 }

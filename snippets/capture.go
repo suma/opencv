@@ -24,37 +24,35 @@ type Capture struct {
 
 func (c *Capture) SetUp(config CaptureConfig) error {
 	c.config = config
-	var vcap bridge.VideoCapture
-	ok := bridge.VideoCapture_Open(config.URI, vcap)
-	if !ok {
+	vcap := bridge.NewVideoCapture()
+	if ok := vcap.Open(config.URI); !ok {
 		return fmt.Errorf("error opening video stream or file : %v", config.URI)
 	}
 	c.vcap = vcap
 
-	var fp bridge.FrameProcessor
-	bridge.FrameProcessor_SetUp(fp, nil)
+	fp := bridge.NewFrameProcessor(bridge.FrameProcessorConfig{}) // TODO create configure
 	c.fp = fp
 
 	return nil
 }
 
 func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, errChan chan error) {
-	if !bridge.VideoCapture_IsOpened(vcap) {
+	if !vcap.IsOpened() {
 		errChan <- fmt.Errorf("video stream or file closed")
 		return
 	}
-	var tmpBuf bridge.MatVec3b
-	ok := bridge.VideoCapture_Read(vcap, tmpBuf)
-	if !ok {
+	tmpBuf := bridge.NewMatVec3b()
+	if ok := vcap.Read(tmpBuf); !ok {
 		errChan <- fmt.Errorf("cannot read a new frame")
 		return
 	}
-	bridge.MatVec3b_Clone(tmpBuf, buf)
+	tmpBuf.CopyTo(buf)
 }
 
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	config := c.config
-	var rootBuf, buf bridge.MatVec3b
+	rootBuf := bridge.NewMatVec3b()
+	buf := bridge.NewMatVec3b()
 	var rootBufErr error
 	if !config.CaptureFromFile {
 		errChan := make(chan error)
@@ -72,22 +70,21 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 
 	for { // TODO add stop command and using goroutine
 		if config.CaptureFromFile {
-			ok := bridge.VideoCapture_Read(c.vcap, buf)
-			if !ok {
+			if ok := c.vcap.Read(buf); !ok {
 				return fmt.Errorf("cannot read a new frame")
 			}
 			if config.FrameSkip > 0 {
 				for i := 0; i < config.FrameSkip; i++ {
 					// TODO considering biding cost
-					bridge.VideoCapture_Grab(c.vcap)
+					c.vcap.Grab()
 				}
 			}
 		} else {
 			if rootBufErr != nil {
 				return rootBufErr
 			}
-			bridge.MatVec3b_Clone(rootBuf, buf)
-			if bridge.MatVec3b_Empty(buf) {
+			rootBuf.CopyTo(buf)
+			if buf.Empty() {
 				continue
 			}
 		}
@@ -96,10 +93,10 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
-		_, f := bridge.FrameProcessor_Apply(c.fp, buf, inow, config.CameraID)
+		f := c.fp.Apply(buf, inow, config.CameraID)
 
 		var m = tuple.Map{
-			"frame": tuple.Blob(f),
+			"frame": tuple.Blob(f.Serialize()),
 		}
 		t := tuple.Tuple{
 			Data:          m,
@@ -113,6 +110,8 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 }
 
 func (c *Capture) Stop(ctx *core.Context) error {
+	c.fp.Delete()
+	c.vcap.Delete()
 	return nil
 }
 

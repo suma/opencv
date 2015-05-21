@@ -16,6 +16,12 @@ type Integrate struct {
 	integrator bridge.Integrator
 }
 
+type TrackingInfo struct {
+	index int
+	fr    []byte
+	dr    []byte
+}
+
 func (itr *Integrate) Init(ctx *core.Context) error {
 	var integrator bridge.Integrator
 	bridge.IntegratorSetUp(integrator, nil) // TODO configuration
@@ -24,26 +30,13 @@ func (itr *Integrate) Init(ctx *core.Context) error {
 }
 
 func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
-	f, err := t.Data.Get("frame")
+	fi, err := getTrackingInfo(t)
 	if err != nil {
-		return fmt.Errorf("cannot get frame data")
-	}
-	frame, err := f.AsBlob()
-	if err != nil {
-		return fmt.Errorf("frame data must be byte array type")
+		return nil
 	}
 
-	d, err := t.Data.Get("recognize_detection_result")
-	if err != nil {
-		return fmt.Errorf("cannot get detection result")
-	}
-	detectionResult, err := d.AsBlob()
-	if err != nil {
-		return fmt.Errorf("detection result data must be byte array type")
-	}
-
-	fr := bridge.ConvertToFramePointer(frame)
-	dr := bridge.ConvertToDetectionResultPointer(detectionResult)
+	fr := bridge.DeserializeFrame(fi.fr)
+	dr := bridge.DeserializeDetectionResult(fi.dr)
 
 	bridge.Integrator_Push(itr.integrator, fr, dr)
 	if bridge.Integrator_TrackerReady(itr.integrator) {
@@ -59,6 +52,30 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 
 	w.Write(ctx, t)
 	return nil
+}
+
+func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
+	f, err := t.Data.Get("frame")
+	if err != nil {
+		return TrackingInfo{}, fmt.Errorf("cannot get frame data")
+	}
+	frame, err := f.AsBlob()
+	if err != nil {
+		return TrackingInfo{}, fmt.Errorf("frame data must be byte array type")
+	}
+
+	d, err := t.Data.Get("detection_result")
+	if err != nil {
+		return TrackingInfo{}, fmt.Errorf("cannot get detection result")
+	}
+	detectionResult, err := d.AsBlob()
+	if err != nil {
+		return TrackingInfo{}, fmt.Errorf("detection result data must be byte array type")
+	}
+
+	return TrackingInfo{
+		fr: frame,
+		dr: detectionResult}, nil
 }
 
 func (itr *Integrate) InputConstraints() (*core.BoxInputConstraints, error) {
