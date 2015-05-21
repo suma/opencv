@@ -79,3 +79,7 @@ func (rc *RecognizeCaffe) InputConstraints() (*core.BoxInputConstraints, error) 
 func (rc *RecognizeCaffe) OutputSchema(ss []*core.Schema) (*core.Schema, error) {
 	return nil, nil
 }
+
+func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {
+	return nil
+}

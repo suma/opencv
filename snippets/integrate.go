@@ -68,3 +68,7 @@ func (itr *Integrate) InputConstraints() (*core.BoxInputConstraints, error) {
 func (itr *Integrate) OutputSchema([]*core.Schema) (*core.Schema, error) {
 	return nil, nil
 }
+
+func (itr *Integrate) Terminate(ctx *core.Context) error {
+	return nil
+}

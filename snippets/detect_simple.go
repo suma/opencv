@@ -57,3 +57,7 @@ func (d *DetectSimple) InputConstraints() (*core.BoxInputConstraints, error) {
 func (d *DetectSimple) OutputSchema(ss []*core.Schema) (*core.Schema, error) {
 	return nil, nil
 }
+
+func (d *DetectSimple) Terminate(ctx *core.Context) error {
+	return nil
+}
