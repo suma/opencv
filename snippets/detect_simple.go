@@ -63,7 +63,7 @@ func (d *DetectSimple) InputConstraints() (*core.BoxInputConstraints, error) {
 	return nil, nil
 }
 
-func (d *DetectSimple) OutputSchema(ss []*core.Schema) (*core.Schema, error) {
+func (d *DetectSimple) OutputSchema(s map[string]*core.Schema) (*core.Schema, error) {
 	return nil, nil
 }
 

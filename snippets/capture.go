@@ -1,7 +1,6 @@
 package snippets
 
 import (
-	"C"
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
 	"pfi/sensorbee/sensorbee/core"
@@ -14,6 +13,7 @@ type CaptureConfig struct {
 	URI             string
 	CaptureFromFile bool
 	FrameSkip       int
+	TickInterval    int
 }
 
 type Capture struct {

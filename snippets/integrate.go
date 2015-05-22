@@ -83,7 +83,7 @@ func (itr *Integrate) InputConstraints() (*core.BoxInputConstraints, error) {
 	return nil, nil
 }
 
-func (itr *Integrate) OutputSchema([]*core.Schema) (*core.Schema, error) {
+func (itr *Integrate) OutputSchema(s map[string]*core.Schema) (*core.Schema, error) {
 	return nil, nil
 }
 
