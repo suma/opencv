@@ -1,6 +1,7 @@
 package bridge
 
 /*
+#cgo LDFLAGS: -ljsonconfig
 #include "config_bridge.h"
 */
 import "C"
