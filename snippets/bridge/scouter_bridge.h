@@ -1,6 +1,7 @@
 #ifndef _SCOUTER_CORE_BRIDGE_H_
 #define _SCOUTER_CORE_BRIDGE_H_
 
+#include "config_bridge.h"
 #include "opencv_bridge.h"
 
 #ifdef __cplusplus
@@ -10,7 +11,6 @@ extern "C" {
 typedef void* Frame;
 typedef void* DetectionResult;
 typedef void* TrackingResult;
-typedef void* FrameProcessorConfig;
 typedef void* FrameProcessor;
 typedef void* DetectorConfig;
 typedef void* Detector;
@@ -58,4 +58,4 @@ TrackingResult Integrator_Track(Integrator integrator);
 }
 #endif
 
-#endif //_SCOUTER_CORE_BRIDGE_H_z
+#endif //_SCOUTER_CORE_BRIDGE_H_

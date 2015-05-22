@@ -9,11 +9,12 @@ import (
 )
 
 type CaptureConfig struct {
-	CameraID        int
-	URI             string
-	CaptureFromFile bool
-	FrameSkip       int
-	TickInterval    int
+	FrameProcessorConfig bridge.FrameProcessorConfig
+	CameraID             int
+	URI                  string
+	CaptureFromFile      bool
+	FrameSkip            int
+	TickInterval         int
 }
 
 type Capture struct {

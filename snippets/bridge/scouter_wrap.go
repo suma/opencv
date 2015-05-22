@@ -22,10 +22,6 @@ type TrackingResult struct {
 	p C.TrackingResult
 }
 
-type FrameProcessorConfig struct {
-	p C.FrameProcessorConfig
-}
-
 type FrameProcessor struct {
 	p C.FrameProcessor
 }

@@ -2,14 +2,16 @@ package demo
 
 import (
 	"pfi/scoutor-snippets/snippets"
+	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 )
 
 func demo() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
-	cap1_conf := snippets.CaptureConfig{
-		URI: "",
+	cap1_conf, err := conf.GetCaptureSnippetConfig("")
+	if err != nil {
+		return nil, err
 	}
 	cap1 := snippets.Capture{}
 	cap1.SetUp(cap1_conf)
