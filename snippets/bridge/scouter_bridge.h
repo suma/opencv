@@ -9,15 +9,16 @@ extern "C" {
 
 typedef void* Frame;
 typedef void* DetectionResult;
+typedef void* TrackingResult;
 typedef void* FrameProcessorConfig;
 typedef void* FrameProcessor;
 typedef void* DetectorConfig;
 typedef void* Detector;
-typedef void* RecognizeConfig;
-typedef void* ImageTaggerCaffes;
+typedef void* RecognizeConfigTaggers;
+typedef void* ImageTaggerCaffe;
+typedef void* Taggers;
 typedef void* Integrator;
 typedef void* IntegratorConfig;
-typedef void* TrackingResult;
 
 struct ByteArray Frame_Serialize(Frame f);
 Frame Freme_Deserialize(struct ByteArray src);
@@ -26,6 +27,10 @@ void Frame_Delete(Frame f);
 struct ByteArray DetectionResult_Serialize(DetectionResult dr);
 DetectionResult DetectionResult_Deserialize(struct ByteArray src);
 void DetectionResult_Delete(DetectionResult dr);
+
+struct ByteArray TrackingResult_Serialize(TrackingResult tr);
+TrackingResult TrackingResult_Deserialize(struct ByteArray src);
+void TrackingResult_Delete(TrackingResult tr);
 
 FrameProcessor FrameProcessor_New(FrameProcessorConfig config);
 void FrameProcessor_Delete(FrameProcessor fp);
@@ -38,20 +43,19 @@ DetectionResult Detector_Detect(Detector detector, Frame frame);
 MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms);
 unsigned long long Scouter_GetEpochms();
 
-void ImageTaggerCaffe_SetUp(ImageTaggerCaffes taggers, RecognizeConfig config);
-void ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffes taggers, Frame frame, DetectionResult dr,
-                                       DetectionResult resultDr, char** retByte, int* retLength);
-void RecognizeDrawResult(Frame frame, DetectionResult dr,
-                         char** drwByte, int* drwLength);
-void ConvertToDetectionResultPointer(char* drByte, DetectionResult dr);
+ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers taggers);
+void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers);
+DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr);
+Taggers RecognizeDrawResult(Frame frame, DetectionResult dr);
 
-void IntegratorSetUp(Integrator integrator, IntegratorConfig config);
+Integrator Integrator_New(IntegratorConfig config);
+void Integrator_Delete(Integrator integrator);
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
 int Integrator_TrackerReady(Integrator integrator);
-void Integrator_Track(Integrator integrator, TrackingResult tr, char** trByte, int* trLength);
+TrackingResult Integrator_Track(Integrator integrator);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //_SCOUTER_CORE_BRIDGE_H_
+#endif //_SCOUTER_CORE_BRIDGE_H_z

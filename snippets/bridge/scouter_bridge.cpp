@@ -2,12 +2,20 @@
 #include "util.hpp"
 
 #include <string>
+#include <vector>
+#include <map>
+#include <set>
 #include <opencv2/opencv.hpp>
 #include <scouter-core/frame.hpp>
 #include <scouter-core/frame_processor.hpp>
 #include <scouter-core/detection_result.hpp>
+#include <scouter-core/mv_detection_result.hpp>
+#include <scouter-core/tracking_result.hpp>
 #include <scouter-core/detector.hpp>
 #include <scouter-core/epochms.hpp>
+#include <scouter-core/image_tagger.hpp>
+#include <scouter-core/image_tagger_caffe.hpp>
+#include <scouter-core/integrator.hpp>
 
 struct ByteArray Frame_Serialize(Frame f) {
   return serializeObject(*static_cast<scouter::Frame*>(f));
@@ -31,6 +39,19 @@ DetectionResult DetectionResult_Deserialize(struct ByteArray src) {
 
 void DetectionResult_Delete(DetectionResult dr) {
   delete static_cast<scouter::DetectionResult*>(dr);
+}
+
+//TODO need to convert scouter::TrackingResult
+struct ByteArray TrackingResult_Serialize(TrackingResult tr) {
+  return serializeObject(*static_cast<scouter::DetectionResult*>(tr));
+}
+
+TrackingResult TrackingResult_Deserialize(struct ByteArray src) {
+  return deserializeObject<scouter::DetectionResult>(src);
+}
+
+void TrackingResult_Delete(TrackingResult tr) {
+  delete static_cast<scouter::DetectionResult*>(tr);
 }
 
 FrameProcessor FrameProcessor_New(FrameProcessorConfig config) {
@@ -95,40 +116,106 @@ unsigned long long Scouter_GetEpochms() {
   return scouter::get_epochms();
 }
 
-void ConvertToFramePointer(char* frByte, Frame frame) {
-  // msgpack::unpacked frMsg;
-  // msgpack::unpack(&frMsg, frByte, sizeof(frByte));
-  // msgpack::object frObj = frMsg.get();
-  // scouter::Frame fr;
-  // frObj.convert(&fr);
-  // frame = *fr;
+ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers configTaggers) {
+  std::vector<scouter::ImageTaggerCaffe::Config>& taggers = *static_cast<
+    std::vector<scouter::ImageTaggerCaffe::Config>*>(configTaggers);
+  std::vector<scouter::ImageTaggerCaffe>* target = new std::vector<scouter::ImageTaggerCaffe>();
+  for (size_t i = 0; i < taggers.size(); ++i) {
+    target->push_back(scouter::ImageTaggerCaffe(taggers[i]));
+  }
+  return target;
 }
 
-void ImageTaggerCaffe_SetUp(ImageTaggerCaffes taggers, RecognizeConfig config) {
-
-}
-void ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffes taggers, Frame frame, DetectionResult dr,
-                                       DetectionResult resultDr, char** retByte, int* retLength) {
-
-}
-void RecognizeDrawResult(Frame frame, DetectionResult dr,
-                         char** drwByte, int* drwLength) {
+void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers) {
+  delete static_cast<std::vector<scouter::ImageTaggerCaffe>*>(taggers);
 }
 
-void ConvertToDetectionResultPointer(char* drByte, DetectionResult dr) {
-
+DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr) {
+  std::vector<scouter::ImageTaggerCaffe>& tags = *static_cast<
+    std::vector<scouter::ImageTaggerCaffe>*>(taggers);
+  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
+  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
+  for (size_t i = 0; i < tags.size(); ++i) {
+    scouter::ImageTaggerCaffe tagger = tags[i];
+    tagger.predict_tags_batch(detected.object_candidates, fr);
+  }
+  return &detected;
 }
 
-void IntegratorSetUp(Integrator integrator, IntegratorConfig config) {
+std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
+    scouter::Frame& frame,
+    scouter::DetectionResult& dr) {
+  typedef std::map<std::string, cv::Scalar> ColorMap;
+  ColorMap color_map;   // TODO(tabe): make it configurable
+  color_map.insert(std::make_pair("Yes", cv::Scalar(0, 0, 255)));
+  color_map.insert(std::make_pair("No", cv::Scalar(96, 96, 96)));
+  color_map.insert(std::make_pair("Male", cv::Scalar(255, 0, 0)));
+  color_map.insert(std::make_pair("Female", cv::Scalar(0, 0, 255)));
 
+  std::set<std::string> tags;
+  for (size_t i = 0; i < dr.object_candidates.size(); ++i) {
+    const scouter::ObjectCandidate& o = dr.object_candidates[i];
+    for (size_t j = 0; j < o.tags.size(); ++j) {
+      tags.insert(o.tags[j].first);
+    }
+  }
+
+  std::map<std::string, cv::Mat_<cv::Vec3b> >* ret;
+  for (std::set<std::string>::const_iterator it = tags.begin();
+       it != tags.end(); ++it) {
+    cv::Mat_<cv::Vec3b> c = frame.image.clone();
+    for (size_t i = 0; i < dr.object_candidates.size(); ++i) {
+      const scouter::ObjectCandidate& o = dr.object_candidates[i];
+      if (o.tags.size() == 0) {
+        o.draw(c, cv::Scalar(96, 96, 96), 2);
+      }
+      for (size_t j = 0; j < o.tags.size(); ++j) {
+        if (o.tags[j].first != *it) {
+          continue;
+        }
+        o.draw(c, color_map[o.tags[j].second], 2);
+        break;
+      }
+    }
+    ret->insert(std::make_pair(*it, c));
+  }
+  return ret;
 }
+
+Taggers RecognizeDrawResult(Frame frame, DetectionResult dr) {
+  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
+  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
+  std::map<std::string, cv::Mat_<cv::Vec3b> >* target = draw_result(fr, detected);
+  return target;
+}
+
+Integrator Integrator_New(IntegratorConfig config) {
+  return new scouter::Integrator(
+    *static_cast<scouter::Integrator::Config*>(config));
+}
+
+void Integrator_Delete(Integrator integrator) {
+  delete static_cast<scouter::Integrator*>(integrator);
+}
+
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr) {
+  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
+  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
+  scouter::Integrator& itr = *static_cast<scouter::Integrator*>(integrator);
 
+  std::vector<scouter::Frame> frames;
+  frames.push_back(fr);
+  std::vector<scouter::DetectionResult> drs;
+  drs.push_back(detected);
+  itr.push(scouter::make_frames(frames), drs);
 }
+
 int Integrator_TrackerReady(Integrator integrator) {
-  return 1;
+  return static_cast<scouter::Integrator*>(integrator)->tracker_ready();
 }
-void  Integrator_Track(Integrator integrator, TrackingResult tr, char** trByte, int* trLength) {
 
+TrackingResult Integrator_Track(Integrator integrator) {
+  scouter::Integrator& itr = *static_cast<scouter::Integrator*>(integrator);
+  return new scouter::TrackingResult(itr.track());
 }
 

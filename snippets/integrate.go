@@ -23,8 +23,8 @@ type TrackingInfo struct {
 }
 
 func (itr *Integrate) Init(ctx *core.Context) error {
-	var integrator bridge.Integrator
-	bridge.IntegratorSetUp(integrator, nil) // TODO configuration
+	// TODO create configuration
+	integrator := bridge.Integrator_New(bridge.IntegratorConfig{})
 	itr.integrator = integrator
 	return nil
 }
@@ -38,19 +38,20 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	fr := bridge.DeserializeFrame(fi.fr)
 	dr := bridge.DeserializeDetectionResult(fi.dr)
 
-	bridge.Integrator_Push(itr.integrator, fr, dr)
-	if bridge.Integrator_TrackerReady(itr.integrator) {
+	itr.integrator.Integrator_Push(fr, dr)
+	if !itr.integrator.Integrator_TrackerReady() {
 		return nil // TODO set empty tracking result?
 	}
 
-	_, trByte := bridge.Integrator_Track(itr.integrator)
-	t.Data["tracking_result"] = tuple.Blob(trByte)
+	tr := itr.integrator.Integrator_Track()
+	t.Data["tracking_result"] = tuple.Blob(tr.Serialize())
 
 	if itr.Config.PlayerFlag {
 		// TODO draw result for debug
 	}
 
 	w.Write(ctx, t)
+	tr.Delete()
 	return nil
 }
 
@@ -87,5 +88,6 @@ func (itr *Integrate) OutputSchema([]*core.Schema) (*core.Schema, error) {
 }
 
 func (itr *Integrate) Terminate(ctx *core.Context) error {
+	itr.integrator.Delete()
 	return nil
 }

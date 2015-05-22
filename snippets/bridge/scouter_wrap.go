@@ -1,10 +1,10 @@
 package bridge
 
 /*
-#cgo linux pkg-config: scouter-core
-#cgo darwin pkg-config: scouter-core
-#cgo linux pkg-config: pficv
-#cgo darwin pkg-config: pficv
+#cgo darwin CXXFLAGS: -I/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Headers/ -DCPU_ONLY
+#cgo pkg-config: scouter-core
+#cgo pkg-config: pficv
+#cgo pkg-config: pficommon
 #include "scouter_bridge.h"
 #include "util.h"
 */
@@ -16,6 +16,10 @@ type Frame struct {
 
 type DetectionResult struct {
 	p C.DetectionResult
+}
+
+type TrackingResult struct {
+	p C.TrackingResult
 }
 
 type FrameProcessorConfig struct {
@@ -34,11 +38,25 @@ type Detector struct {
 	p C.Detector
 }
 
-type RecognizeConfig C.RecognizeConfig
-type ImageTaggerCaffes C.ImageTaggerCaffes
-type IntegratorConfig C.IntegratorConfig
-type Integrator C.Integrator
-type TrackingResult C.TrackingResult
+type RecognizeConfigTaggers struct {
+	p C.RecognizeConfigTaggers
+}
+
+type ImageTaggerCaffe struct {
+	p C.ImageTaggerCaffe
+}
+
+type Taggers struct {
+	p C.Taggers
+}
+
+type IntegratorConfig struct {
+	p C.IntegratorConfig
+}
+
+type Integrator struct {
+	p C.Integrator
+}
 
 func (f Frame) Serialize() []byte {
 	b := C.Frame_Serialize(f.p)
@@ -72,6 +90,23 @@ func DeserializeDetectionResult(d []byte) DetectionResult {
 func (d DetectionResult) Delete() {
 	C.DetectionResult_Delete(d.p)
 	d.p = nil
+}
+
+func (t TrackingResult) Serialize() []byte {
+	b := C.TrackingResult_Serialize(t.p)
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
+}
+
+func DeserializeTrackingResult(t []byte) TrackingResult {
+	b := toByteArray(t)
+	defer C.ByteArray_Release(b)
+	return TrackingResult{p: C.TrackingResult_Deserialize(b)}
+}
+
+func (t TrackingResult) Delete() {
+	C.TrackingResult_Delete(t.p)
+	t.p = nil
 }
 
 func NewFrameProcessor(config FrameProcessorConfig) FrameProcessor {
@@ -109,29 +144,43 @@ func Scouter_GetEpochms() uint64 {
 	return uint64(C.Scouter_GetEpochms())
 }
 
-func ImageTaggerCaffe_SetUp(taggers ImageTaggerCaffes, config RecognizeConfig) {
-	C.ImageTaggerCaffe_SetUp(C.ImageTaggerCaffes(taggers), C.RecognizeConfig(config))
+func ImageTaggerCaffe_New(configTaggers RecognizeConfigTaggers) ImageTaggerCaffe {
+	return ImageTaggerCaffe{
+		p: C.ImageTaggerCaffe_New(C.RecognizeConfigTaggers(configTaggers.p)),
+	}
 }
 
-func ImageTaggerCaffe_PredictTagsBatch(taggers ImageTaggerCaffes,
-	frame Frame, dr DetectionResult) (DetectionResult, []byte) {
-	return DetectionResult{}, []byte{}
+func (itc *ImageTaggerCaffe) Delete() {
+	C.ImageTaggerCaffe_Delete(itc.p)
+	itc.p = nil
 }
 
-func RecognizeDrawResult(frame Frame, dr DetectionResult) []byte {
-	return []byte{}
+func (itc *ImageTaggerCaffe) Recognize(
+	f Frame, dr DetectionResult) DetectionResult {
+	return DetectionResult{p: C.Recognize(itc.p, f.p, dr.p)}
 }
 
-func IntegratorSetUp(integrator Integrator, config IntegratorConfig) {
+func RecognizeDrawResult(f Frame, dr DetectionResult) Taggers {
+	return Taggers{p: C.RecognizeDrawResult(f.p, dr.p)}
 }
 
-func Integrator_Push(integrator Integrator, frame Frame, dr DetectionResult) {
+func Integrator_New(config IntegratorConfig) Integrator {
+	return Integrator{p: C.Integrator_New(config.p)}
 }
 
-func Integrator_TrackerReady(integrator Integrator) bool {
-	return false
+func (itr *Integrator) Delete() {
+	C.Integrator_Delete(itr.p)
+	itr.p = nil
 }
 
-func Integrator_Track(integrator Integrator) (TrackingResult, []byte) {
-	return nil, []byte{}
+func (itr *Integrator) Integrator_Push(f Frame, dr DetectionResult) {
+	C.Integrator_Push(itr.p, f.p, dr.p)
+}
+
+func (itr *Integrator) Integrator_TrackerReady() bool {
+	return C.Integrator_TrackerReady(itr.p) != 0
+}
+
+func (itr *Integrator) Integrator_Track() TrackingResult {
+	return TrackingResult{C.Integrator_Track(itr.p)}
 }

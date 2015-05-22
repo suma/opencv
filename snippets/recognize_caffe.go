@@ -12,8 +12,8 @@ type RecognizeCaffeConfig struct {
 }
 
 type RecognizeCaffe struct {
-	Config        RecognizeCaffeConfig
-	frameInfoChan chan FrameInfo
+	Config  RecognizeCaffeConfig
+	taggers bridge.ImageTaggerCaffe
 }
 
 type FrameInfo struct {
@@ -23,6 +23,9 @@ type FrameInfo struct {
 }
 
 func (rc *RecognizeCaffe) Init(ctx *core.Context) error {
+	// TODO create configuration
+	taggers := bridge.ImageTaggerCaffe_New(bridge.RecognizeConfigTaggers{})
+	rc.taggers = taggers
 	return nil
 }
 
@@ -71,15 +74,14 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 	fr := bridge.DeserializeFrame(fi.fr)
 	dr := bridge.DeserializeDetectionResult(fi.dr)
 
-	var taggers bridge.ImageTaggerCaffes
-	bridge.ImageTaggerCaffe_SetUp(taggers, nil) // TODO set up recognize configuration
-	recogDr, recogDrByte := bridge.ImageTaggerCaffe_PredictTagsBatch(taggers, fr, dr)
-
-	t.Data["recognize_detection_result"] = tuple.Blob(recogDrByte)
+	recogDr := rc.taggers.Recognize(fr, dr)
+	t.Data["recognize_detection_result"] = tuple.Blob(recogDr.Serialize())
 
 	if rc.Config.PlayerFlag {
 		drwResult := bridge.RecognizeDrawResult(fr, recogDr)
-		t.Data["recognize_draw_result"] = tuple.Blob(drwResult)
+		fmt.Println(drwResult)
+		// TODO convert to map[string]
+		//t.Data["recognize_draw_result"] = tuple.Blob(drwResult)
 	}
 
 	fr.Delete()
@@ -95,5 +97,6 @@ func (rc *RecognizeCaffe) OutputSchema(ss []*core.Schema) (*core.Schema, error) 
 }
 
 func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {
+	rc.taggers.Delete()
 	return nil
 }

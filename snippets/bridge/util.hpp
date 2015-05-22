@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _BRIDGE_UTIL_HPP_
+#define _BRIDGE_UTIL_HPP_
 
 #include "util.h"
 #include <cstdlib>
@@ -23,3 +24,5 @@ T* deserializeObject(const ByteArray& src) {
   obj.convert(ret);
   return ret;
 }
+
+#endif // _BRIDGE_UTIL_HPP_
