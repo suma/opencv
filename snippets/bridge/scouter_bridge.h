@@ -12,13 +12,10 @@ typedef void* Frame;
 typedef void* DetectionResult;
 typedef void* TrackingResult;
 typedef void* FrameProcessor;
-typedef void* DetectorConfig;
 typedef void* Detector;
-typedef void* RecognizeConfigTaggers;
 typedef void* ImageTaggerCaffe;
 typedef void* Taggers;
 typedef void* Integrator;
-typedef void* IntegratorConfig;
 
 struct ByteArray Frame_Serialize(Frame f);
 Frame Freme_Deserialize(struct ByteArray src);

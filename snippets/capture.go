@@ -3,27 +3,23 @@ package snippets
 import (
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
 	"time"
 )
 
-type CaptureConfig struct {
-	FrameProcessorConfig bridge.FrameProcessorConfig
-	CameraID             int
-	URI                  string
-	CaptureFromFile      bool
-	FrameSkip            int
-	TickInterval         int
-}
-
 type Capture struct {
-	config CaptureConfig
+	config conf.CaptureConfig
 	vcap   bridge.VideoCapture
 	fp     bridge.FrameProcessor
 }
 
-func (c *Capture) SetUp(config CaptureConfig) error {
+func (c *Capture) SetUp(configFilePath string) error {
+	config, err := conf.GetCaptureSnippetConfig(configFilePath)
+	if err != nil {
+		return err
+	}
 	c.config = config
 	vcap := bridge.NewVideoCapture()
 	if ok := vcap.Open(config.URI); !ok {
@@ -31,7 +27,7 @@ func (c *Capture) SetUp(config CaptureConfig) error {
 	}
 	c.vcap = vcap
 
-	fp := bridge.NewFrameProcessor(bridge.FrameProcessorConfig{}) // TODO create configure
+	fp := bridge.NewFrameProcessor(config.FrameProcessorConfig)
 	c.fp = fp
 
 	return nil
@@ -86,7 +82,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			}
 			rootBuf.CopyTo(buf)
 			if buf.Empty() {
-				continue
+				return nil //continue
 			}
 		}
 
@@ -111,6 +107,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 }
 
 func (c *Capture) Stop(ctx *core.Context) error {
+	c.config.FrameProcessorConfig.Delete()
 	c.fp.Delete()
 	c.vcap.Delete()
 	return nil

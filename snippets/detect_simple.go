@@ -3,22 +3,24 @@ package snippets
 import (
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
 )
 
-type DetectSimpleConfig struct {
-	PlayerFlag  bool
-	JpegQuality int
-}
-
 type DetectSimple struct {
-	Config   DetectSimpleConfig
-	detector bridge.Detector
+	ConfigPath string
+	Config     conf.DetectSimpleConfig
+	detector   bridge.Detector
 }
 
 func (d *DetectSimple) Init(ctx *core.Context) error {
-	detector := bridge.NewDetector(bridge.DetectorConfig{}) // TODO create configuration
+	detectConfig, err := conf.GetDetectSimpleSnippetConfig(d.ConfigPath)
+	if err != nil {
+		return err
+	}
+	d.Config = detectConfig
+	detector := bridge.NewDetector(detectConfig.DetectorConfig)
 	d.detector = detector
 	return nil
 }
@@ -68,6 +70,7 @@ func (d *DetectSimple) OutputSchema(s map[string]*core.Schema) (*core.Schema, er
 }
 
 func (d *DetectSimple) Terminate(ctx *core.Context) error {
+	d.Config.DetectorConfig.Delete()
 	d.detector.Delete()
 	return nil
 }

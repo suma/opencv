@@ -3,17 +3,15 @@ package snippets
 import (
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
 )
 
-type RecognizeCaffeConfig struct {
-	PlayerFlag bool
-}
-
 type RecognizeCaffe struct {
-	Config  RecognizeCaffeConfig
-	taggers bridge.ImageTaggerCaffe
+	ConfigPath string
+	Config     conf.RecognizeCaffeConfig
+	taggers    bridge.ImageTaggerCaffe
 }
 
 type FrameInfo struct {
@@ -23,8 +21,12 @@ type FrameInfo struct {
 }
 
 func (rc *RecognizeCaffe) Init(ctx *core.Context) error {
-	// TODO create configuration
-	taggers := bridge.ImageTaggerCaffe_New(bridge.RecognizeConfigTaggers{})
+	config, err := conf.GetRecognizeCaffeSnippetConfig(rc.ConfigPath)
+	if err != nil {
+		return err
+	}
+	rc.Config = config
+	taggers := bridge.ImageTaggerCaffe_New(config.ConfigTaggers)
 	rc.taggers = taggers
 	return nil
 }
@@ -97,6 +99,7 @@ func (rc *RecognizeCaffe) OutputSchema(s map[string]*core.Schema) (*core.Schema,
 }
 
 func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {
+	rc.Config.ConfigTaggers.Delete()
 	rc.taggers.Delete()
 	return nil
 }

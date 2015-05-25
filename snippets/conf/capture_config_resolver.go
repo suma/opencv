@@ -4,12 +4,20 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scoutor-snippets/snippets"
 	"pfi/scoutor-snippets/snippets/bridge"
 )
 
-func GetCaptureSnippetConfig(filePath string) (snippets.CaptureConfig, error) {
-	conf := snippets.CaptureConfig{}
+type CaptureConfig struct {
+	FrameProcessorConfig bridge.FrameProcessorConfig
+	CameraID             int
+	URI                  string
+	CaptureFromFile      bool
+	FrameSkip            int
+	TickInterval         int
+}
+
+func GetCaptureSnippetConfig(filePath string) (CaptureConfig, error) {
+	conf := CaptureConfig{}
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return conf, err
@@ -28,7 +36,7 @@ func GetCaptureSnippetConfig(filePath string) (snippets.CaptureConfig, error) {
 	}
 	fpc := bridge.FrameProcessorConfig_New(string(b))
 
-	return snippets.CaptureConfig{
+	return CaptureConfig{
 		FrameProcessorConfig: fpc,
 		CameraID:             captureConfig.CameraID,
 		URI:                  captureConfig.URI,

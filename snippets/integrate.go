@@ -3,16 +3,14 @@ package snippets
 import (
 	"fmt"
 	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
 )
 
-type IntegrateConfig struct {
-	PlayerFlag bool
-}
-
 type Integrate struct {
-	Config     IntegrateConfig
+	ConfigPath string
+	Config     conf.IntegrateConfig
 	integrator bridge.Integrator
 }
 
@@ -23,8 +21,12 @@ type TrackingInfo struct {
 }
 
 func (itr *Integrate) Init(ctx *core.Context) error {
-	// TODO create configuration
-	integrator := bridge.Integrator_New(bridge.IntegratorConfig{})
+	config, err := conf.GetIntegrateConfig(itr.ConfigPath)
+	if err != nil {
+		return err
+	}
+	itr.Config = config
+	integrator := bridge.Integrator_New(config.IntegrateConfig)
 	itr.integrator = integrator
 	return nil
 }
@@ -88,6 +90,7 @@ func (itr *Integrate) OutputSchema(s map[string]*core.Schema) (*core.Schema, err
 }
 
 func (itr *Integrate) Terminate(ctx *core.Context) error {
+	itr.Config.IntegrateConfig.Delete()
 	itr.integrator.Delete()
 	return nil
 }

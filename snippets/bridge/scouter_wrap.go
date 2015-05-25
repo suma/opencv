@@ -26,16 +26,8 @@ type FrameProcessor struct {
 	p C.FrameProcessor
 }
 
-type DetectorConfig struct {
-	p C.DetectorConfig
-}
-
 type Detector struct {
 	p C.Detector
-}
-
-type RecognizeConfigTaggers struct {
-	p C.RecognizeConfigTaggers
 }
 
 type ImageTaggerCaffe struct {
@@ -44,10 +36,6 @@ type ImageTaggerCaffe struct {
 
 type Taggers struct {
 	p C.Taggers
-}
-
-type IntegratorConfig struct {
-	p C.IntegratorConfig
 }
 
 type Integrator struct {

@@ -1,37 +1,32 @@
-package demo
+package main
 
 import (
+	"fmt"
 	"pfi/scoutor-snippets/snippets"
-	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 )
 
 func demo() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
-	cap1_conf, err := conf.GetCaptureSnippetConfig("")
-	if err != nil {
-		return nil, err
-	}
+	// TODO use relative URI
+	confPath := "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scoutor-snippets/examples/"
 	cap1 := snippets.Capture{}
-	cap1.SetUp(cap1_conf)
+	cap1.SetUp(confPath + "capture[0].json")
 	tb.AddSource("cap1", &cap1)
 
-	ds_conf := snippets.DetectSimpleConfig{}
 	ds := snippets.DetectSimple{
-		Config: ds_conf,
+		ConfigPath: confPath + "detect[0].json",
 	}
 	tb.AddBox("detect_simple", &ds).Input("cap1")
 
-	rc_conf := snippets.RecognizeCaffeConfig{}
 	rc := snippets.RecognizeCaffe{
-		Config: rc_conf,
+		ConfigPath: confPath + "recognize_caffe[0].json",
 	}
 	tb.AddBox("recognize_caffe", &rc).Input("detect_simple")
 
-	itr_conf := snippets.IntegrateConfig{}
 	itr := snippets.Integrate{
-		Config: itr_conf,
+		ConfigPath: confPath + "integrate[0].json",
 	}
 	tb.AddBox("integrate", &itr).Input("recognize_caffe")
 
@@ -42,4 +37,21 @@ func demo() (core.StaticTopology, error) {
 	tb.AddSink("data_sender", &sender).Input("integrate")
 
 	return tb.Build()
+}
+
+func main() {
+	topoloby, err := demo()
+	if err != nil {
+		fmt.Printf("topology build error: %v", err.Error())
+		return
+	}
+	logManager := core.NewConsolePrintLogger()
+	conf := core.Configuration{
+		TupleTraceEnabled: 1,
+	}
+	ctx := core.Context{
+		Logger: logManager,
+		Config: conf,
+	}
+	topoloby.Run(&ctx)
 }
