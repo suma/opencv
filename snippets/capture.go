@@ -86,7 +86,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			if rootBufErr != nil {
 				return rootBufErr
 			}
-			mu.RLocker()
+			mu.RLock()
 			defer mu.RUnlock()
 			rootBuf.CopyTo(buf)
 			if buf.Empty() {
