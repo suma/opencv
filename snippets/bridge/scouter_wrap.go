@@ -2,13 +2,18 @@ package bridge
 
 /*
 #cgo darwin CXXFLAGS: -I/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Headers/ -DCPU_ONLY
+#cgo LDFLAGS: -ljsonconfig
 #cgo pkg-config: scouter-core
 #cgo pkg-config: pficv
 #cgo pkg-config: pficommon
+#include <stdlib.h>
 #include "scouter_bridge.h"
 #include "util.h"
 */
 import "C"
+import (
+	"unsafe"
+)
 
 type Frame struct {
 	p C.Frame
@@ -93,8 +98,10 @@ func (t TrackingResult) Delete() {
 	t.p = nil
 }
 
-func NewFrameProcessor(config FrameProcessorConfig) FrameProcessor {
-	return FrameProcessor{p: C.FrameProcessor_New(config.p)}
+func NewFrameProcessor(config string) FrameProcessor {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return FrameProcessor{p: C.FrameProcessor_New(cConfig)}
 }
 
 func (fp *FrameProcessor) Delete() {
@@ -107,8 +114,10 @@ func (fp *FrameProcessor) Apply(buf MatVec3b, timestamp int64,
 	return Frame{p: C.FrameProcessor_Apply(fp.p, buf.p, C.longlong(timestamp), C.int(cameraID))}
 }
 
-func NewDetector(config DetectorConfig) Detector {
-	return Detector{p: C.Detector_New(config.p)}
+func NewDetector(config string) Detector {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return Detector{p: C.Detector_New(cConfig)}
 }
 
 func (d *Detector) Delete() {
@@ -124,9 +133,11 @@ func DetectDrawResult(f Frame, dr DetectionResult, ms int64) MatVec3b {
 	return MatVec3b{p: C.DetectDrawResult(f.p, dr.p, C.longlong(ms))}
 }
 
-func ImageTaggerCaffe_New(configTaggers RecognizeConfigTaggers) ImageTaggerCaffe {
+func NewImageTaggerCaffe(configTaggers string) ImageTaggerCaffe {
+	cConfig := C.CString(configTaggers)
+	defer C.free(unsafe.Pointer(cConfig))
 	return ImageTaggerCaffe{
-		p: C.ImageTaggerCaffe_New(C.RecognizeConfigTaggers(configTaggers.p)),
+		p: C.ImageTaggerCaffe_New(cConfig),
 	}
 }
 
@@ -144,8 +155,10 @@ func RecognizeDrawResult(f Frame, dr DetectionResult) Taggers {
 	return Taggers{p: C.RecognizeDrawResult(f.p, dr.p)}
 }
 
-func Integrator_New(config IntegratorConfig) Integrator {
-	return Integrator{p: C.Integrator_New(config.p)}
+func NewIntegrator(config string) Integrator {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return Integrator{p: C.Integrator_New(cConfig)}
 }
 
 func (itr *Integrator) Delete() {

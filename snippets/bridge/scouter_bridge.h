@@ -1,7 +1,6 @@
 #ifndef _SCOUTER_CORE_BRIDGE_H_
 #define _SCOUTER_CORE_BRIDGE_H_
 
-#include "config_bridge.h"
 #include "opencv_bridge.h"
 
 #ifdef __cplusplus
@@ -29,22 +28,22 @@ struct ByteArray TrackingResult_Serialize(TrackingResult tr);
 TrackingResult TrackingResult_Deserialize(struct ByteArray src);
 void TrackingResult_Delete(TrackingResult tr);
 
-FrameProcessor FrameProcessor_New(FrameProcessorConfig config);
+FrameProcessor FrameProcessor_New(const char *config);
 void FrameProcessor_Delete(FrameProcessor fp);
 Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
                            long long timestamp, int cameraID);
 
-Detector Detector_New(DetectorConfig config);
+Detector Detector_New(const char *config);
 void Detector_Delete(Detector detector);
 DetectionResult Detector_Detect(Detector detector, Frame frame);
 MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms);
 
-ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers taggers);
+ImageTaggerCaffe ImageTaggerCaffe_New(const char *config);
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers);
 DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr);
 Taggers RecognizeDrawResult(Frame frame, DetectionResult dr);
 
-Integrator Integrator_New(IntegratorConfig config);
+Integrator Integrator_New(const char *config);
 void Integrator_Delete(Integrator integrator);
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
 int Integrator_TrackerReady(Integrator integrator);

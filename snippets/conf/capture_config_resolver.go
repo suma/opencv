@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scouter-snippets/snippets/bridge"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 )
 
 type CaptureConfig struct {
-	FrameProcessorConfig bridge.FrameProcessorConfig
+	FrameProcessorConfig string
 	CameraID             int
 	URI                  string
 	CaptureFromFile      bool
@@ -42,7 +41,7 @@ func GetCaptureSnippetConfig(filePath string) (CaptureConfig, error) {
 	if err != nil {
 		return conf, err
 	}
-	fpc := bridge.FrameProcessorConfig_New(string(b))
+	fpc := string(b)
 
 	return CaptureConfig{
 		FrameProcessorConfig: fpc,

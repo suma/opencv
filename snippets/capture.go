@@ -105,7 +105,6 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			if ok := c.vcap.Read(buf); !ok {
 				return fmt.Errorf("cannot read a new frame")
 			}
-			return nil
 			if config.FrameSkip > 0 {
 				for i := 0; i < config.FrameSkip; i++ {
 					// TODO considering biding cost
@@ -146,7 +145,6 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 
 func (c *Capture) Stop(ctx *core.Context) error {
 	c.finish = true
-	c.config.FrameProcessorConfig.Delete()
 	c.fp.Delete()
 	c.vcap.Delete()
 	return nil

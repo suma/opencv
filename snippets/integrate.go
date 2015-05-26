@@ -26,7 +26,7 @@ func (itr *Integrate) Init(ctx *core.Context) error {
 		return err
 	}
 	itr.Config = config
-	integrator := bridge.Integrator_New(config.IntegrateConfig)
+	integrator := bridge.NewIntegrator(config.IntegrateConfig)
 	itr.integrator = integrator
 	return nil
 }
@@ -82,7 +82,6 @@ func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
 }
 
 func (itr *Integrate) Terminate(ctx *core.Context) error {
-	itr.Config.IntegrateConfig.Delete()
 	itr.integrator.Delete()
 	return nil
 }

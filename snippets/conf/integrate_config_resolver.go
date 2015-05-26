@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scouter-snippets/snippets/bridge"
 )
 
 type IntegrateConfig struct {
-	IntegrateConfig bridge.IntegratorConfig
+	IntegrateConfig string
 	PlayerFlag      bool
 }
 
@@ -30,7 +29,7 @@ func GetIntegrateConfig(filePath string) (IntegrateConfig, error) {
 	if err != nil {
 		return conf, err
 	}
-	ic := bridge.IntegratorConfig_New(string(b))
+	ic := string(b)
 
 	return IntegrateConfig{
 		IntegrateConfig: ic,

@@ -63,7 +63,6 @@ func getFrame(t *tuple.Tuple) ([]byte, error) {
 }
 
 func (d *DetectSimple) Terminate(ctx *core.Context) error {
-	d.Config.DetectorConfig.Delete()
 	d.detector.Delete()
 	return nil
 }

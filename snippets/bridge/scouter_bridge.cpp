@@ -2,9 +2,12 @@
 #include "util.hpp"
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <set>
+#include <pficommon/text/json.h>
+#include <jsonconfig.hpp>
 #include <opencv2/opencv.hpp>
 #include <scouter-core/frame.hpp>
 #include <scouter-core/frame_processor.hpp>
@@ -16,6 +19,14 @@
 #include <scouter-core/image_tagger.hpp>
 #include <scouter-core/image_tagger_caffe.hpp>
 #include <scouter-core/integrator.hpp>
+
+template <class Type>
+Type load_json(const char *config) {
+  std::stringstream ss(config);
+  pfi::text::json::json config_raw;
+  ss >> config_raw;
+  return jsonconfig::config_cast<Type>(jsonconfig::config_root(config_raw));
+}
 
 struct ByteArray Frame_Serialize(Frame f) {
   return serializeObject(*static_cast<scouter::Frame*>(f));
@@ -54,9 +65,10 @@ void TrackingResult_Delete(TrackingResult tr) {
   delete static_cast<scouter::DetectionResult*>(tr);
 }
 
-FrameProcessor FrameProcessor_New(FrameProcessorConfig config) {
-  return new scouter::FrameProcessor(
-    *static_cast<scouter::FrameProcessor::Config*>(config));
+FrameProcessor FrameProcessor_New(const char *config) {
+  scouter::FrameProcessor::Config fpc =
+      load_json<scouter::FrameProcessor::Config>(config);
+  return new scouter::FrameProcessor(fpc);
 }
 
 void FrameProcessor_Delete(FrameProcessor fp) {
@@ -72,9 +84,9 @@ Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
   return new scouter::Frame(processor->apply(*mat, meta));
 }
 
-Detector Detector_New(DetectorConfig config) {
-  return new scouter::Detector(
-    *static_cast<scouter::Detector::Config*>(config));
+Detector Detector_New(const char *config) {
+  scouter::Detector::Config dc = load_json<scouter::Detector::Config>(config);
+  return new scouter::Detector(dc);
 }
 
 void Detector_Delete(Detector detector) {
@@ -112,9 +124,9 @@ MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms) {
   return target;
 }
 
-ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers configTaggers) {
-  std::vector<scouter::ImageTaggerCaffe::Config>& taggers = *static_cast<
-    std::vector<scouter::ImageTaggerCaffe::Config>*>(configTaggers);
+ImageTaggerCaffe ImageTaggerCaffe_New(const char *config) {
+  std::vector<scouter::ImageTaggerCaffe::Config> taggers =
+      load_json<std:: vector<scouter::ImageTaggerCaffe::Config> >(config);
   std::vector<scouter::ImageTaggerCaffe>* target = new std::vector<scouter::ImageTaggerCaffe>();
   for (size_t i = 0; i < taggers.size(); ++i) {
     target->push_back(scouter::ImageTaggerCaffe(taggers[i]));
@@ -185,9 +197,9 @@ Taggers RecognizeDrawResult(Frame frame, DetectionResult dr) {
   return target;
 }
 
-Integrator Integrator_New(IntegratorConfig config) {
-  return new scouter::Integrator(
-    *static_cast<scouter::Integrator::Config*>(config));
+Integrator Integrator_New(const char *config) {
+  scouter::Integrator::Config ic = load_json<scouter::Integrator::Config>(config);
+  return new scouter::Integrator(ic);
 }
 
 void Integrator_Delete(Integrator integrator) {

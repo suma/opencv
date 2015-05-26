@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scouter-snippets/snippets/bridge"
 )
 
 type DetectSimpleConfig struct {
-	DetectorConfig bridge.DetectorConfig
+	DetectorConfig string
 	PlayerFlag     bool
 	JpegQuality    int
 }
@@ -31,7 +30,7 @@ func GetDetectSimpleSnippetConfig(filePath string) (DetectSimpleConfig, error) {
 	if err != nil {
 		return conf, err
 	}
-	dc := bridge.DetectorConfig_New(string(b))
+	dc := string(b)
 
 	return DetectSimpleConfig{
 		DetectorConfig: dc,

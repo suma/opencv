@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scouter-snippets/snippets/bridge"
 )
 
 type RecognizeCaffeConfig struct {
-	ConfigTaggers bridge.RecognizeConfigTaggers
+	ConfigTaggers string
 	PlayerFlag    bool
 }
 
@@ -30,7 +29,7 @@ func GetRecognizeCaffeSnippetConfig(filePath string) (RecognizeCaffeConfig, erro
 	if err != nil {
 		return conf, err
 	}
-	taggers := bridge.RecognizeConfigTaggers_New(string(b))
+	taggers := string(b)
 
 	return RecognizeCaffeConfig{
 		ConfigTaggers: taggers,

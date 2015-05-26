@@ -26,7 +26,7 @@ func (rc *RecognizeCaffe) Init(ctx *core.Context) error {
 		return err
 	}
 	rc.Config = config
-	taggers := bridge.ImageTaggerCaffe_New(config.ConfigTaggers)
+	taggers := bridge.NewImageTaggerCaffe(config.ConfigTaggers)
 	rc.taggers = taggers
 	return nil
 }
@@ -91,7 +91,6 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 }
 
 func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {
-	rc.Config.ConfigTaggers.Delete()
 	rc.taggers.Delete()
 	return nil
 }
