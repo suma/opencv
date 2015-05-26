@@ -6,6 +6,7 @@ import (
 	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"time"
 )
 
 type DetectSimple struct {
@@ -32,14 +33,14 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 	}
 
 	fPointer := bridge.DeserializeFrame(f)
-	s := bridge.Scouter_GetEpochms()
+	s := time.Now().UnixNano() / int64(time.Millisecond)
 	drPointer := d.detector.Detect(fPointer)
 
 	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
 	t.Data["detection_time"] = tuple.Timestamp(t.Timestamp) // same as frame create time
 
 	if d.Config.PlayerFlag {
-		ms := bridge.Scouter_GetEpochms() - s
+		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
 		drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
 		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
 	}

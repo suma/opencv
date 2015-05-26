@@ -120,12 +120,8 @@ func (d *Detector) Detect(f Frame) DetectionResult {
 	return DetectionResult{p: C.Detector_Detect(d.p, f.p)}
 }
 
-func DetectDrawResult(f Frame, dr DetectionResult, ms uint64) MatVec3b {
+func DetectDrawResult(f Frame, dr DetectionResult, ms int64) MatVec3b {
 	return MatVec3b{p: C.DetectDrawResult(f.p, dr.p, C.longlong(ms))}
-}
-
-func Scouter_GetEpochms() uint64 {
-	return uint64(C.Scouter_GetEpochms())
 }
 
 func ImageTaggerCaffe_New(configTaggers RecognizeConfigTaggers) ImageTaggerCaffe {

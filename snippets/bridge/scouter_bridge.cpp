@@ -112,10 +112,6 @@ MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms) {
   return target;
 }
 
-unsigned long long Scouter_GetEpochms() {
-  return scouter::get_epochms();
-}
-
 ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers configTaggers) {
   std::vector<scouter::ImageTaggerCaffe::Config>& taggers = *static_cast<
     std::vector<scouter::ImageTaggerCaffe::Config>*>(configTaggers);

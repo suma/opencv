@@ -38,7 +38,6 @@ Detector Detector_New(DetectorConfig config);
 void Detector_Delete(Detector detector);
 DetectionResult Detector_Detect(Detector detector, Frame frame);
 MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms);
-unsigned long long Scouter_GetEpochms();
 
 ImageTaggerCaffe ImageTaggerCaffe_New(RecognizeConfigTaggers taggers);
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers);
