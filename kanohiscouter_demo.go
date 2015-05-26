@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"pfi/scoutor-snippets/snippets"
+	"pfi/scouter-snippets/snippets"
 	"pfi/sensorbee/sensorbee/core"
 )
 

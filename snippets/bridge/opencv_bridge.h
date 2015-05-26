@@ -20,6 +20,8 @@ typedef void* VideoCapture;
 VideoCapture VideoCapture_New();
 void VideoCapture_Delete(VideoCapture v);
 int VideoCapture_Open(VideoCapture v, const char* uri);
+int VideoCapture_OpenDevice(VideoCapture v, int device);
+void VideoCapture_Set(VideoCapture v, int prop, int param);
 int VideoCapture_IsOpened(VideoCapture v);
 int VideoCapture_Read(VideoCapture v, MatVec3b buf);
 void VideoCapture_Grab(VideoCapture v);

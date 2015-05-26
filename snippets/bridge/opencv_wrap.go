@@ -59,6 +59,14 @@ func (v *VideoCapture) Open(uri string) bool {
 	return C.VideoCapture_Open(v.p, c_uri) != 0
 }
 
+func (v *VideoCapture) OpenDevice(device int) bool {
+	return C.VideoCapture_OpenDevice(v.p, C.int(device)) != 0
+}
+
+func (v *VideoCapture) Set(prop int, param int) {
+	C.VideoCapture_Set(v.p, C.int(prop), C.int(param))
+}
+
 func (v *VideoCapture) IsOpened() bool {
 	isOpened := C.VideoCapture_IsOpened(v.p)
 	return isOpened != 0

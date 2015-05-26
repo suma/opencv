@@ -4,7 +4,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scouter-snippets/snippets/bridge"
+)
+
+const (
+	CvCapPropFrameWidth  = 3
+	CvCapPropFrameHeight = 4
+	CvCapPropFps         = 5
 )
 
 type CaptureConfig struct {
@@ -13,6 +19,8 @@ type CaptureConfig struct {
 	URI                  string
 	CaptureFromFile      bool
 	FrameSkip            int
+	Width                int
+	Height               int
 	TickInterval         int
 }
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
-	"pfi/scoutor-snippets/snippets/bridge"
+	"pfi/scouter-snippets/snippets/bridge"
 )
 
 type IntegrateConfig struct {

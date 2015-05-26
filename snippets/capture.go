@@ -2,18 +2,25 @@ package snippets
 
 import (
 	"fmt"
-	"pfi/scoutor-snippets/snippets/bridge"
-	"pfi/scoutor-snippets/snippets/conf"
+	"pfi/scouter-snippets/snippets/bridge"
+	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
+)
+
+const (
+	devicePrefix = "device://"
 )
 
 type Capture struct {
 	config conf.CaptureConfig
 	vcap   bridge.VideoCapture
 	fp     bridge.FrameProcessor
+	finish bool
 }
 
 func (c *Capture) SetUp(configFilePath string) error {
@@ -23,14 +30,36 @@ func (c *Capture) SetUp(configFilePath string) error {
 	}
 	c.config = config
 	vcap := bridge.NewVideoCapture()
-
-	if ok := vcap.Open(config.URI); !ok {
-		return fmt.Errorf("error opening video stream or file : %v", config.URI)
-	}
 	c.vcap = vcap
+
+	if strings.HasPrefix(config.URI, devicePrefix) {
+		deviceNoStr := config.URI[len(devicePrefix):len(config.URI)]
+		deviceNo, err := strconv.Atoi(deviceNoStr)
+		if err != nil {
+			return fmt.Errorf("error opening device: %v", deviceNoStr)
+		}
+		if ok := vcap.OpenDevice(deviceNo); !ok {
+			return fmt.Errorf("error opening device: %v", deviceNoStr)
+		}
+		if config.Width != 0 {
+			vcap.Set(conf.CvCapPropFrameWidth, config.Width)
+		}
+		if config.Height != 0 {
+			vcap.Set(conf.CvCapPropFrameHeight, config.Height)
+		}
+		if config.TickInterval != 0 {
+			vcap.Set(conf.CvCapPropFps, 1000.0/config.TickInterval)
+		}
+	} else {
+		if ok := vcap.Open(config.URI); !ok {
+			return fmt.Errorf("error opening video stream or file: %v", config.URI)
+		}
+	}
 
 	fp := bridge.NewFrameProcessor(config.FrameProcessorConfig)
 	c.fp = fp
+
+	c.finish = false
 
 	return nil
 }
@@ -71,11 +100,12 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		}(rootBuf)
 	}
 
-	for { // TODO add stop command and using goroutine
+	for !c.finish { // TODO add stop command and using goroutine
 		if config.CaptureFromFile {
 			if ok := c.vcap.Read(buf); !ok {
 				return fmt.Errorf("cannot read a new frame")
 			}
+			return nil
 			if config.FrameSkip > 0 {
 				for i := 0; i < config.FrameSkip; i++ {
 					// TODO considering biding cost
@@ -115,6 +145,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 }
 
 func (c *Capture) Stop(ctx *core.Context) error {
+	c.finish = true
 	c.config.FrameProcessorConfig.Delete()
 	c.fp.Delete()
 	c.vcap.Delete()

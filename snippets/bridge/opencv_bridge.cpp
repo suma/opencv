@@ -42,6 +42,14 @@ int VideoCapture_Open(VideoCapture v, const char* uri) {
   return static_cast<cv::VideoCapture*>(v)->open(uri);
 }
 
+int VideoCapture_OpenDevice(VideoCapture v, int device) {
+  return static_cast<cv::VideoCapture*>(v)->open(device);
+}
+
+void VideoCapture_Set(VideoCapture v, int prop, int param) {
+  static_cast<cv::VideoCapture*>(v)->set(prop, param);
+}
+
 int VideoCapture_IsOpened(VideoCapture v) {
   return static_cast<cv::VideoCapture*>(v)->isOpened();
 }

@@ -2,8 +2,8 @@ package snippets
 
 import (
 	"fmt"
-	"pfi/scoutor-snippets/snippets/bridge"
-	"pfi/scoutor-snippets/snippets/conf"
+	"pfi/scouter-snippets/snippets/bridge"
+	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
 	"time"
