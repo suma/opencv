@@ -61,14 +61,6 @@ func getFrame(t *tuple.Tuple) ([]byte, error) {
 	return frame, nil
 }
 
-func (d *DetectSimple) InputConstraints() (*core.BoxInputConstraints, error) {
-	return nil, nil
-}
-
-func (d *DetectSimple) OutputSchema(s map[string]*core.Schema) (*core.Schema, error) {
-	return nil, nil
-}
-
 func (d *DetectSimple) Terminate(ctx *core.Context) error {
 	d.Config.DetectorConfig.Delete()
 	d.detector.Delete()

@@ -81,14 +81,6 @@ func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
 		dr: detectionResult}, nil
 }
 
-func (itr *Integrate) InputConstraints() (*core.BoxInputConstraints, error) {
-	return nil, nil
-}
-
-func (itr *Integrate) OutputSchema(s map[string]*core.Schema) (*core.Schema, error) {
-	return nil, nil
-}
-
 func (itr *Integrate) Terminate(ctx *core.Context) error {
 	itr.Config.IntegrateConfig.Delete()
 	itr.integrator.Delete()

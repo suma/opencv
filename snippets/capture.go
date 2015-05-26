@@ -6,6 +6,7 @@ import (
 	"pfi/scoutor-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"sync"
 	"time"
 )
 
@@ -22,6 +23,7 @@ func (c *Capture) SetUp(configFilePath string) error {
 	}
 	c.config = config
 	vcap := bridge.NewVideoCapture()
+
 	if ok := vcap.Open(config.URI); !ok {
 		return fmt.Errorf("error opening video stream or file : %v", config.URI)
 	}
@@ -33,7 +35,7 @@ func (c *Capture) SetUp(configFilePath string) error {
 	return nil
 }
 
-func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, errChan chan error) {
+func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
 	if !vcap.IsOpened() {
 		errChan <- fmt.Errorf("video stream or file closed")
 		return
@@ -43,10 +45,14 @@ func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, errChan chan error) {
 		errChan <- fmt.Errorf("cannot read a new frame")
 		return
 	}
+	mu.Lock()
+	defer mu.Unlock()
 	tmpBuf.CopyTo(buf)
 }
 
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
+	mu := sync.RWMutex{}
+
 	config := c.config
 	rootBuf := bridge.NewMatVec3b()
 	buf := bridge.NewMatVec3b()
@@ -55,7 +61,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		errChan := make(chan error)
 		go func(rootBuf bridge.MatVec3b) {
 			for {
-				grab(c.vcap, rootBuf, errChan)
+				grab(c.vcap, rootBuf, mu, errChan)
 				select {
 				case err := <-errChan:
 					rootBufErr = err
@@ -80,6 +86,8 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			if rootBufErr != nil {
 				return rootBufErr
 			}
+			mu.RLocker()
+			defer mu.RUnlock()
 			rootBuf.CopyTo(buf)
 			if buf.Empty() {
 				return nil //continue

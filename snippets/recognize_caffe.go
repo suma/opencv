@@ -90,14 +90,6 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 	dr.Delete() // TODO user defer
 }
 
-func (rc *RecognizeCaffe) InputConstraints() (*core.BoxInputConstraints, error) {
-	return nil, nil
-}
-
-func (rc *RecognizeCaffe) OutputSchema(s map[string]*core.Schema) (*core.Schema, error) {
-	return nil, nil
-}
-
 func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {
 	rc.Config.ConfigTaggers.Delete()
 	rc.taggers.Delete()
