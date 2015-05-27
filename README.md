@@ -18,6 +18,6 @@ This project is [kanohi-scouter](https://github.pfidev.jp/InStoreAutomation/kano
 * scouter-core-conf `go get pfi/ComputerVision/scouter-core-conf`
 * kanohi-scouter-conf `go get pfi/InStoreAutomation/kanohi-scouter-conf`
 
-and off course
+and of course
 
 * SensorBee `go get pfi/sensorbee/sensorbee`
