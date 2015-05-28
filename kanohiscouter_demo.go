@@ -17,7 +17,7 @@ func buildTopology() (core.StaticTopology, error) {
 	tb.AddSource("cap1", &cap1)
 
 	tick := snippets.Tick{}
-	tick.SetUp(200)
+	tick.SetUp(50)
 	tb.AddSource("tick", &tick)
 
 	ds := snippets.DetectSimple{

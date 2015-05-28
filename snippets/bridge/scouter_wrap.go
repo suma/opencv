@@ -55,7 +55,7 @@ func (f Frame) Serialize() []byte {
 
 func DeserializeFrame(f []byte) Frame {
 	b := toByteArray(f)
-	defer C.ByteArray_Release(b)
+	//defer C.ByteArray_Release(b)
 	return Frame{p: C.Freme_Deserialize(b)}
 }
 

@@ -72,7 +72,7 @@
       ]
     }
   },
-  "player_dummy": {
+  "player": {
     "imshow": true,
     "jpeg": true,
     "debug_movie_output_path": "/Users/tanakadaisuke/debug.avi",

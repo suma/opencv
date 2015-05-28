@@ -2,6 +2,8 @@ package snippets
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -11,8 +13,8 @@ import (
 
 type DetectSimple struct {
 	ConfigPath string
-	Config     *conf.DetectSimpleConfig
-	detector   *bridge.Detector
+	Config     conf.DetectSimpleConfig
+	detector   bridge.Detector
 	lastFrame  map[int64]*tuple.Tuple
 }
 
@@ -21,9 +23,9 @@ func (d *DetectSimple) Init(ctx *core.Context) error {
 	if err != nil {
 		return err
 	}
-	d.Config = &detectConfig
-	detector := bridge.NewDetector(detectConfig.DetectorConfig)
-	d.detector = &detector
+	d.Config = detectConfig
+	d.detector = bridge.NewDetector(detectConfig.DetectorConfig)
+	d.lastFrame = make(map[int64]*tuple.Tuple, 0)
 	return nil
 }
 
@@ -38,33 +40,44 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 		if err != nil {
 			return err
 		}
+
 		d.lastFrame[id] = t
+
 	case "tick":
 		if len(d.lastFrame) == 0 {
 			return nil
 		}
 		for _, fTuple := range d.lastFrame {
-			f, err := getFrame(fTuple)
+			err := detect(d, fTuple)
 			if err != nil {
 				return err
 			}
 
-			fPointer := bridge.DeserializeFrame(f)
-			defer fPointer.Delete()
-			s := time.Now().UnixNano() / int64(time.Millisecond)
-			drPointer := d.detector.Detect(fPointer)
-
-			fTuple.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
-			fTuple.Data["detection_time"] = tuple.Timestamp(fTuple.Timestamp) // same as frame create time
-
-			if d.Config.PlayerFlag {
-				ms := time.Now().UnixNano()/int64(time.Millisecond) - s
-				drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
-				fTuple.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
-			}
-
 			w.Write(ctx, fTuple)
 		}
+	}
+	return nil
+}
+
+func detect(d *DetectSimple, t *tuple.Tuple) error {
+	f, err := getFrame(t)
+	if err != nil {
+		return err
+	}
+
+	fPointer := bridge.DeserializeFrame(f)
+	defer fPointer.Delete()
+	s := time.Now().UnixNano() / int64(time.Millisecond)
+	drPointer := d.detector.Detect(fPointer)
+
+	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
+	t.Data["detection_time"] = tuple.Timestamp(t.Timestamp) // same as frame create time
+
+	if d.Config.PlayerFlag {
+		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
+		drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
+		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
+		ioutil.WriteFile(fmt.Sprintf("./test_%v.jpg", string(s)), drw.ToJpegData(50), os.ModePerm)
 	}
 	return nil
 }

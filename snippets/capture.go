@@ -2,8 +2,6 @@ package snippets
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -19,9 +17,9 @@ const (
 )
 
 type Capture struct {
-	config *conf.CaptureConfig
-	vcap   *bridge.VideoCapture
-	fp     *bridge.FrameProcessor
+	config conf.CaptureConfig
+	vcap   bridge.VideoCapture
+	fp     bridge.FrameProcessor
 	finish bool
 }
 
@@ -30,8 +28,8 @@ func (c *Capture) SetUp(configFilePath string) error {
 	if err != nil {
 		return err
 	}
-	c.config = &config
-	vcap := bridge.NewVideoCapture()
+	c.config = config
+	c.vcap = bridge.NewVideoCapture()
 
 	if strings.HasPrefix(config.URI, devicePrefix) {
 		deviceNoStr := config.URI[len(devicePrefix):len(config.URI)]
@@ -39,34 +37,31 @@ func (c *Capture) SetUp(configFilePath string) error {
 		if err != nil {
 			return fmt.Errorf("error opening device: %v", deviceNoStr)
 		}
-		if ok := vcap.OpenDevice(deviceNo); !ok {
+		if ok := c.vcap.OpenDevice(deviceNo); !ok {
 			return fmt.Errorf("error opening device: %v", deviceNoStr)
 		}
 		if config.Width > 0 {
-			vcap.Set(conf.CvCapPropFrameWidth, config.Width)
+			c.vcap.Set(conf.CvCapPropFrameWidth, config.Width)
 		}
 		if config.Height > 0 {
-			vcap.Set(conf.CvCapPropFrameHeight, config.Height)
+			c.vcap.Set(conf.CvCapPropFrameHeight, config.Height)
 		}
 		if config.TickInterval > 0 {
-			vcap.Set(conf.CvCapPropFps, 1000.0/config.TickInterval)
+			c.vcap.Set(conf.CvCapPropFps, 1000.0/config.TickInterval)
 		}
 	} else {
-		if ok := vcap.Open(config.URI); !ok {
+		if ok := c.vcap.Open(config.URI); !ok {
 			return fmt.Errorf("error opening video stream or file: %v", config.URI)
 		}
 	}
-	c.vcap = &vcap
 
-	fp := bridge.NewFrameProcessor(config.FrameProcessorConfig)
-	c.fp = &fp
-
+	c.fp = bridge.NewFrameProcessor(config.FrameProcessorConfig)
 	c.finish = false
 
 	return nil
 }
 
-func grab(vcap *bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
+func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
 	if !vcap.IsOpened() {
 		errChan <- fmt.Errorf("video stream or file closed")
 		return
@@ -127,8 +122,6 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
-		filename := fmt.Sprintf("./debug_%v.jpg", string(inow))
-		ioutil.WriteFile(filename, buf.ToJpegData(50), os.ModePerm)
 		f := c.fp.Apply(buf, inow, config.CameraID)
 
 		var m = tuple.Map{

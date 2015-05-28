@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 MatVec3b MatVec3b_New() {
-  return new MatVec3b();
+  return new cv::Mat_<cv::Vec3b>();
 }
 
 struct ByteArray MatVec3b_ToJpegData(MatVec3b m, int quality){

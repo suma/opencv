@@ -18,7 +18,7 @@ func (t *Tick) SetUp(tickInterval int) {
 }
 
 func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
-	temp := time.Now().UnixNano()
+	temp := time.Now().UnixNano() / int64(time.Millisecond)
 	for !t.finish {
 		now := time.Now()
 		current := now.UnixNano() / int64(time.Millisecond)
