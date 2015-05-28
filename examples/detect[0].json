@@ -2,6 +2,14 @@
   "output_key": "detect[0]",
   "detector": {
     "detector_config": {
+        "scaler": {
+            "range": [0, 12]
+        }
+    },
+    "detector_model": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/examples/dummy.model"
+  },
+  "_detector_kato": {
+    "detector_config": {
       "cascade_tolerance": [0.3,  0.2, 0.2, 0.2, 0.1],
       "confidence_weight": [1.1,  1.0, 1.0, 1.1, 1.06],
       "scaler": {
@@ -64,10 +72,10 @@
       ]
     }
   },
-  "player": {
+  "player_dummy": {
     "imshow": true,
     "jpeg": true,
-    "debug_movie_output_path": "/home/t-kato/debug.avi",
+    "debug_movie_output_path": "/Users/tanakadaisuke/debug.avi",
     "output_key": "player"
   }
 }

@@ -76,6 +76,6 @@ func (v *VideoCapture) Read(m MatVec3b) bool {
 	return C.VideoCapture_Read(v.p, m.p) != 0
 }
 
-func (v *VideoCapture) Grab() {
-	C.VideoCapture_Grab(v.p)
+func (v *VideoCapture) Grab(skip int) {
+	C.VideoCapture_Grab(v.p, C.int(skip))
 }

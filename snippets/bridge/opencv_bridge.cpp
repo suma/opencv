@@ -58,6 +58,9 @@ int VideoCapture_Read(VideoCapture v, MatVec3b buf) {
   return static_cast<cv::VideoCapture*>(v)->read(*static_cast<cv::Mat_<cv::Vec3b>*>(buf));
 }
 
-void VideoCapture_Grab(VideoCapture v) {
-  static_cast<cv::VideoCapture*>(v)->grab();
+void VideoCapture_Grab(VideoCapture v, int skip) {
+  cv::VideoCapture vcap = *static_cast<cv::VideoCapture*>(v);
+  for (int i =0; i < skip; i++) {
+    vcap.grab();
+  }
 }

@@ -11,8 +11,9 @@ import (
 
 type DetectSimple struct {
 	ConfigPath string
-	Config     conf.DetectSimpleConfig
-	detector   bridge.Detector
+	Config     *conf.DetectSimpleConfig
+	detector   *bridge.Detector
+	lastFrame  map[int64]*tuple.Tuple
 }
 
 func (d *DetectSimple) Init(ctx *core.Context) error {
@@ -20,33 +21,51 @@ func (d *DetectSimple) Init(ctx *core.Context) error {
 	if err != nil {
 		return err
 	}
-	d.Config = detectConfig
+	d.Config = &detectConfig
 	detector := bridge.NewDetector(detectConfig.DetectorConfig)
-	d.detector = detector
+	d.detector = &detector
 	return nil
 }
 
 func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
-	f, err := getFrame(t)
-	if err != nil {
-		return err
+	switch t.InputName {
+	case "frame":
+		cameraId, err := t.Data.Get("camera_id")
+		if err != nil {
+			return err
+		}
+		id, err := cameraId.AsInt()
+		if err != nil {
+			return err
+		}
+		d.lastFrame[id] = t
+	case "tick":
+		if len(d.lastFrame) == 0 {
+			return nil
+		}
+		for _, fTuple := range d.lastFrame {
+			f, err := getFrame(fTuple)
+			if err != nil {
+				return err
+			}
+
+			fPointer := bridge.DeserializeFrame(f)
+			defer fPointer.Delete()
+			s := time.Now().UnixNano() / int64(time.Millisecond)
+			drPointer := d.detector.Detect(fPointer)
+
+			fTuple.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
+			fTuple.Data["detection_time"] = tuple.Timestamp(fTuple.Timestamp) // same as frame create time
+
+			if d.Config.PlayerFlag {
+				ms := time.Now().UnixNano()/int64(time.Millisecond) - s
+				drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
+				fTuple.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
+			}
+
+			w.Write(ctx, fTuple)
+		}
 	}
-
-	fPointer := bridge.DeserializeFrame(f)
-	s := time.Now().UnixNano() / int64(time.Millisecond)
-	drPointer := d.detector.Detect(fPointer)
-
-	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
-	t.Data["detection_time"] = tuple.Timestamp(t.Timestamp) // same as frame create time
-
-	if d.Config.PlayerFlag {
-		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
-		drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
-		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
-	}
-
-	w.Write(ctx, t)
-	fPointer.Delete() // TODO user defer
 	return nil
 }
 

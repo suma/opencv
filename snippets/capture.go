@@ -2,6 +2,8 @@ package snippets
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -17,9 +19,9 @@ const (
 )
 
 type Capture struct {
-	config conf.CaptureConfig
-	vcap   bridge.VideoCapture
-	fp     bridge.FrameProcessor
+	config *conf.CaptureConfig
+	vcap   *bridge.VideoCapture
+	fp     *bridge.FrameProcessor
 	finish bool
 }
 
@@ -28,9 +30,8 @@ func (c *Capture) SetUp(configFilePath string) error {
 	if err != nil {
 		return err
 	}
-	c.config = config
+	c.config = &config
 	vcap := bridge.NewVideoCapture()
-	c.vcap = vcap
 
 	if strings.HasPrefix(config.URI, devicePrefix) {
 		deviceNoStr := config.URI[len(devicePrefix):len(config.URI)]
@@ -41,13 +42,13 @@ func (c *Capture) SetUp(configFilePath string) error {
 		if ok := vcap.OpenDevice(deviceNo); !ok {
 			return fmt.Errorf("error opening device: %v", deviceNoStr)
 		}
-		if config.Width != 0 {
+		if config.Width > 0 {
 			vcap.Set(conf.CvCapPropFrameWidth, config.Width)
 		}
-		if config.Height != 0 {
+		if config.Height > 0 {
 			vcap.Set(conf.CvCapPropFrameHeight, config.Height)
 		}
-		if config.TickInterval != 0 {
+		if config.TickInterval > 0 {
 			vcap.Set(conf.CvCapPropFps, 1000.0/config.TickInterval)
 		}
 	} else {
@@ -55,16 +56,17 @@ func (c *Capture) SetUp(configFilePath string) error {
 			return fmt.Errorf("error opening video stream or file: %v", config.URI)
 		}
 	}
+	c.vcap = &vcap
 
 	fp := bridge.NewFrameProcessor(config.FrameProcessorConfig)
-	c.fp = fp
+	c.fp = &fp
 
 	c.finish = false
 
 	return nil
 }
 
-func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
+func grab(vcap *bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
 	if !vcap.IsOpened() {
 		errChan <- fmt.Errorf("video stream or file closed")
 		return
@@ -84,7 +86,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 
 	config := c.config
 	rootBuf := bridge.NewMatVec3b()
-	buf := bridge.NewMatVec3b()
+	defer rootBuf.Delete()
 	var rootBufErr error
 	if !config.CaptureFromFile {
 		errChan := make(chan error)
@@ -100,16 +102,15 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		}(rootBuf)
 	}
 
-	for !c.finish { // TODO add stop command and using goroutine
+	buf := bridge.NewMatVec3b()
+	defer buf.Delete()
+	for !c.finish {
 		if config.CaptureFromFile {
 			if ok := c.vcap.Read(buf); !ok {
 				return fmt.Errorf("cannot read a new frame")
 			}
 			if config.FrameSkip > 0 {
-				for i := 0; i < config.FrameSkip; i++ {
-					// TODO considering biding cost
-					c.vcap.Grab()
-				}
+				c.vcap.Grab(config.FrameSkip)
 			}
 		} else {
 			if rootBufErr != nil {
@@ -119,18 +120,20 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			defer mu.RUnlock()
 			rootBuf.CopyTo(buf)
 			if buf.Empty() {
-				return nil //continue
+				continue
 			}
 		}
 
-		// TODO create frame processor configuration, very difficult...
 		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
 		inow, _ := tuple.ToInt(tuple.Timestamp(now))
+		filename := fmt.Sprintf("./debug_%v.jpg", string(inow))
+		ioutil.WriteFile(filename, buf.ToJpegData(50), os.ModePerm)
 		f := c.fp.Apply(buf, inow, config.CameraID)
 
 		var m = tuple.Map{
-			"frame": tuple.Blob(f.Serialize()),
+			"frame":     tuple.Blob(f.Serialize()),
+			"camera_id": tuple.Int(config.CameraID),
 		}
 		t := tuple.Tuple{
 			Data:          m,
@@ -145,6 +148,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 
 func (c *Capture) Stop(ctx *core.Context) error {
 	c.finish = true
+	time.Sleep(500 * time.Millisecond)
 	c.fp.Delete()
 	c.vcap.Delete()
 	return nil
