@@ -31,12 +31,12 @@ func buildTopology() (core.StaticTopology, error) {
 		ConfigPath: confPath + "recognize_caffe[0].json",
 	}
 	tb.AddBox("recognize_caffe", &rc).Input("detect_simple")
-	/*
-		itr := snippets.Integrate{
-			ConfigPath: confPath + "integrate[0].json",
-		}
-		tb.AddBox("integrate", &itr).Input("recognize_caffe")
 
+	itr := snippets.Integrate{
+		ConfigPath: confPath + "integrate[0].json",
+	}
+	tb.AddBox("integrate", &itr).Input("recognize_caffe")
+	/*
 		sender_conf := snippets.DataSenderConfig{}
 		sender := snippets.DataSender{
 			Config: sender_conf,

@@ -14,8 +14,8 @@
         "nacceptable_frame_distance": 5
       },
       "caffe_wrapper": {
-        "model_path": "configfile/scouter-resources/siamese/model",
-        "architecture_path": "configfile/scouter-resources/siamese/arch",
+        "model_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/siamese/model",
+        "architecture_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/siamese/arch",
         "gpu_mode": true
       },
       "interval": 200,

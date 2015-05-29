@@ -6,7 +6,7 @@
             "range": [0, 12]
         }
     },
-    "detector_model": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/dummy.model"
+    "detector_model": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/pedestrian.model"
   },
   "_detector_kato": {
     "detector_config": {

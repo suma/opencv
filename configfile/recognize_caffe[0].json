@@ -11,9 +11,9 @@
   "taggers": [
     {
       "caffe_wrapper": {
-        "meanfile_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/mean",
-        "model_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/model",
-        "architecture_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/arch",
+        "meanfile_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender_kg/mean",
+        "model_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender_kg/model",
+        "architecture_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender_kg/arch",
         "tasks": [
           {
             "name": "gender",
