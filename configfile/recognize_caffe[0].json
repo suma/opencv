@@ -1,0 +1,44 @@
+{
+  "output_keys": [
+    "recognize_caffe[0]"
+  ],
+  "frame_input_keys": [
+    "capture[0]"
+  ],
+  "detection_result_input_keys": [
+    "detect[0]"
+  ],
+  "taggers": [
+    {
+      "caffe_wrapper": {
+        "meanfile_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/mean",
+        "model_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/model",
+        "architecture_path": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/gender/arch",
+        "tasks": [
+          {
+            "name": "gender",
+            "label_mapping": [
+              "Female",
+              "Male"
+            ]
+          }
+        ],
+        "gpu_mode": false
+      },
+      "input": {
+        "base_width": 224,
+        "offset_x": 0,
+        "offset_y": -5,
+        "width": 224,
+        "height": 373,
+        "resize_width": 224,
+        "resize_height": 224
+      }
+    }
+  ],
+  "player": {
+    "imshow": true,
+    "jpeg": true,
+    "output_key": "player"
+  }
+}

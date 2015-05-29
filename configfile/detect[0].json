@@ -1,0 +1,81 @@
+{
+  "output_key": "detect[0]",
+  "detector": {
+    "detector_config": {
+        "scaler": {
+            "range": [0, 12]
+        }
+    },
+    "detector_model": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/dummy.model"
+  },
+  "_detector_kato": {
+    "detector_config": {
+      "cascade_tolerance": [0.3,  0.2, 0.2, 0.2, 0.1],
+      "confidence_weight": [1.1,  1.0, 1.0, 1.1, 1.06],
+      "scaler": {
+        "step": 1.09050773266526,
+        "range": [
+          0, 16
+        ]
+      },
+      "stride": 1,
+      "duplication_threshold": 0.2,
+      "inclusion_threshold": 0.2,
+      "confidence_threshold": 0.52,
+      "use_base_region": true,
+      "reuse_regions": true
+    },
+    "detector_model": [
+      "/home/t-kato/pficv-detection-experiment/face/model-acf_detector.ACFDetector-4-4-2048",
+      "/home/t-kato/pficv-detection-experiment/side/model-acf_detector.ACFDetector-4-4-2048",
+      "/home/t-kato/pficv-detection-experiment/back_tc/model-acf_detector.ACFDetector-4-4-2048",
+      "/home/t-kato/pficv-detection-experiment/face_tc/model-acf_detector.ACFDetector-4-4-2048",
+      "configfile/scouter-resources/pedestrian.model"
+    ],
+    "part_model_number": 4,
+    "body_model_number": 1,
+    "height_range": [
+      0.3, 0.6,
+      0.3, 0.6,
+      0.3, 0.6,
+      0.3, 0.6,
+      1.35, 2.1
+    ],
+    "part_exist_area_in_body": [-0.2, 0.25, 0.1, 1.1],
+    "extend_body_with_part": true,
+    "remove_part_in_body": true,
+    "solitary_part_extend_scale":  [0.0, 3.0, 0.7, 0.7],
+    "reinforced_duplication_threshold": 0.5,
+    "reinforced_body_gain": 1.06,
+    "post_body_threshold": 0.56,
+    "camera_parameter": {
+      "intrinsic": [
+        2696.35888671875,
+        0,
+        959.5,
+        0,
+        2696.35888671875,
+        539.5,
+        0,
+        0,
+        1
+      ],
+      "rvec": [
+        1.689706323919723,
+        -1.042775393523062,
+        0.69979947960808
+      ],
+      "tvec": [
+        -0.059883639216423035,
+        3.83331298828125,
+        12.391121864318848
+      ]
+    }
+  },
+  "player": {
+    "imshow": true,
+    "jpeg": true,
+    "debug_movie_output_path": "/Users/tanakadaisuke/debug.avi",
+    "output_key": "player"
+  }
+}
