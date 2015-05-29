@@ -47,6 +47,14 @@ type Integrator struct {
 	p C.Integrator
 }
 
+type InstanceManager struct {
+	p C.InstanceManager
+}
+
+type InstanceStates struct {
+	p C.InstanceStates
+}
+
 func (f Frame) Serialize() []byte {
 	b := C.Frame_Serialize(f.p)
 	defer C.ByteArray_Release(b)
@@ -176,4 +184,31 @@ func (itr *Integrator) Integrator_TrackerReady() bool {
 
 func (itr *Integrator) Integrator_Track() TrackingResult {
 	return TrackingResult{C.Integrator_Track(itr.p)}
+}
+
+func NewInstanceManager(config string) InstanceManager {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return InstanceManager{p: C.InstanceManager_New(cConfig)}
+}
+
+func (im *InstanceManager) Delete() {
+	C.InstanceManager_Delete(im.p)
+	im.p = nil
+}
+
+func (im *InstanceManager) GetCurrentStates(tr TrackingResult) InstanceStates {
+	return InstanceStates{
+		p: C.InstanceManager_GetCurrentStates(im.p, tr.p),
+	}
+}
+
+func (is *InstanceStates) Delete() {
+	C.InstanceStates_Delete(is.p)
+	is.p = nil
+}
+
+func (is *InstanceStates) ConvertSatesToJson(floorID int) string {
+	c_str := C.ConvertStatesToJson(is.p, C.int(floorID))
+	return C.GoString(c_str)
 }

@@ -19,6 +19,7 @@
 #include <scouter-core/image_tagger.hpp>
 #include <scouter-core/image_tagger_caffe.hpp>
 #include <scouter-core/integrator.hpp>
+#include <scouter-core/instance_manager.hpp>
 
 template <class Type>
 Type load_json(const char *config) {
@@ -226,4 +227,32 @@ TrackingResult Integrator_Track(Integrator integrator) {
   scouter::Integrator& itr = *static_cast<scouter::Integrator*>(integrator);
   return new scouter::TrackingResult(itr.track());
 }
+
+InstanceManager InstanceManager_New(const char *config) {
+  scouter::InstanceManager::Config ic = load_json<scouter::InstanceManager::Config>(config);
+  return new scouter::InstanceManager(ic);
+}
+
+void InstanceManager_Delete(InstanceManager instanceManager) {
+  delete static_cast<scouter::InstanceManager*>(instanceManager);
+}
+
+InstanceStates InstanceManager_GetCurrentStates(InstanceManager instanceManager,
+                                                TrackingResult result) {
+  scouter::InstanceManager im = *static_cast<scouter::InstanceManager*>(instanceManager);
+  scouter::TrackingResult tr = *static_cast<scouter::TrackingResult*>(result);
+  im.update(tr);
+  std::vector<scouter::InstanceState> states = im.get_current_states();
+  return new std::vector<scouter::InstanceState>(states);
+}
+
+void InstanceStates_Delete(InstanceStates states) {
+  delete static_cast<std::vector<scouter::InstanceState>*>(states);
+}
+
+const char* ConvertStatesToJson(InstanceStates instanceStates, int floorID) {
+  std::string dummy = "states";
+  return dummy.c_str();
+}
+
 

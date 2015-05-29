@@ -74,7 +74,9 @@ func (rc *RecognizeCaffe) governor(fi FrameInfo) {
 
 func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 	fr := bridge.DeserializeFrame(fi.fr)
+	defer fr.Delete()
 	dr := bridge.DeserializeDetectionResult(fi.dr)
+	defer dr.Delete()
 
 	recogDr := rc.taggers.Recognize(fr, dr)
 	t.Data["recognize_detection_result"] = tuple.Blob(recogDr.Serialize())
@@ -85,9 +87,6 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 		// TODO convert to map[string]
 		//t.Data["recognize_draw_result"] = tuple.Blob(drwResult)
 	}
-
-	fr.Delete()
-	dr.Delete() // TODO user defer
 }
 
 func (rc *RecognizeCaffe) Terminate(ctx *core.Context) error {

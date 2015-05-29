@@ -46,6 +46,7 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	}
 
 	tr := itr.integrator.Integrator_Track()
+	defer tr.Delete()
 	t.Data["tracking_result"] = tuple.Blob(tr.Serialize())
 
 	if itr.Config.PlayerFlag {
@@ -53,7 +54,6 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	}
 
 	w.Write(ctx, t)
-	tr.Delete()
 	return nil
 }
 
