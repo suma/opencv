@@ -63,7 +63,6 @@ func (f Frame) Serialize() []byte {
 
 func DeserializeFrame(f []byte) Frame {
 	b := toByteArray(f)
-	//defer C.ByteArray_Release(b)
 	return Frame{p: C.Freme_Deserialize(b)}
 }
 
@@ -80,30 +79,12 @@ func (d DetectionResult) Serialize() []byte {
 
 func DeserializeDetectionResult(d []byte) DetectionResult {
 	b := toByteArray(d)
-	defer C.ByteArray_Release(b)
 	return DetectionResult{p: C.DetectionResult_Deserialize(b)}
 }
 
 func (d DetectionResult) Delete() {
 	C.DetectionResult_Delete(d.p)
 	d.p = nil
-}
-
-func (t TrackingResult) Serialize() []byte {
-	b := C.TrackingResult_Serialize(t.p)
-	defer C.ByteArray_Release(b)
-	return ToGoBytes(b)
-}
-
-func DeserializeTrackingResult(t []byte) TrackingResult {
-	b := toByteArray(t)
-	defer C.ByteArray_Release(b)
-	return TrackingResult{p: C.TrackingResult_Deserialize(b)}
-}
-
-func (t TrackingResult) Delete() {
-	C.TrackingResult_Delete(t.p)
-	t.p = nil
 }
 
 func NewFrameProcessor(config string) FrameProcessor {
