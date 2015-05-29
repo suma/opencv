@@ -4,9 +4,30 @@
 #include "opencv_bridge.h"
 
 #ifdef __cplusplus
+#include <scouter-core/frame.hpp>
+#include <scouter-core/frame_processor.hpp>
+#include <scouter-core/detection_result.hpp>
+#include <scouter-core/tracking_result.hpp>
+#include <scouter-core/detector.hpp>
+#include <scouter-core/image_tagger.hpp>
+#include <scouter-core/image_tagger_caffe.hpp>
+#include <scouter-core/integrator.hpp>
+#include <scouter-core/instance_manager.hpp>
 extern "C" {
 #endif
 
+#ifdef __cplusplus
+typedef scouter::Frame* Frame;
+typedef scouter::DetectionResult* DetectionResult;
+typedef scouter::TrackingResult* TrackingResult;
+typedef scouter::FrameProcessor* FrameProcessor;
+typedef scouter::Detector* Detector;
+typedef std::vector<scouter::ImageTaggerCaffe>* ImageTaggerCaffe;
+typedef std::map<std::string, cv::Mat_<cv::Vec3b> >* Taggers;
+typedef scouter::Integrator* Integrator;
+typedef scouter::InstanceManager* InstanceManager;
+typedef std::vector<scouter::InstanceState>* InstanceStates;
+#else
 typedef void* Frame;
 typedef void* DetectionResult;
 typedef void* TrackingResult;
@@ -17,6 +38,7 @@ typedef void* Taggers;
 typedef void* Integrator;
 typedef void* InstanceManager;
 typedef void* InstanceStates;
+#endif
 
 struct ByteArray Frame_Serialize(Frame f);
 Frame Freme_Deserialize(struct ByteArray src);
@@ -25,10 +47,6 @@ void Frame_Delete(Frame f);
 struct ByteArray DetectionResult_Serialize(DetectionResult dr);
 DetectionResult DetectionResult_Deserialize(struct ByteArray src);
 void DetectionResult_Delete(DetectionResult dr);
-
-struct ByteArray TrackingResult_Serialize(TrackingResult tr);
-TrackingResult TrackingResult_Deserialize(struct ByteArray src);
-void TrackingResult_Delete(TrackingResult tr);
 
 FrameProcessor FrameProcessor_New(const char *config);
 void FrameProcessor_Delete(FrameProcessor fp);

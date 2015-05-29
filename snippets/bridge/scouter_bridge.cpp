@@ -3,23 +3,10 @@
 
 #include <string>
 #include <sstream>
-#include <vector>
-#include <map>
-#include <set>
 #include <pficommon/text/json.h>
 #include <jsonconfig.hpp>
 #include <opencv2/opencv.hpp>
-#include <scouter-core/frame.hpp>
-#include <scouter-core/frame_processor.hpp>
-#include <scouter-core/detection_result.hpp>
 #include <scouter-core/mv_detection_result.hpp>
-#include <scouter-core/tracking_result.hpp>
-#include <scouter-core/detector.hpp>
-#include <scouter-core/epochms.hpp>
-#include <scouter-core/image_tagger.hpp>
-#include <scouter-core/image_tagger_caffe.hpp>
-#include <scouter-core/integrator.hpp>
-#include <scouter-core/instance_manager.hpp>
 
 template <class Type>
 Type load_json(const char *config) {
@@ -30,7 +17,7 @@ Type load_json(const char *config) {
 }
 
 struct ByteArray Frame_Serialize(Frame f) {
-  return serializeObject(*static_cast<scouter::Frame*>(f));
+  return serializeObject(*f);
 }
 
 Frame Freme_Deserialize(struct ByteArray src) {
@@ -38,11 +25,11 @@ Frame Freme_Deserialize(struct ByteArray src) {
 }
 
 void Frame_Delete(Frame f) {
-  delete static_cast<scouter::Frame*>(f);
+  delete f;
 }
 
 struct ByteArray DetectionResult_Serialize(DetectionResult dr) {
-  return serializeObject(*static_cast<scouter::DetectionResult*>(dr));
+  return serializeObject(*dr);
 }
 
 DetectionResult DetectionResult_Deserialize(struct ByteArray src) {
@@ -50,20 +37,7 @@ DetectionResult DetectionResult_Deserialize(struct ByteArray src) {
 }
 
 void DetectionResult_Delete(DetectionResult dr) {
-  delete static_cast<scouter::DetectionResult*>(dr);
-}
-
-//TODO need to convert scouter::TrackingResult
-struct ByteArray TrackingResult_Serialize(TrackingResult tr) {
-  return serializeObject(*static_cast<scouter::TrackingResult*>(tr));
-}
-
-TrackingResult TrackingResult_Deserialize(struct ByteArray src) {
-  return deserializeObject<scouter::DetectionResult>(src);
-}
-
-void TrackingResult_Delete(TrackingResult tr) {
-  delete static_cast<scouter::DetectionResult*>(tr);
+  delete dr;
 }
 
 FrameProcessor FrameProcessor_New(const char *config) {
@@ -73,16 +47,13 @@ FrameProcessor FrameProcessor_New(const char *config) {
 }
 
 void FrameProcessor_Delete(FrameProcessor fp) {
-  delete static_cast<scouter::FrameProcessor*>(fp);
+  delete fp;
 }
 
 Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
                            long long timestamp, int cameraID) {
-  scouter::FrameProcessor* processor = static_cast<scouter::FrameProcessor*>(fp);
-  cv::Mat_<cv::Vec3b>* mat = static_cast<cv::Mat_<cv::Vec3b>*>(buf);
-
   scouter::FrameMeta meta(timestamp, cameraID);
-  return new scouter::Frame(processor->apply(*mat, meta));
+  return new scouter::Frame(fp->apply(*buf, meta));
 }
 
 Detector Detector_New(const char *config) {
@@ -91,13 +62,11 @@ Detector Detector_New(const char *config) {
 }
 
 void Detector_Delete(Detector detector) {
-  delete static_cast<scouter::Detector*>(detector);
+  delete detector;
 }
 
 DetectionResult Detector_Detect(Detector detector, Frame frame) {
-  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
-  scouter::Detector& d = *static_cast<scouter::Detector*>(detector);
-  return new scouter::DetectionResult(d.detect(fr));
+  return new scouter::DetectionResult(detector->detect(*frame));
 }
 
 void draw_result(
@@ -118,10 +87,8 @@ void draw_result(
 }
 
 MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms) {
-  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
-  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
   cv::Mat_<cv::Vec3b>* target = new cv::Mat_<cv::Vec3b>();
-  draw_result(fr, detected, ms, *target);
+  draw_result(*frame, *dr, ms, *target);
   return target;
 }
 
@@ -140,15 +107,11 @@ void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers) {
 }
 
 DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr) {
-  std::vector<scouter::ImageTaggerCaffe>& tags = *static_cast<
-    std::vector<scouter::ImageTaggerCaffe>*>(taggers);
-  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
-  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
-  for (size_t i = 0; i < tags.size(); ++i) {
-    scouter::ImageTaggerCaffe tagger = tags[i];
-    tagger.predict_tags_batch(detected.object_candidates, fr);
+  for (size_t i = 0; i < taggers->size(); ++i) {
+    scouter::ImageTaggerCaffe tagger = (*taggers)[i];
+    tagger.predict_tags_batch(dr->object_candidates, *frame);
   }
-  return &detected;
+  return dr;
 }
 
 std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
@@ -192,9 +155,7 @@ std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
 }
 
 Taggers RecognizeDrawResult(Frame frame, DetectionResult dr) {
-  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
-  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
-  std::map<std::string, cv::Mat_<cv::Vec3b> >* target = draw_result(fr, detected);
+  std::map<std::string, cv::Mat_<cv::Vec3b> >* target = draw_result(*frame, *dr);
   return target;
 }
 
@@ -204,28 +165,23 @@ Integrator Integrator_New(const char *config) {
 }
 
 void Integrator_Delete(Integrator integrator) {
-  delete static_cast<scouter::Integrator*>(integrator);
+  delete integrator;
 }
 
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr) {
-  scouter::Frame& fr = *static_cast<scouter::Frame*>(frame);
-  scouter::DetectionResult& detected = *static_cast<scouter::DetectionResult*>(dr);
-  scouter::Integrator& itr = *static_cast<scouter::Integrator*>(integrator);
-
   std::vector<scouter::Frame> frames;
-  frames.push_back(fr);
+  frames.push_back(*frame);
   std::vector<scouter::DetectionResult> drs;
-  drs.push_back(detected);
-  itr.push(scouter::make_frames(frames), drs);
+  drs.push_back(*dr);
+  integrator->push(scouter::make_frames(frames), drs);
 }
 
 int Integrator_TrackerReady(Integrator integrator) {
-  return static_cast<scouter::Integrator*>(integrator)->tracker_ready();
+  return integrator->tracker_ready();
 }
 
 TrackingResult Integrator_Track(Integrator integrator) {
-  scouter::Integrator& itr = *static_cast<scouter::Integrator*>(integrator);
-  return new scouter::TrackingResult(itr.track());
+  return new scouter::TrackingResult(integrator->track());
 }
 
 InstanceManager InstanceManager_New(const char *config) {
@@ -234,20 +190,18 @@ InstanceManager InstanceManager_New(const char *config) {
 }
 
 void InstanceManager_Delete(InstanceManager instanceManager) {
-  delete static_cast<scouter::InstanceManager*>(instanceManager);
+  delete instanceManager;
 }
 
 InstanceStates InstanceManager_GetCurrentStates(InstanceManager instanceManager,
                                                 TrackingResult result) {
-  scouter::InstanceManager im = *static_cast<scouter::InstanceManager*>(instanceManager);
-  scouter::TrackingResult tr = *static_cast<scouter::TrackingResult*>(result);
-  im.update(tr);
-  std::vector<scouter::InstanceState> states = im.get_current_states();
+  instanceManager->update(*result);
+  std::vector<scouter::InstanceState> states = instanceManager->get_current_states();
   return new std::vector<scouter::InstanceState>(states);
 }
 
 void InstanceStates_Delete(InstanceStates states) {
-  delete static_cast<std::vector<scouter::InstanceState>*>(states);
+  delete states;
 }
 
 const char* ConvertStatesToJson(InstanceStates instanceStates, int floorID) {
