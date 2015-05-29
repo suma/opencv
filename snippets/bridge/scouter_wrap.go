@@ -80,7 +80,7 @@ func (d DetectionResult) Serialize() []byte {
 
 func DeserializeDetectionResult(d []byte) DetectionResult {
 	b := toByteArray(d)
-	defer C.ByteArray_Release(b)
+	//defer C.ByteArray_Release(b)
 	return DetectionResult{p: C.DetectionResult_Deserialize(b)}
 }
 
@@ -91,7 +91,7 @@ func (d DetectionResult) Delete() {
 
 func (t TrackingResult) Serialize() []byte {
 	b := C.TrackingResult_Serialize(t.p)
-	defer C.ByteArray_Release(b)
+	//defer C.ByteArray_Release(b)
 	return ToGoBytes(b)
 }
 

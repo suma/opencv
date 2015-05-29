@@ -55,7 +55,7 @@ void DetectionResult_Delete(DetectionResult dr) {
 
 //TODO need to convert scouter::TrackingResult
 struct ByteArray TrackingResult_Serialize(TrackingResult tr) {
-  return serializeObject(*static_cast<scouter::DetectionResult*>(tr));
+  return serializeObject(*static_cast<scouter::TrackingResult*>(tr));
 }
 
 TrackingResult TrackingResult_Deserialize(struct ByteArray src) {
