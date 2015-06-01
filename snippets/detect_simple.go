@@ -15,7 +15,7 @@ type DetectSimple struct {
 	ConfigPath string
 	Config     conf.DetectSimpleConfig
 	detector   bridge.Detector
-	lastFrame  map[int64]*tuple.Tuple
+	lastFrame  *tuple.Tuple
 }
 
 func (d *DetectSimple) Init(ctx *core.Context) error {
@@ -25,36 +25,31 @@ func (d *DetectSimple) Init(ctx *core.Context) error {
 	}
 	d.Config = detectConfig
 	d.detector = bridge.NewDetector(detectConfig.DetectorConfig)
-	d.lastFrame = make(map[int64]*tuple.Tuple, 0)
+	d.lastFrame = nil
 	return nil
 }
 
 func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
 	switch t.InputName {
 	case "frame":
-		cameraId, err := t.Data.Get("camera_id")
-		if err != nil {
-			return err
-		}
-		id, err := cameraId.AsInt()
-		if err != nil {
-			return err
-		}
-
-		d.lastFrame[id] = t
+		d.lastFrame = t
 
 	case "tick":
-		if len(d.lastFrame) == 0 {
+		if d.lastFrame == nil {
 			return nil
 		}
-		for _, fTuple := range d.lastFrame {
-			err := detect(d, fTuple)
-			if err != nil {
-				return err
-			}
-
-			w.Write(ctx, fTuple)
+		// following process should be run in thread safe,
+		// but following code is not thread safe.
+		// tick interval is very longer than frame rate,
+		// so detect process is implemented in simple copy strategy.
+		frame := d.lastFrame.Copy()
+		d.lastFrame = nil
+		err := detect(d, frame)
+		if err != nil {
+			return err
 		}
+
+		w.Write(ctx, frame)
 	}
 	return nil
 }
