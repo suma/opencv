@@ -15,12 +15,12 @@
       "confidence_threshold": 0.526,
       "inclusion_threshold": 0.8
     },
-    "detector_model": "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/scouter-resources/caffe/pedestrian.model"
+    "detector_model": "./configfile/scouter-resources/caffe/pedestrian.model"
   },
   "player": {
     "imshow": true,
     "jpeg": true,
-    "debug_movie_output_path": "/Users/tanakadaisuke/debug.avi",
+    "debug_movie_output_path": "./debug.avi",
     "output_key": "player"
   }
 }

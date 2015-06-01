@@ -11,7 +11,7 @@ func buildTopology() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
 	// TODO use relative URI
-	confPath := "/Users/tanakadaisuke/Development/Workspaces/Go/src/pfi/scouter-snippets/configfile/"
+	confPath := "./configfile/"
 	cap1 := snippets.Capture{}
 	cap1.SetUp(confPath + "capture[0].json")
 	tb.AddSource("cap1", &cap1)
