@@ -16,7 +16,7 @@
       "caffe_wrapper": {
         "model_path": "./configfile/scouter-resources/caffe/siamese/model",
         "architecture_path": "./configfile/scouter-resources/caffe/siamese/arch",
-        "gpu_mode": true
+        "gpu_mode": false
       },
       "interval": 200,
       "mm_per_unitdistance": 1000

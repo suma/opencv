@@ -22,7 +22,10 @@ typedef scouter::DetectionResult* DetectionResult;
 typedef scouter::FrameProcessor* FrameProcessor;
 typedef scouter::Detector* Detector;
 typedef std::vector<scouter::ImageTaggerCaffe>* ImageTaggerCaffe;
-typedef std::map<std::string, cv::Mat_<cv::Vec3b> >* Taggers;
+typedef struct Taggers {
+  std::map<std::string, cv::Mat_<cv::Vec3b> >* drawResultsMap;
+  int length;
+} Taggers;
 typedef scouter::TrackingResult* TrackingResult;
 typedef scouter::Integrator* Integrator;
 typedef scouter::InstanceManager* InstanceManager;
@@ -33,7 +36,10 @@ typedef void* DetectionResult;
 typedef void* FrameProcessor;
 typedef void* Detector;
 typedef void* ImageTaggerCaffe;
-typedef void* Taggers;
+typedef struct Taggers {
+  void* drawResultsMap;
+  int length;
+} Taggers;
 typedef void* TrackingResult;
 typedef void* Integrator;
 typedef void* InstanceManager;
@@ -62,6 +68,8 @@ ImageTaggerCaffe ImageTaggerCaffe_New(const char *config);
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers);
 DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr);
 Taggers RecognizeDrawResult(Frame frame, DetectionResult dr);
+void Taggers_Delete(Taggers taggers);
+void ResolveDrawResult(struct Taggers taggers, const char** keys, MatVec3b* drawResults);
 
 Integrator Integrator_New(const char *config);
 void Integrator_Delete(Integrator integrator);

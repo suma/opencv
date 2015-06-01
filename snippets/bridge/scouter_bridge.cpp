@@ -103,7 +103,7 @@ ImageTaggerCaffe ImageTaggerCaffe_New(const char *config) {
 }
 
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe taggers) {
-  delete static_cast<std::vector<scouter::ImageTaggerCaffe>*>(taggers);
+  delete taggers;
 }
 
 DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult dr) {
@@ -114,7 +114,7 @@ DetectionResult Recognize(ImageTaggerCaffe taggers, Frame frame, DetectionResult
   return dr;
 }
 
-std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
+std::map<std::string, cv::Mat_<cv::Vec3b> > draw_result(
     scouter::Frame& frame,
     scouter::DetectionResult& dr) {
   typedef std::map<std::string, cv::Scalar> ColorMap;
@@ -132,7 +132,7 @@ std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
     }
   }
 
-  std::map<std::string, cv::Mat_<cv::Vec3b> >* ret;
+  std::map<std::string, cv::Mat_<cv::Vec3b> > ret;
   for (std::set<std::string>::const_iterator it = tags.begin();
        it != tags.end(); ++it) {
     cv::Mat_<cv::Vec3b> c = frame.image.clone();
@@ -149,14 +149,37 @@ std::map<std::string, cv::Mat_<cv::Vec3b> >* draw_result(
         break;
       }
     }
-    ret->insert(std::make_pair(*it, c));
+    ret.insert(std::make_pair(*it, c));
   }
   return ret;
 }
 
 Taggers RecognizeDrawResult(Frame frame, DetectionResult dr) {
-  std::map<std::string, cv::Mat_<cv::Vec3b> >* target = draw_result(*frame, *dr);
-  return target;
+  std::map<std::string, cv::Mat_<cv::Vec3b> > target = draw_result(*frame, *dr);
+  std::map<std::string, cv::Mat_<cv::Vec3b> >* taggers =
+      new std::map<std::string, cv::Mat_<cv::Vec3b> >();
+  for (std::map<std::string, cv::Mat_<cv::Vec3b> >::iterator it = target.begin();
+      it != target.end(); it++) {
+    taggers->insert(std::make_pair(it->first, it->second));
+  }
+  Taggers result = {taggers, (int)taggers->size()};
+  return result;
+}
+
+void Taggers_Delete(Taggers taggers) {
+  delete taggers.drawResultsMap;
+}
+
+void ResolveDrawResult(struct Taggers taggers, const char** keys, MatVec3b* drawResults) {
+  std::map<std::string, cv::Mat_<cv::Vec3b> > resultMap = *taggers.drawResultsMap;
+  int i = 0;
+  for (std::map<std::string, cv::Mat_<cv::Vec3b> >::iterator it = resultMap.begin();
+      it != resultMap.end(); it++) {
+    const char* key = it->first.c_str();
+    keys[i] = key;
+    drawResults[i] = new cv::Mat_<cv::Vec3b>(it->second);
+    i++;
+  }
 }
 
 Integrator Integrator_New(const char *config) {
@@ -173,6 +196,7 @@ void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr) {
   frames.push_back(*frame);
   std::vector<scouter::DetectionResult> drs;
   drs.push_back(*dr);
+  std::cout << "push" << std::endl;
   integrator->push(scouter::make_frames(frames), drs);
 }
 

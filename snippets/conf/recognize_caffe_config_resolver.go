@@ -9,6 +9,7 @@ import (
 type RecognizeCaffeConfig struct {
 	ConfigTaggers string
 	PlayerFlag    bool
+	JpegQuality   int
 }
 
 func GetRecognizeCaffeSnippetConfig(filePath string) (RecognizeCaffeConfig, error) {
@@ -34,5 +35,6 @@ func GetRecognizeCaffeSnippetConfig(filePath string) (RecognizeCaffeConfig, erro
 	return RecognizeCaffeConfig{
 		ConfigTaggers: taggers,
 		PlayerFlag:    recogConfig.Player != nil,
+		JpegQuality:   50,
 	}, nil
 }

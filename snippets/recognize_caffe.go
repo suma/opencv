@@ -2,10 +2,13 @@ package snippets
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"time"
 )
 
 type RecognizeCaffe struct {
@@ -82,10 +85,15 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 	t.Data["recognize_detection_result"] = tuple.Blob(recogDr.Serialize())
 
 	if rc.Config.PlayerFlag {
-		drwResult := bridge.RecognizeDrawResult(fr, recogDr)
-		fmt.Println(drwResult)
-		// TODO convert to map[string]
-		//t.Data["recognize_draw_result"] = tuple.Blob(drwResult)
+		drwResults := bridge.RecognizeDrawResult(fr, recogDr)
+		for k, v := range drwResults {
+			defer v.Delete()
+			s := time.Now().UnixNano() / int64(time.Millisecond)
+			t.Data["recognize_draw_result_"+k] = tuple.Blob(v.ToJpegData(rc.Config.JpegQuality))
+			// following is debug for scouter recognize caffe
+			ioutil.WriteFile(fmt.Sprintf("./recog_%v_%v.jpg", k, fmt.Sprint(s)),
+				v.ToJpegData(50), os.ModePerm)
+		}
 	}
 }
 

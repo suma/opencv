@@ -140,8 +140,19 @@ func (itc *ImageTaggerCaffe) Recognize(
 	return DetectionResult{p: C.Recognize(itc.p, f.p, dr.p)}
 }
 
-func RecognizeDrawResult(f Frame, dr DetectionResult) Taggers {
-	return Taggers{p: C.RecognizeDrawResult(f.p, dr.p)}
+func RecognizeDrawResult(f Frame, dr DetectionResult) map[string]MatVec3b {
+	result := C.RecognizeDrawResult(f.p, dr.p)
+	defer C.Taggers_Delete(result)
+	l := result.length
+	keys := make([](*C.char), l)
+	drawResults := make([]C.MatVec3b, l)
+	C.ResolveDrawResult(result, (**C.char)(&keys[0]), (*C.MatVec3b)(&drawResults[0]))
+
+	resultMap := make(map[string]MatVec3b, l)
+	for i := 0; i < int(l); i++ {
+		resultMap[C.GoString(keys[i])] = MatVec3b{p: drawResults[i]}
+	}
+	return resultMap
 }
 
 func NewIntegrator(config string) Integrator {

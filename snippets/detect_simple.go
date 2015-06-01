@@ -71,8 +71,10 @@ func detect(d *DetectSimple, t *tuple.Tuple) error {
 	if d.Config.PlayerFlag {
 		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
 		drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
+		defer drw.Delete()
 		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
-		ioutil.WriteFile(fmt.Sprintf("./test_%v.jpg", string(s)), drw.ToJpegData(50), os.ModePerm)
+		// following is debug for scouter detection
+		ioutil.WriteFile(fmt.Sprintf("./detect_%v.jpg", fmt.Sprint(s)), drw.ToJpegData(50), os.ModePerm)
 	}
 	return nil
 }
