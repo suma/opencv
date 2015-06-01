@@ -17,7 +17,7 @@ func buildTopology() (core.StaticTopology, error) {
 	tb.AddSource("cap1", &cap1)
 
 	tick := snippets.Tick{}
-	tick.SetUp(50)
+	tick.SetUp(200)
 	tb.AddSource("tick", &tick)
 
 	ds := snippets.DetectSimple{
@@ -36,13 +36,13 @@ func buildTopology() (core.StaticTopology, error) {
 		ConfigPath: confPath + "integrate[0].json",
 	}
 	tb.AddBox("integrate", &itr).Input("recognize_caffe")
-	/*
-		sender_conf := snippets.DataSenderConfig{}
-		sender := snippets.DataSender{
-			Config: sender_conf,
-		}
-		tb.AddSink("data_sender", &sender).Input("integrate")
-	*/
+
+	sender_conf := snippets.DataSenderConfig{}
+	sender := snippets.DataSender{
+		Config: sender_conf,
+	}
+	tb.AddSink("data_sender", &sender).Input("integrate")
+
 	return tb.Build()
 }
 
@@ -61,6 +61,6 @@ func main() {
 		Config: conf,
 	}
 	go topoloby.Run(&ctx)
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(5000 * time.Millisecond)
 	topoloby.Stop(&ctx)
 }

@@ -44,7 +44,7 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 		// so detect process is implemented in simple copy strategy.
 		frame := d.lastFrame.Copy()
 		d.lastFrame = nil
-		err := detect(d, frame)
+		err := detect(d, frame, t.Timestamp)
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,7 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 	return nil
 }
 
-func detect(d *DetectSimple, t *tuple.Tuple) error {
+func detect(d *DetectSimple, t *tuple.Tuple, timestamp time.Time) error {
 	f, err := getFrame(t)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func detect(d *DetectSimple, t *tuple.Tuple) error {
 	drPointer := d.detector.Detect(fPointer)
 
 	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
-	t.Data["detection_time"] = tuple.Timestamp(t.Timestamp) // same as frame create time
+	t.Data["detection_time"] = tuple.Timestamp(timestamp)
 
 	if d.Config.PlayerFlag {
 		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
@@ -74,7 +74,8 @@ func detect(d *DetectSimple, t *tuple.Tuple) error {
 		defer drw.Delete()
 		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
 		// following is debug for scouter detection
-		ioutil.WriteFile(fmt.Sprintf("./detect_%v.jpg", fmt.Sprint(s)), drw.ToJpegData(50), os.ModePerm)
+		ioutil.WriteFile(fmt.Sprintf("./detect_%v.jpg", fmt.Sprint(s)),
+			drw.ToJpegData(50), os.ModePerm)
 	}
 	return nil
 }

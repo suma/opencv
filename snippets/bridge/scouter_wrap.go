@@ -55,6 +55,10 @@ type InstanceStates struct {
 	p C.InstanceStates
 }
 
+type Visualizer struct {
+	p C.Visualizer
+}
+
 func (f Frame) Serialize() []byte {
 	b := C.Frame_Serialize(f.p)
 	defer C.ByteArray_Release(b)
@@ -143,16 +147,17 @@ func (itc *ImageTaggerCaffe) Recognize(
 func RecognizeDrawResult(f Frame, dr DetectionResult) map[string]MatVec3b {
 	result := C.RecognizeDrawResult(f.p, dr.p)
 	defer C.Taggers_Delete(result)
-	l := result.length
+	l := int(result.length)
 	keys := make([](*C.char), l)
 	drawResults := make([]C.MatVec3b, l)
 	C.ResolveDrawResult(result, (**C.char)(&keys[0]), (*C.MatVec3b)(&drawResults[0]))
 
 	resultMap := make(map[string]MatVec3b, l)
-	for i := 0; i < int(l); i++ {
+	for i := 0; i < l; i++ {
 		resultMap[C.GoString(keys[i])] = MatVec3b{p: drawResults[i]}
 	}
 	return resultMap
+	// TODO key free
 }
 
 func NewIntegrator(config string) Integrator {
@@ -205,7 +210,32 @@ func (is *InstanceStates) Delete() {
 	is.p = nil
 }
 
-func (is *InstanceStates) ConvertSatesToJson(floorID int) string {
-	c_str := C.ConvertStatesToJson(is.p, C.int(floorID))
-	return C.GoString(c_str)
+func (is *InstanceStates) ConvertSatesToJson(floorID int, timestamp int64) string {
+	c_str := C.ConvertStatesToJson(is.p, C.int(floorID), C.longlong(timestamp))
+	return C.GoStringN(c_str.str, c_str.length)
+}
+
+func NewVisualizer(config string, instanceManager InstanceManager) Visualizer {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return Visualizer{p: C.Visualizer_New(cConfig, instanceManager.p)}
+}
+
+func (v *Visualizer) Delete() {
+	C.Visualizer_Delete(v.p)
+	v.p = nil
+}
+
+func (v *Visualizer) PlotTrajectories() []MatVec3b {
+	plots := C.Visualizer_PlotTrajectories(v.p)
+	defer C.PlotTrajectories_Delete(plots)
+	l := int(plots.length)
+	plotsTraj := make([]C.MatVec3b, l)
+	C.ResolvePlotTrajectories(plots, (*C.MatVec3b)(&plotsTraj[0]))
+
+	result := make([]MatVec3b, l)
+	for i := 0; i < l; i++ {
+		result[i] = MatVec3b{p: plotsTraj[i]}
+	}
+	return result
 }

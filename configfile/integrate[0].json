@@ -10,8 +10,8 @@
     "mvom_distance_threshold": 3,
     "tracker": {
       "tracker": {
-        "nforward_frames": 15,
-        "nacceptable_frame_distance": 5
+        "nforward_frames": 2,
+        "nacceptable_frame_distance": 2
       },
       "caffe_wrapper": {
         "model_path": "./configfile/scouter-resources/caffe/siamese/model",

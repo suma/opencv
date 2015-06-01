@@ -88,9 +88,9 @@ func (rc *RecognizeCaffe) recognize(fi FrameInfo, t *tuple.Tuple) {
 		drwResults := bridge.RecognizeDrawResult(fr, recogDr)
 		for k, v := range drwResults {
 			defer v.Delete()
-			s := time.Now().UnixNano() / int64(time.Millisecond)
 			t.Data["recognize_draw_result_"+k] = tuple.Blob(v.ToJpegData(rc.Config.JpegQuality))
 			// following is debug for scouter recognize caffe
+			s := time.Now().UnixNano() / int64(time.Millisecond)
 			ioutil.WriteFile(fmt.Sprintf("./recog_%v_%v.jpg", k, fmt.Sprint(s)),
 				v.ToJpegData(50), os.ModePerm)
 		}

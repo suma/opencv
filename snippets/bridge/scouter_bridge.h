@@ -13,9 +13,14 @@
 #include <scouter-core/image_tagger_caffe.hpp>
 #include <scouter-core/integrator.hpp>
 #include <scouter-core/instance_manager.hpp>
+#include <scouter-core/instances_visualizer.hpp>
 extern "C" {
 #endif
 
+typedef struct String {
+  const char* str;
+  int length;
+} String;
 #ifdef __cplusplus
 typedef scouter::Frame* Frame;
 typedef scouter::DetectionResult* DetectionResult;
@@ -30,6 +35,11 @@ typedef scouter::TrackingResult* TrackingResult;
 typedef scouter::Integrator* Integrator;
 typedef scouter::InstanceManager* InstanceManager;
 typedef std::vector<scouter::InstanceState>* InstanceStates;
+typedef scouter::InstancesVisualizer* Visualizer;
+typedef struct PlotTrajectories {
+  std::vector<cv::Mat_<cv::Vec3b> >* trajectories;
+  int length;
+} PlotTrajectories;
 #else
 typedef void* Frame;
 typedef void* DetectionResult;
@@ -44,6 +54,11 @@ typedef void* TrackingResult;
 typedef void* Integrator;
 typedef void* InstanceManager;
 typedef void* InstanceStates;
+typedef void* Visualizer;
+typedef struct PlotTrajectories {
+  void* trajectories;
+  int length;
+} PlotTrajectories;
 #endif
 
 struct ByteArray Frame_Serialize(Frame f);
@@ -83,8 +98,13 @@ void InstanceManager_Delete(InstanceManager instanceManager);
 InstanceStates InstanceManager_GetCurrentStates(InstanceManager instanceManager,
                                                 TrackingResult result);
 void InstanceStates_Delete(InstanceStates states);
-const char* ConvertStatesToJson(InstanceStates instanceStates, int floorID);
-
+String ConvertStatesToJson(InstanceStates instanceStates,
+                                int floorID, long long timestamp);
+Visualizer Visualizer_New(const char *config, InstanceManager instanceManager);
+void Visualizer_Delete(Visualizer visualizer);
+PlotTrajectories Visualizer_PlotTrajectories(Visualizer visualizer);
+void PlotTrajectories_Delete(PlotTrajectories plotTrajectories);
+void ResolvePlotTrajectories(struct PlotTrajectories plotTrajectories, MatVec3b* trajectories);
 
 #ifdef __cplusplus
 }
