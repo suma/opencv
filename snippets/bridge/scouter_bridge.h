@@ -19,22 +19,22 @@ extern "C" {
 #ifdef __cplusplus
 typedef scouter::Frame* Frame;
 typedef scouter::DetectionResult* DetectionResult;
-typedef scouter::TrackingResult* TrackingResult;
 typedef scouter::FrameProcessor* FrameProcessor;
 typedef scouter::Detector* Detector;
 typedef std::vector<scouter::ImageTaggerCaffe>* ImageTaggerCaffe;
 typedef std::map<std::string, cv::Mat_<cv::Vec3b> >* Taggers;
+typedef scouter::TrackingResult* TrackingResult;
 typedef scouter::Integrator* Integrator;
 typedef scouter::InstanceManager* InstanceManager;
 typedef std::vector<scouter::InstanceState>* InstanceStates;
 #else
 typedef void* Frame;
 typedef void* DetectionResult;
-typedef void* TrackingResult;
 typedef void* FrameProcessor;
 typedef void* Detector;
 typedef void* ImageTaggerCaffe;
 typedef void* Taggers;
+typedef void* TrackingResult;
 typedef void* Integrator;
 typedef void* InstanceManager;
 typedef void* InstanceStates;
@@ -68,6 +68,7 @@ void Integrator_Delete(Integrator integrator);
 void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
 int Integrator_TrackerReady(Integrator integrator);
 TrackingResult Integrator_Track(Integrator integrator);
+void TrackingResult_Delete(TrackingResult tr);
 
 InstanceManager InstanceManager_New(const char *config);
 void InstanceManager_Delete(InstanceManager instanceManager);

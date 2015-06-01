@@ -23,10 +23,6 @@ type DetectionResult struct {
 	p C.DetectionResult
 }
 
-type TrackingResult struct {
-	p C.TrackingResult
-}
-
 type FrameProcessor struct {
 	p C.FrameProcessor
 }
@@ -41,6 +37,10 @@ type ImageTaggerCaffe struct {
 
 type Taggers struct {
 	p C.Taggers
+}
+
+type TrackingResult struct {
+	p C.TrackingResult
 }
 
 type Integrator struct {
@@ -165,6 +165,11 @@ func (itr *Integrator) Integrator_TrackerReady() bool {
 
 func (itr *Integrator) Integrator_Track() TrackingResult {
 	return TrackingResult{C.Integrator_Track(itr.p)}
+}
+
+func (tr *TrackingResult) Delete() {
+	C.TrackingResult_Delete(tr.p)
+	tr.p = nil
 }
 
 func NewInstanceManager(config string) InstanceManager {

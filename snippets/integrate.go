@@ -9,9 +9,10 @@ import (
 )
 
 type Integrate struct {
-	ConfigPath string
-	Config     conf.IntegrateConfig
-	integrator bridge.Integrator
+	ConfigPath      string
+	Config          conf.IntegrateConfig
+	integrator      bridge.Integrator
+	instanceManager bridge.InstanceManager
 }
 
 type TrackingInfo struct {
@@ -26,8 +27,8 @@ func (itr *Integrate) Init(ctx *core.Context) error {
 		return err
 	}
 	itr.Config = config
-	integrator := bridge.NewIntegrator(config.IntegrateConfig)
-	itr.integrator = integrator
+	itr.integrator = bridge.NewIntegrator(config.IntegratorConfig)
+	itr.instanceManager = bridge.NewInstanceManager(config.InstanceManagerConfig)
 	return nil
 }
 
@@ -46,9 +47,11 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	}
 
 	tr := itr.integrator.Integrator_Track()
-	fmt.Println(tr)
-	//defer tr.Delete()
-	//t.Data["tracking_result"] = tuple.Blob(tr.Serialize())
+	defer tr.Delete()
+	currentStates := itr.instanceManager.GetCurrentStates(tr)
+	statesJson := currentStates.ConvertSatesToJson(itr.Config.FloorID)
+
+	t.Data["instance_states"] = tuple.String(statesJson)
 
 	if itr.Config.PlayerFlag {
 		// TODO draw result for debug
@@ -83,6 +86,7 @@ func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
 }
 
 func (itr *Integrate) Terminate(ctx *core.Context) error {
+	itr.instanceManager.Delete()
 	itr.integrator.Delete()
 	return nil
 }

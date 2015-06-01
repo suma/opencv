@@ -7,8 +7,10 @@ import (
 )
 
 type IntegrateConfig struct {
-	IntegrateConfig string
-	PlayerFlag      bool
+	IntegratorConfig      string
+	InstanceManagerConfig string
+	FloorID               int
+	PlayerFlag            bool
 }
 
 func GetIntegrateConfig(filePath string) (IntegrateConfig, error) {
@@ -25,14 +27,22 @@ func GetIntegrateConfig(filePath string) (IntegrateConfig, error) {
 	}
 
 	// get scouter::Integrate::Config
-	b, err := json.Marshal(integrateConfig.Integrator)
+	integratorConfByte, err := json.Marshal(integrateConfig.Integrator)
 	if err != nil {
 		return conf, err
 	}
-	ic := string(b)
+	integratorConf := string(integratorConfByte)
+
+	instanceManagerByte, err := json.Marshal(integrateConfig.InstanceManager)
+	if err != nil {
+		return conf, err
+	}
+	instanceManagerConf := string(instanceManagerByte)
 
 	return IntegrateConfig{
-		IntegrateConfig: ic,
-		PlayerFlag:      integrateConfig.Player != nil,
+		IntegratorConfig:      integratorConf,
+		InstanceManagerConfig: instanceManagerConf,
+		FloorID:               integrateConfig.FloorID,
+		PlayerFlag:            integrateConfig.Player != nil,
 	}, nil
 }

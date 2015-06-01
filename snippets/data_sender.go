@@ -12,8 +12,8 @@ import (
 )
 
 type DataSenderConfig struct {
-	FloorID    int
 	DataSender *ksconf.DataSender
+	URI        string
 }
 
 type DataSender struct {
@@ -25,9 +25,14 @@ func (ds *DataSender) SetUp(configPath string) error {
 	if err != nil {
 		return err
 	}
+
+	dataSenderConf := conf.DataSender
+	uri := fmt.Sprintf("http://%v:%v%v",
+		dataSenderConf.Host, dataSenderConf.Port, dataSenderConf.Path)
+
 	ds.Config = DataSenderConfig{
-		FloorID:    conf.FloorID,
 		DataSender: conf.DataSender,
+		URI:        uri,
 	}
 	return nil
 }
@@ -51,15 +56,19 @@ func getIntegrateConfig(configPath string) (ksconf.IntegrateSnippet, error) {
 }
 
 func (ds *DataSender) Write(ctx *core.Context, t *tuple.Tuple) error {
-	conf := ds.Config
-	dataSenderConf := conf.DataSender
-	uri := fmt.Sprintf("http://%v:%v%v",
-		dataSenderConf.Host, dataSenderConf.Port, dataSenderConf.Path)
+	is, err := t.Data.Get("instance_states")
+	if err != nil {
+		return err
+	}
+	instanceStates, err := is.AsString()
+	if err != nil {
+		return err
+	}
 
 	data := tuple.Map{
 		"Send": tuple.Map{
 			"time":     tuple.Timestamp(t.Timestamp),
-			"instance": tuple.Map{},
+			"instance": tuple.String(instanceStates), // TODO Map is better?
 		},
 	}
 	buf, err := tuple.ToString(data)
@@ -67,7 +76,7 @@ func (ds *DataSender) Write(ctx *core.Context, t *tuple.Tuple) error {
 		return err
 	}
 
-	_, err = http.Post(uri, "application/json", strings.NewReader(buf))
+	_, err = http.Post(ds.Config.URI, "application/json", strings.NewReader(buf))
 	return err
 }
 

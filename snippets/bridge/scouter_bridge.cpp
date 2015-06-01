@@ -184,6 +184,10 @@ TrackingResult Integrator_Track(Integrator integrator) {
   return new scouter::TrackingResult(integrator->track());
 }
 
+void TrackingResult_Delete(TrackingResult tr) {
+  delete tr;
+}
+
 InstanceManager InstanceManager_New(const char *config) {
   scouter::InstanceManager::Config ic = load_json<scouter::InstanceManager::Config>(config);
   return new scouter::InstanceManager(ic);
