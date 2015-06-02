@@ -10,8 +10,8 @@ import (
 func buildTopology() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
-	// TODO use relative URI
 	confPath := "./configfile/"
+
 	cap1 := snippets.Capture{}
 	cap1.SetUp(confPath + "capture[0].json")
 	tb.AddSource("cap1", &cap1)
@@ -37,10 +37,8 @@ func buildTopology() (core.StaticTopology, error) {
 	}
 	tb.AddBox("integrate", &itr).Input("recognize_caffe")
 
-	sender_conf := snippets.DataSenderConfig{}
-	sender := snippets.DataSender{
-		Config: sender_conf,
-	}
+	sender := snippets.DataSender{}
+	sender.SetUp(confPath + "integrate[0].json")
 	tb.AddSink("data_sender", &sender).Input("integrate")
 
 	return tb.Build()
@@ -61,6 +59,6 @@ func main() {
 		Config: conf,
 	}
 	go topoloby.Run(&ctx)
-	time.Sleep(5000 * time.Millisecond)
+	time.Sleep(90 * time.Second)
 	topoloby.Stop(&ctx)
 }

@@ -2,8 +2,6 @@ package snippets
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -62,20 +60,18 @@ func detect(d *DetectSimple, t *tuple.Tuple, timestamp time.Time) error {
 
 	fPointer := bridge.DeserializeFrame(f)
 	defer fPointer.Delete()
-	s := time.Now().UnixNano() / int64(time.Millisecond)
+	s, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
 	drPointer := d.detector.Detect(fPointer)
 
 	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
 	t.Data["detection_time"] = tuple.Timestamp(timestamp)
 
 	if d.Config.PlayerFlag {
-		ms := time.Now().UnixNano()/int64(time.Millisecond) - s
+		e, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
+		ms := e - s
 		drw := bridge.DetectDrawResult(fPointer, drPointer, ms)
 		defer drw.Delete()
 		t.Data["detection_draw_result"] = tuple.Blob(drw.ToJpegData(d.Config.JpegQuality))
-		// following is debug for scouter detection
-		ioutil.WriteFile(fmt.Sprintf("./detect_%v.jpg", fmt.Sprint(s)),
-			drw.ToJpegData(50), os.ModePerm)
 	}
 	return nil
 }

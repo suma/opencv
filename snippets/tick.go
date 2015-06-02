@@ -18,14 +18,14 @@ func (t *Tick) SetUp(tickInterval int) {
 }
 
 func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
-	temp := time.Now().UnixNano() / int64(time.Millisecond)
+	temp, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
 	for !t.finish {
 		now := time.Now()
-		current := now.UnixNano() / int64(time.Millisecond)
+		current, _ := tuple.ToInt(tuple.Timestamp(now))
 		if current-temp > t.tickInterval {
 			t := tuple.Tuple{
 				Timestamp:     now,
-				ProcTimestamp: now, // TODO video capture create time
+				ProcTimestamp: now,
 				Trace:         make([]tuple.TraceEvent, 0),
 			}
 			w.Write(ctx, &t)

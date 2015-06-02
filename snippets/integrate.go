@@ -2,8 +2,6 @@ package snippets
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -48,8 +46,10 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 
 	itr.integrator.Integrator_Push(fr, dr)
 	if !itr.integrator.Integrator_TrackerReady() {
-		return nil // TODO set empty tracking result?
+		w.Write(ctx, t)
+		return nil
 	}
+
 	tr := itr.integrator.Integrator_Track()
 	defer tr.Delete()
 	currentStates := itr.instanceManager.GetCurrentStates(tr)
@@ -62,14 +62,12 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 
 	if itr.Config.PlayerFlag {
 		trajectories := itr.visualizer.PlotTrajectories()
-		for i, traj := range trajectories {
-			key := fmt.Sprintf("integrate_result[%d]", i)
-			t.Data[key] = tuple.Blob(traj.ToJpegData(itr.Config.JpegQuality))
-			// following is debug for scouter integrator
-			s := time.Now().UnixNano() / int64(time.Millisecond)
-			ioutil.WriteFile(fmt.Sprintf("./integrate_%d_%v.jpg", i, fmt.Sprint(s)),
-				traj.ToJpegData(50), os.ModePerm)
+		debugArray := tuple.Array([]tuple.Value{})
+		for _, traj := range trajectories {
+			jpeg := tuple.Blob(traj.ToJpegData(itr.Config.JpegQuality))
+			debugArray = append(debugArray, jpeg)
 		}
+		t.Data["integrate_result"] = debugArray
 	}
 
 	w.Write(ctx, t)
