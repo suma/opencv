@@ -81,7 +81,7 @@ func getFrame(t *tuple.Tuple) ([]byte, error) {
 	if err != nil {
 		return []byte{}, fmt.Errorf("cannot get frame data")
 	}
-	frame, err := f.AsBlob()
+	frame, err := tuple.AsBlob(f)
 	if err != nil {
 		return []byte{}, fmt.Errorf("frame data must be byte array type")
 	}
