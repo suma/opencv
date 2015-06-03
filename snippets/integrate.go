@@ -79,7 +79,7 @@ func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
 	if err != nil {
 		return TrackingInfo{}, fmt.Errorf("cannot get frame data")
 	}
-	frame, err := f.AsBlob()
+	frame, err := tuple.AsBlob(f)
 	if err != nil {
 		return TrackingInfo{}, fmt.Errorf("frame data must be byte array type")
 	}
@@ -88,7 +88,7 @@ func getTrackingInfo(t *tuple.Tuple) (TrackingInfo, error) {
 	if err != nil {
 		return TrackingInfo{}, fmt.Errorf("cannot get detection result")
 	}
-	detectionResult, err := d.AsBlob()
+	detectionResult, err := tuple.AsBlob(d)
 	if err != nil {
 		return TrackingInfo{}, fmt.Errorf("detection result data must be byte array type")
 	}

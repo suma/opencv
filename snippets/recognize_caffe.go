@@ -49,7 +49,7 @@ func getFrameInfo(t *tuple.Tuple) (FrameInfo, error) {
 	if err != nil {
 		return FrameInfo{}, fmt.Errorf("cannot get frame data")
 	}
-	frame, err := f.AsBlob()
+	frame, err := tuple.AsBlob(f)
 	if err != nil {
 		return FrameInfo{}, fmt.Errorf("frame data must be byte array type")
 	}
@@ -58,7 +58,7 @@ func getFrameInfo(t *tuple.Tuple) (FrameInfo, error) {
 	if err != nil {
 		return FrameInfo{}, fmt.Errorf("cannot get detection result")
 	}
-	detectionResult, err := d.AsBlob()
+	detectionResult, err := tuple.AsBlob(d)
 	if err != nil {
 		return FrameInfo{}, fmt.Errorf("detection result data must be byte array type")
 	}

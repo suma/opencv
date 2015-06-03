@@ -66,7 +66,7 @@ func (ds *DataSender) Write(ctx *core.Context, t *tuple.Tuple) error {
 	if err != nil {
 		return nil // usually not set because integrate cache several frames
 	}
-	instanceStates, err := is.AsString()
+	instanceStates, err := tuple.AsString(is)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func outJpeg(t *tuple.Tuple) {
 	if err != nil {
 		return
 	}
-	timestamp, _ := ti.AsTimestamp()
+	timestamp, _ := tuple.AsTimestamp(ti)
 	timeStr := timestamp.Format("15:04:05.999999")
 
 	// detect
@@ -100,7 +100,7 @@ func outJpeg(t *tuple.Tuple) {
 	if err != nil {
 		return
 	}
-	detect, _ := de.AsBlob()
+	detect, _ := tuple.AsBlob(de)
 	ioutil.WriteFile(fmt.Sprintf("detect_%v.jpg", timeStr), detect, os.ModePerm)
 
 	// recognize
@@ -108,9 +108,9 @@ func outJpeg(t *tuple.Tuple) {
 	if err != nil {
 		return
 	}
-	recog, _ := re.AsMap()
+	recog, _ := tuple.AsMap(re)
 	for k, v := range recog {
-		rec, _ := v.AsBlob()
+		rec, _ := tuple.AsBlob(v)
 		ioutil.WriteFile(fmt.Sprintf("recog[%v]_%v.jpg", k, timeStr),
 			rec, os.ModePerm)
 	}
@@ -120,9 +120,9 @@ func outJpeg(t *tuple.Tuple) {
 	if err != nil {
 		return
 	}
-	integrates, _ := itr.AsArray()
+	integrates, _ := tuple.AsArray(itr)
 	for i, v := range integrates {
-		integ, _ := v.AsBlob()
+		integ, _ := tuple.AsBlob(v)
 		ioutil.WriteFile(fmt.Sprintf("integrate[%d]_%v.jpg", i, timeStr),
 			integ, os.ModePerm)
 	}
