@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"pfi/scouter-snippets/snippets"
 	"pfi/sensorbee/sensorbee/core"
+	"runtime"
 	"time"
 )
 
@@ -45,6 +46,11 @@ func buildTopology() (core.StaticTopology, error) {
 }
 
 func main() {
+	// go does not optimize goroutine threads with CPU core
+	cpus := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpus)
+	fmt.Printf("cpu core: %d", cpus)
+
 	topoloby, err := buildTopology()
 	if err != nil {
 		fmt.Printf("topology build error: %v", err.Error())
