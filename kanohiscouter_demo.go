@@ -18,7 +18,7 @@ func buildTopology() (core.StaticTopology, error) {
 	tb.AddSource("cap1", &cap1)
 
 	tick := snippets.Tick{}
-	tick.SetUp(200)
+	tick.SetUp(200000)
 	tb.AddSource("tick", &tick)
 
 	ds := snippets.DetectSimple{
@@ -48,8 +48,7 @@ func buildTopology() (core.StaticTopology, error) {
 func main() {
 	// go does not optimize goroutine threads with CPU core
 	cpus := runtime.NumCPU()
-	runtime.GOMAXPROCS(cpus)
-	fmt.Printf("cpu core: %d", cpus)
+	runtime.GOMAXPROCS(cpus * 2)
 
 	topoloby, err := buildTopology()
 	if err != nil {

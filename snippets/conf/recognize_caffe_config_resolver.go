@@ -6,12 +6,14 @@ import (
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
 )
 
+// RecognizeCaffeConfig is parameters of RecognizeCaffe snippets.
 type RecognizeCaffeConfig struct {
 	ConfigTaggers string
 	PlayerFlag    bool
 	JpegQuality   int
 }
 
+// GetRecognizeCaffeSnippetConfig crates configuration data reading external file.
 func GetRecognizeCaffeSnippetConfig(filePath string) (RecognizeCaffeConfig, error) {
 	conf := RecognizeCaffeConfig{}
 	file, err := ioutil.ReadFile(filePath)

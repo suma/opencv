@@ -16,6 +16,7 @@ const (
 	devicePrefix = "device://"
 )
 
+// Capture reads camera frame or video data using OpenCV library
 type Capture struct {
 	config conf.CaptureConfig
 	vcap   bridge.VideoCapture
@@ -23,6 +24,8 @@ type Capture struct {
 	finish bool
 }
 
+// SetUp prepares Video Capture. Video information and reading frame rate
+// is set up by external configuration file.
 func (c *Capture) SetUp(configFilePath string) error {
 	config, err := conf.GetCaptureSnippetConfig(configFilePath)
 	if err != nil {
@@ -76,6 +79,8 @@ func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errCha
 	tmpBuf.CopyTo(buf)
 }
 
+// GenerateStream generates tuples include captured frame. If an error
+// occur, this streaming stop.
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	mu := sync.RWMutex{}
 
@@ -119,9 +124,8 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			}
 		}
 
-		// TODO confirm time stamp using, create in C++ is better?
 		now := time.Now()
-		inow, _ := tuple.ToInt(tuple.Timestamp(now))
+		inow := now.UnixNano() / int64(time.Millisecond) // [ms]
 		f := c.fp.Apply(buf, inow, config.CameraID)
 
 		var m = tuple.Map{
@@ -139,6 +143,7 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	return nil
 }
 
+// Stop generating stream.
 func (c *Capture) Stop(ctx *core.Context) error {
 	c.finish = true
 	time.Sleep(500 * time.Millisecond)
@@ -147,6 +152,7 @@ func (c *Capture) Stop(ctx *core.Context) error {
 	return nil
 }
 
+// Schema returns registered schema.
 func (c *Capture) Schema() *core.Schema {
 	return nil
 }

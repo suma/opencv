@@ -12,16 +12,19 @@ import (
 	"strings"
 )
 
+// DataSenderConfig is configuration for data sender
 type DataSenderConfig struct {
 	DataSender *ksconf.DataSender
-	PlayerFlag bool
-	URI        string
+	playerFlag bool
+	uri        string
 }
 
+// DataSender is sink component to send result data.
 type DataSender struct {
-	Config DataSenderConfig
+	config DataSenderConfig
 }
 
+// SetUp prepares send informations.
 func (ds *DataSender) SetUp(configPath string) error {
 	conf, err := getIntegrateConfig(configPath)
 	if err != nil {
@@ -32,10 +35,10 @@ func (ds *DataSender) SetUp(configPath string) error {
 	uri := fmt.Sprintf("http://%v:%v%v",
 		dataSenderConf.Host, dataSenderConf.Port, dataSenderConf.Path)
 
-	ds.Config = DataSenderConfig{
-		DataSender: conf.DataSender,
-		PlayerFlag: conf.Player != nil,
-		URI:        uri,
+	ds.config = DataSenderConfig{
+		DataSender: dataSenderConf,
+		playerFlag: conf.Player != nil,
+		uri:        uri,
 	}
 	return nil
 }
@@ -58,8 +61,9 @@ func getIntegrateConfig(configPath string) (ksconf.IntegrateSnippet, error) {
 	return integrateConfig, nil
 }
 
+// Write instance states given by integrator toward HTTP POST.
 func (ds *DataSender) Write(ctx *core.Context, t *tuple.Tuple) error {
-	if ds.Config.PlayerFlag {
+	if ds.config.playerFlag {
 		go outJpeg(t)
 	}
 	is, err := t.Data.Get("instance_states")
@@ -82,7 +86,7 @@ func (ds *DataSender) Write(ctx *core.Context, t *tuple.Tuple) error {
 		return err
 	}
 
-	_, err = http.Post(ds.Config.URI, "application/json", strings.NewReader(buf))
+	_, err = http.Post(ds.config.uri, "application/json", strings.NewReader(buf))
 	return err
 }
 
@@ -128,6 +132,7 @@ func outJpeg(t *tuple.Tuple) {
 	}
 }
 
+// Close this component.
 func (ds *DataSender) Close(ctx *core.Context) error {
 	return nil
 }

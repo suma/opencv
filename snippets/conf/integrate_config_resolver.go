@@ -6,6 +6,7 @@ import (
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
 )
 
+// IntegrateConfig is parameters of Integrate snippets.
 type IntegrateConfig struct {
 	IntegratorConfig      string
 	InstanceManagerConfig string
@@ -15,6 +16,7 @@ type IntegrateConfig struct {
 	JpegQuality           int
 }
 
+// GetIntegrateConfig crates configuration data reading external file.
 func GetIntegrateConfig(filePath string) (IntegrateConfig, error) {
 	conf := IntegrateConfig{}
 	file, err := ioutil.ReadFile(filePath)

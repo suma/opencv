@@ -157,7 +157,6 @@ func RecognizeDrawResult(f Frame, dr DetectionResult) map[string]MatVec3b {
 		resultMap[C.GoString(keys[i])] = MatVec3b{p: drawResults[i]}
 	}
 	return resultMap
-	// TODO key free
 }
 
 func NewIntegrator(config string) Integrator {

@@ -6,12 +6,14 @@ import (
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
 )
 
+// DetectSimpleConfig is parameter of DetectSimple snippet.
 type DetectSimpleConfig struct {
 	DetectorConfig string
 	PlayerFlag     bool
 	JpegQuality    int
 }
 
+// GetDetectSimpleSnippetConfig crates configuration data reading external file..
 func GetDetectSimpleSnippetConfig(filePath string) (DetectSimpleConfig, error) {
 	conf := DetectSimpleConfig{}
 	file, err := ioutil.ReadFile(filePath)

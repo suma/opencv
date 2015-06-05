@@ -6,17 +6,20 @@ import (
 	"time"
 )
 
+// Tick is source component in order to synchronize all cameras
+// frame interval.
 type Tick struct {
 	tickInterval int64
 	finish       bool
 }
 
-// SetUp with tickInterval [ms]
+// SetUp by tick interval [micro second]
 func (t *Tick) SetUp(tickInterval int) {
 	t.tickInterval = int64(tickInterval)
 	t.finish = false
 }
 
+// GenerateStream generate tick data in regular interval.
 func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
 	temp, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
 	for !t.finish {
@@ -35,11 +38,13 @@ func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
 	return nil
 }
 
+// Stop generating stream.
 func (t *Tick) Stop(ctx *core.Context) error {
 	t.finish = true
 	return nil
 }
 
+// Schema returns registered schema.
 func (t *Tick) Schema() *core.Schema {
 	return nil
 }

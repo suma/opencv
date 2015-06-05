@@ -7,11 +7,15 @@ import (
 )
 
 const (
-	CvCapPropFrameWidth  = 3
+	// CvCapPropFrameWidth is OpenCV parameter of Frame Width
+	CvCapPropFrameWidth = 3
+	// CvCapPropFrameHeight is OpenCV parameter of Frame Height
 	CvCapPropFrameHeight = 4
-	CvCapPropFps         = 5
+	// CvCapPropFps is OpenCV parameter of FPS
+	CvCapPropFps = 5
 )
 
+// CaptureConfig is parameters of Capturing Camera
 type CaptureConfig struct {
 	FrameProcessorConfig string
 	CameraID             int
@@ -23,6 +27,7 @@ type CaptureConfig struct {
 	TickInterval         int
 }
 
+// GetCaptureSnippetConfig crates configuration data reading external file.
 func GetCaptureSnippetConfig(filePath string) (CaptureConfig, error) {
 	conf := CaptureConfig{}
 	file, err := ioutil.ReadFile(filePath)
