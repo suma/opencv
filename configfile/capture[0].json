@@ -28,6 +28,6 @@
   "camera_id": 0,
   "uri": "/Users/tanakadaisuke/TownCentreXVID.avi",
   "capture_from_file": true,
-  "frame_skip": 24,
+  "frame_skip": 4,
   "tick_interval": 200
 }

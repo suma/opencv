@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+var (
+	cameras []*snippets.Capture = []*snippets.Capture{}
+	ticker  *snippets.Tick
+)
+
 func buildTopology() (core.StaticTopology, error) {
 	tb := core.NewDefaultStaticTopologyBuilder()
 
@@ -16,10 +21,12 @@ func buildTopology() (core.StaticTopology, error) {
 	cap1 := snippets.Capture{}
 	cap1.SetUp(confPath + "capture[0].json")
 	tb.AddSource("cap1", &cap1)
+	cameras = append(cameras, &cap1)
 
 	tick := snippets.Tick{}
 	tick.SetUp(200000)
 	tb.AddSource("tick", &tick)
+	ticker = &tick
 
 	ds := snippets.DetectSimple{
 		ConfigPath: confPath + "detect[0].json",
@@ -32,7 +39,6 @@ func buildTopology() (core.StaticTopology, error) {
 		ConfigPath: confPath + "recognize_caffe[0].json",
 	}
 	tb.AddBox("recognize_caffe", &rc).Input("detect_simple")
-
 	itr := snippets.Integrate{
 		ConfigPath: confPath + "integrate[0].json",
 	}
@@ -43,6 +49,33 @@ func buildTopology() (core.StaticTopology, error) {
 	tb.AddSink("data_sender", &sender).Input("integrate")
 
 	return tb.Build()
+}
+
+// attention permanent loop
+func memStats(m *runtime.MemStats, ctx *core.Context) {
+	for {
+		select {
+		case <-time.After(time.Second):
+			runtime.ReadMemStats(m)
+			ctx.Logger.Log(core.Debug, "memstats,%d,%d,%d,%d", m.HeapSys, m.HeapAlloc, m.HeapIdle, m.HeapReleased)
+		}
+	}
+}
+
+func tickerStopper() {
+stopper:
+	for {
+		select {
+		case <-time.After(time.Second):
+			for _, cap := range cameras {
+				if !cap.IsStopped() {
+					continue stopper
+				}
+			}
+			ticker.ForcedStop()
+			return
+		}
+	}
 }
 
 func main() {
@@ -63,7 +96,12 @@ func main() {
 		Logger: logManager,
 		Config: conf,
 	}
-	go topoloby.Run(&ctx)
-	time.Sleep(90 * time.Second)
-	topoloby.Stop(&ctx)
+
+	// performance
+	//var m runtime.MemStats
+	//go memStats(&m, &ctx)
+
+	go tickerStopper()
+
+	topoloby.Run(&ctx)
 }

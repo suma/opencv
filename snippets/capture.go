@@ -79,10 +79,15 @@ func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errCha
 	tmpBuf.CopyTo(buf)
 }
 
+func (c *Capture) stopFlag() {
+	c.finish = true
+}
+
 // GenerateStream generates tuples include captured frame. If an error
 // occur, this streaming stop.
 func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 	mu := sync.RWMutex{}
+	defer c.stopFlag()
 
 	config := c.config
 	rootBuf := bridge.NewMatVec3b()
@@ -104,9 +109,12 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 
 	buf := bridge.NewMatVec3b()
 	defer buf.Delete()
+	cnt := 0
 	for !c.finish {
+		cnt++
 		if config.CaptureFromFile {
 			if ok := c.vcap.Read(buf); !ok {
+				ctx.Logger.Log(core.Debug, "total read frames count is %d", cnt)
 				return fmt.Errorf("cannot read a new frame")
 			}
 			if config.FrameSkip > 0 {
@@ -155,4 +163,10 @@ func (c *Capture) Stop(ctx *core.Context) error {
 // Schema returns registered schema.
 func (c *Capture) Schema() *core.Schema {
 	return nil
+}
+
+// IsStopped returns whether this capture has stoppoed or not.
+// If the capture is stopped, return true.
+func (c *Capture) IsStopped() bool {
+	return c.finish
 }

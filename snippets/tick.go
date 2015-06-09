@@ -48,3 +48,8 @@ func (t *Tick) Stop(ctx *core.Context) error {
 func (t *Tick) Schema() *core.Schema {
 	return nil
 }
+
+// ForcedStop this component
+func (t *Tick) ForcedStop() {
+	t.finish = true
+}
