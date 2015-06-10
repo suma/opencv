@@ -13,7 +13,7 @@ type Tick struct {
 	finish       bool
 }
 
-// SetUp by tick interval [micro second]
+// SetUp by tick interval. The interval unit is [ms].
 func (t *Tick) SetUp(tickInterval int) {
 	t.tickInterval = int64(tickInterval)
 	t.finish = false
@@ -21,18 +21,15 @@ func (t *Tick) SetUp(tickInterval int) {
 
 // GenerateStream generate tick data in regular interval.
 func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
-	temp, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
 	for !t.finish {
-		now := time.Now()
-		current, _ := tuple.ToInt(tuple.Timestamp(now))
-		if current-temp > t.tickInterval {
+		select {
+		case now := <-time.After(time.Millisecond * time.Duration(t.tickInterval)):
 			t := tuple.Tuple{
 				Timestamp:     now,
 				ProcTimestamp: now,
 				Trace:         make([]tuple.TraceEvent, 0),
 			}
 			w.Write(ctx, &t)
-			temp = current
 		}
 	}
 	return nil

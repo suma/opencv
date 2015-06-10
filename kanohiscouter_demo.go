@@ -24,7 +24,7 @@ func buildTopology() (core.StaticTopology, error) {
 	cameras = append(cameras, &cap1)
 
 	tick := snippets.Tick{}
-	tick.SetUp(200000)
+	tick.SetUp(200)
 	tb.AddSource("tick", &tick)
 	ticker = &tick
 
