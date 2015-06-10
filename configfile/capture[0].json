@@ -27,6 +27,9 @@
   "output_key": "capture[0]",
   "camera_id": 0,
   "uri": "/Users/tanakadaisuke/TownCentreXVID.avi",
+  "uri_": "device://0",
+  "width": 500,
+  "height": 600,
   "capture_from_file": true,
   "frame_skip": 4,
   "tick_interval": 200

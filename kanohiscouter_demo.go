@@ -19,7 +19,10 @@ func buildTopology() (core.StaticTopology, error) {
 	confPath := "./configfile/"
 
 	cap1 := snippets.Capture{}
-	cap1.SetUp(confPath + "capture[0].json")
+	err := cap1.SetUp(confPath + "capture[0].json")
+	if err != nil {
+		return nil, err
+	}
 	tb.AddSource("cap1", &cap1)
 	cameras = append(cameras, &cap1)
 

@@ -64,16 +64,18 @@ func (c *Capture) SetUp(configFilePath string) error {
 	return nil
 }
 
-func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu sync.RWMutex, errChan chan error) {
+func grab(vcap bridge.VideoCapture, buf bridge.MatVec3b, mu *sync.RWMutex, errChan chan error) {
 	if !vcap.IsOpened() {
 		errChan <- fmt.Errorf("video stream or file closed")
 		return
 	}
 	tmpBuf := bridge.NewMatVec3b()
+	defer tmpBuf.Delete()
 	if ok := vcap.Read(tmpBuf); !ok {
 		errChan <- fmt.Errorf("cannot read a new frame")
 		return
 	}
+
 	mu.Lock()
 	defer mu.Unlock()
 	tmpBuf.CopyTo(buf)
@@ -97,11 +99,13 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 		errChan := make(chan error)
 		go func(rootBuf bridge.MatVec3b) {
 			for {
-				grab(c.vcap, rootBuf, mu, errChan)
+				grab(c.vcap, rootBuf, &mu, errChan)
 				select {
 				case err := <-errChan:
-					rootBufErr = err
-					break
+					if err != nil {
+						rootBufErr = err
+						break
+					}
 				}
 			}
 		}(rootBuf)
@@ -124,9 +128,10 @@ func (c *Capture) GenerateStream(ctx *core.Context, w core.Writer) error {
 			if rootBufErr != nil {
 				return rootBufErr
 			}
+
 			mu.RLock()
-			defer mu.RUnlock()
 			rootBuf.CopyTo(buf)
+			mu.RUnlock()
 			if buf.Empty() {
 				continue
 			}

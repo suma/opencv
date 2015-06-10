@@ -6,6 +6,7 @@ import (
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"sync"
 	"time"
 )
 
@@ -14,17 +15,20 @@ type Integrate struct {
 	// ConfigPath is the path of external configuration file.
 	ConfigPath string
 
-	config          conf.IntegrateConfig
-	integrator      bridge.Integrator
-	instanceManager bridge.InstanceManager
-	visualizer      bridge.Visualizer
+	config            conf.IntegrateConfig
+	integrator        bridge.Integrator
+	instanceManager   bridge.InstanceManager
+	visualizer        bridge.Visualizer
+	trackingInfoQueue map[string]map[time.Time]trackingInfo
+	mu                sync.RWMutex
 }
 
 // trackingInfo is pair of frame and detection result data.
 type trackingInfo struct {
-	index int
-	fr    []byte
-	dr    []byte
+	name       string
+	fr         []byte
+	dr         []byte
+	detectTime time.Time
 }
 
 // Init prepares integration information set by external configuration file.
@@ -37,7 +41,41 @@ func (itr *Integrate) Init(ctx *core.Context) error {
 	itr.integrator = bridge.NewIntegrator(config.IntegratorConfig)
 	itr.instanceManager = bridge.NewInstanceManager(config.InstanceManagerConfig)
 	itr.visualizer = bridge.NewVisualizer(config.VisualizerConfig, itr.instanceManager)
+	itr.trackingInfoQueue = map[string]map[time.Time]trackingInfo{}
+	itr.mu = sync.RWMutex{}
 	return nil
+}
+
+func (itr *Integrate) aggregation(t trackingInfo) {
+	if len(itr.config.FrameInputKeys) == 1 {
+		return
+	}
+
+	queue, ok := itr.trackingInfoQueue[t.name]
+	if !ok {
+		queue = map[time.Time]trackingInfo{}
+	}
+	queue[t.detectTime] = t
+	itr.trackingInfoQueue[t.name] = queue
+}
+
+func (itr *Integrate) pop(t trackingInfo) (bool, []trackingInfo) {
+	inputSource := len(itr.config.FrameInputKeys)
+	if inputSource == 1 {
+		return true, []trackingInfo{t}
+	}
+
+	trackingInfos := []trackingInfo{}
+	for _, v := range itr.trackingInfoQueue {
+		ti, ok := v[t.detectTime]
+		if ok {
+			trackingInfos = append(trackingInfos, ti)
+		}
+	}
+	if len(trackingInfos) == inputSource {
+		return true, trackingInfos
+	}
+	return false, []trackingInfo{}
 }
 
 // Process add integration information to frames. Integration is caching several
@@ -82,27 +120,39 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 }
 
 func getTrackingInfo(t *tuple.Tuple) (trackingInfo, error) {
+	info := trackingInfo{}
 	f, err := t.Data.Get("frame")
 	if err != nil {
-		return trackingInfo{}, fmt.Errorf("cannot get frame data")
+		return info, fmt.Errorf("cannot get frame data")
 	}
 	frame, err := tuple.AsBlob(f)
 	if err != nil {
-		return trackingInfo{}, fmt.Errorf("frame data must be byte array type")
+		return info, fmt.Errorf("frame data must be byte array type")
 	}
 
 	d, err := t.Data.Get("detection_result")
 	if err != nil {
-		return trackingInfo{}, fmt.Errorf("cannot get detection result")
+		return info, fmt.Errorf("cannot get detection result")
 	}
 	detectionResult, err := tuple.AsBlob(d)
 	if err != nil {
-		return trackingInfo{}, fmt.Errorf("detection result data must be byte array type")
+		return info, fmt.Errorf("detection result data must be byte array type")
+	}
+
+	ti, err := t.Data.Get("detection_time")
+	if err != nil {
+		return info, fmt.Errorf("cannot get frame detection time")
+	}
+	detectTime, err := tuple.AsTimestamp(ti)
+	if err != nil {
+		return info, fmt.Errorf("detection time must be timestamp type")
 	}
 
 	return trackingInfo{
-		fr: frame,
-		dr: detectionResult}, nil
+		name:       t.InputName,
+		fr:         frame,
+		dr:         detectionResult,
+		detectTime: detectTime}, nil
 }
 
 // Terminate this component.

@@ -8,12 +8,14 @@ import (
 
 // IntegrateConfig is parameters of Integrate snippets.
 type IntegrateConfig struct {
-	IntegratorConfig      string
-	InstanceManagerConfig string
-	VisualizerConfig      string
-	FloorID               int
-	PlayerFlag            bool
-	JpegQuality           int
+	IntegratorConfig         string
+	InstanceManagerConfig    string
+	VisualizerConfig         string
+	FrameInputKeys           []string
+	DetectionResultInputKeys []string
+	FloorID                  int
+	PlayerFlag               bool
+	JpegQuality              int
 }
 
 // GetIntegrateConfig crates configuration data reading external file.
@@ -50,11 +52,13 @@ func GetIntegrateConfig(filePath string) (IntegrateConfig, error) {
 	visualizerConf := string(visualizerByte)
 
 	return IntegrateConfig{
-		IntegratorConfig:      integratorConf,
-		InstanceManagerConfig: instanceManagerConf,
-		VisualizerConfig:      visualizerConf,
-		FloorID:               integrateConfig.FloorID,
-		PlayerFlag:            integrateConfig.Player != nil,
-		JpegQuality:           50,
+		IntegratorConfig:         integratorConf,
+		InstanceManagerConfig:    instanceManagerConf,
+		VisualizerConfig:         visualizerConf,
+		FrameInputKeys:           integrateConfig.FrameInputKeys,
+		DetectionResultInputKeys: integrateConfig.DetectionResultInputKeys,
+		FloorID:                  integrateConfig.FloorID,
+		PlayerFlag:               integrateConfig.Player != nil,
+		JpegQuality:              50,
 	}, nil
 }
