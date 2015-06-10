@@ -88,7 +88,7 @@ void ResolveDrawResult(struct Taggers taggers, const char** keys, MatVec3b* draw
 
 Integrator Integrator_New(const char *config);
 void Integrator_Delete(Integrator integrator);
-void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr);
+void Integrator_Push(Integrator integrator, Frame* frame, DetectionResult* dr, int size);
 int Integrator_TrackerReady(Integrator integrator);
 TrackingResult Integrator_Track(Integrator integrator);
 void TrackingResult_Delete(TrackingResult tr);

@@ -170,8 +170,16 @@ func (itr *Integrator) Delete() {
 	itr.p = nil
 }
 
-func (itr *Integrator) Integrator_Push(f Frame, dr DetectionResult) {
-	C.Integrator_Push(itr.p, f.p, dr.p)
+func (itr *Integrator) Integrator_Push(fs []Frame, drs []DetectionResult) {
+	size := len(fs)
+	frPointers := []C.Frame{}
+	drPointers := []C.DetectionResult{}
+	for i := 0; i < size; i++ {
+		frPointers = append(frPointers, fs[i].p)
+		drPointers = append(drPointers, drs[i].p)
+	}
+	C.Integrator_Push(itr.p, (*C.Frame)(&frPointers[0]),
+		(*C.DetectionResult)(&drPointers[0]), C.int(size))
 }
 
 func (itr *Integrator) Integrator_TrackerReady() bool {

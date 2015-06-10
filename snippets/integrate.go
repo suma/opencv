@@ -85,11 +85,20 @@ func (itr *Integrate) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) 
 	if err != nil {
 		return nil
 	}
+	itr.aggregation(fi)
+	ok, infos := itr.pop(fi)
+	if !ok {
+		return nil
+	}
 
-	fr := bridge.DeserializeFrame(fi.fr)
-	dr := bridge.DeserializeDetectionResult(fi.dr)
+	frs := []bridge.Frame{}
+	drs := []bridge.DetectionResult{}
+	for _, ti := range infos {
+		frs = append(frs, bridge.DeserializeFrame(ti.fr))
+		drs = append(drs, bridge.DeserializeDetectionResult(ti.dr))
+	}
 
-	itr.integrator.Integrator_Push(fr, dr)
+	itr.integrator.Integrator_Push(frs, drs)
 	if !itr.integrator.Integrator_TrackerReady() {
 		w.Write(ctx, t)
 		return nil

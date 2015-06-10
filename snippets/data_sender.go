@@ -97,7 +97,7 @@ func outJpeg(t *tuple.Tuple) {
 		return
 	}
 	timestamp, _ := tuple.AsTimestamp(ti)
-	timeStr := timestamp.Format("15:04:05.999999")
+	timeStr := timestamp.Format("15_04_05.999999")
 
 	// detect
 	de, err := t.Data.Get("detection_draw_result")

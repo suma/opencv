@@ -191,11 +191,13 @@ void Integrator_Delete(Integrator integrator) {
   delete integrator;
 }
 
-void Integrator_Push(Integrator integrator, Frame frame, DetectionResult dr) {
+void Integrator_Push(Integrator integrator, Frame* frame, DetectionResult* dr, int size) {
   std::vector<scouter::Frame> frames;
-  frames.push_back(*frame);
   std::vector<scouter::DetectionResult> drs;
-  drs.push_back(*dr);
+  for (int i = 0; i < size; i++) {
+    frames.push_back(*(frame[i]));
+    drs.push_back(*(dr[i]));
+  }
   integrator->push(scouter::make_frames(frames), drs);
 }
 
