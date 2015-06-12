@@ -1,6 +1,7 @@
 #include "scouter_bridge.h"
 #include "util.hpp"
 
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <pficommon/text/json.h>
@@ -66,6 +67,20 @@ void Detector_Delete(Detector detector) {
 }
 
 DetectionResult Detector_Detect(Detector detector, Frame frame) {
+  return new scouter::DetectionResult(detector->detect(*frame));
+}
+
+MultiModelDetector MultiModelDetector_New(const char *config) {
+  scouter::MultiModelDetector::Config dc
+    = load_json<scouter::MultiModelDetector::Config>(config);
+  return new scouter::MultiModelDetector(dc);
+}
+
+void MultiModelDetector_Delete(MultiModelDetector detector) {
+  delete detector;
+}
+
+DetectionResult MultiModelDetector_Detect(MultiModelDetector detector, Frame frame) {
   return new scouter::DetectionResult(detector->detect(*frame));
 }
 

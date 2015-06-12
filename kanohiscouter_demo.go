@@ -30,9 +30,8 @@ func buildTopology() (core.StaticTopology, error) {
 	tick.SetUp(200)
 	tb.AddSource("tick", &tick)
 	ticker = &tick
-
-	ds := snippets.DetectSimple{
-		ConfigPath: confPath + "detect[0].json",
+	ds := snippets.MultiModelDetectSimple{
+		ConfigPath: confPath + "mm_detect[0].json",
 	}
 	tb.AddBox("detect_simple", &ds).
 		NamedInput("cap1", "frame").
