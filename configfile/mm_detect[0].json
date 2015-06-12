@@ -29,7 +29,7 @@
       "./configfile/scouter-resources/caffe/side.model",
       "./configfile/scouter-resources/caffe/pedestrian.model"
     ],
-    "mask": "/data/TownCentre/TownCentreMask.png",
+    "mask": "./configfile/town_centre/TownCentreMask.png",
     "part_model_number": 2,
     "height_range": [
       0.2,
