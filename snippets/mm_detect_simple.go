@@ -1,7 +1,6 @@
 package snippets
 
 import (
-	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
@@ -10,32 +9,32 @@ import (
 	"time"
 )
 
-// DetectSimple detects frames.
-type DetectSimple struct {
+// MultiModelDetectSimple detects frames.
+type MultiModelDetectSimple struct {
 	// ConfigPath is the path of external configuration file
 	ConfigPath string
 
-	config    conf.DetectSimpleConfig
-	detector  bridge.Detector
+	config    conf.MultiModelDetectSimpleConfig
+	detector  bridge.MultiModelDetector
 	lastFrame *tuple.Tuple
 	mu        sync.RWMutex
 }
 
 // Init prepares detection information set by external configuration file.
-func (d *DetectSimple) Init(ctx *core.Context) error {
-	detectConfig, err := conf.GetDetectSimpleSnippetConfig(d.ConfigPath)
+func (d *MultiModelDetectSimple) Init(ctx *core.Context) error {
+	detectConfig, err := conf.GetMultiModelDetectSimpleSnippetConfig(d.ConfigPath)
 	if err != nil {
 		return err
 	}
 	d.config = detectConfig
-	d.detector = bridge.NewDetector(detectConfig.DetectorConfig)
+	d.detector = bridge.NewMultiModelDetector(detectConfig.DetectorConfig)
 	d.lastFrame = nil
 	return nil
 }
 
 // Process add detection information to frames. Pass down tuples are controlled by
 // tick interval.
-func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
+func (d *MultiModelDetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer) error {
 	switch t.InputName {
 	case "frame":
 		d.mu.Lock()
@@ -60,7 +59,7 @@ func (d *DetectSimple) Process(ctx *core.Context, t *tuple.Tuple, w core.Writer)
 	return nil
 }
 
-func (d *DetectSimple) getLastFrame() *tuple.Tuple {
+func (d *MultiModelDetectSimple) getLastFrame() *tuple.Tuple {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	if d.lastFrame == nil {
@@ -69,7 +68,7 @@ func (d *DetectSimple) getLastFrame() *tuple.Tuple {
 	return d.lastFrame.Copy()
 }
 
-func (d *DetectSimple) detect(t *tuple.Tuple, timestamp time.Time) error {
+func (d *MultiModelDetectSimple) detect(t *tuple.Tuple, timestamp time.Time) error {
 	f, err := getFrame(t)
 	if err != nil {
 		return err
@@ -78,6 +77,7 @@ func (d *DetectSimple) detect(t *tuple.Tuple, timestamp time.Time) error {
 	fPointer := bridge.DeserializeFrame(f)
 	defer fPointer.Delete()
 	s, _ := tuple.ToInt(tuple.Timestamp(time.Now()))
+
 	drPointer := d.detector.Detect(fPointer)
 
 	t.Data["detection_result"] = tuple.Blob(drPointer.Serialize())
@@ -93,20 +93,8 @@ func (d *DetectSimple) detect(t *tuple.Tuple, timestamp time.Time) error {
 	return nil
 }
 
-func getFrame(t *tuple.Tuple) ([]byte, error) {
-	f, err := t.Data.Get("frame")
-	if err != nil {
-		return []byte{}, fmt.Errorf("cannot get frame data")
-	}
-	frame, err := tuple.AsBlob(f)
-	if err != nil {
-		return []byte{}, fmt.Errorf("frame data must be byte array type")
-	}
-	return frame, nil
-}
-
 // Terminate this component.
-func (d *DetectSimple) Terminate(ctx *core.Context) error {
+func (d *MultiModelDetectSimple) Terminate(ctx *core.Context) error {
 	d.detector.Delete()
 	return nil
 }

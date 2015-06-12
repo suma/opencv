@@ -31,6 +31,11 @@ type Detector struct {
 	p C.Detector
 }
 
+type MultiModelDetector struct {
+	p C.MultiModelDetector
+}
+
+
 type ImageTaggerCaffe struct {
 	p C.ImageTaggerCaffe
 }
@@ -121,6 +126,23 @@ func (d *Detector) Delete() {
 func (d *Detector) Detect(f Frame) DetectionResult {
 	return DetectionResult{p: C.Detector_Detect(d.p, f.p)}
 }
+
+
+func NewMultiModelDetector(config string) MultiModelDetector {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return MultiModelDetector{p: C.MultiModelDetector_New(cConfig)}
+}
+
+func (d *MultiModelDetector) Delete() {
+	C.MultiModelDetector_Delete(d.p)
+	d.p = nil
+}
+
+func (d *MultiModelDetector) Detect(f Frame) DetectionResult {
+	return DetectionResult{p: C.MultiModelDetector_Detect(d.p, f.p)}
+}
+
 
 func DetectDrawResult(f Frame, dr DetectionResult, ms int64) MatVec3b {
 	return MatVec3b{p: C.DetectDrawResult(f.p, dr.p, C.longlong(ms))}

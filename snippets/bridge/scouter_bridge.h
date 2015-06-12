@@ -9,6 +9,7 @@
 #include <scouter-core/detection_result.hpp>
 #include <scouter-core/tracking_result.hpp>
 #include <scouter-core/detector.hpp>
+#include <scouter-core/mm_detector.hpp>
 #include <scouter-core/image_tagger.hpp>
 #include <scouter-core/image_tagger_caffe.hpp>
 #include <scouter-core/integrator.hpp>
@@ -26,6 +27,7 @@ typedef scouter::Frame* Frame;
 typedef scouter::DetectionResult* DetectionResult;
 typedef scouter::FrameProcessor* FrameProcessor;
 typedef scouter::Detector* Detector;
+typedef scouter::MultiModelDetector* MultiModelDetector;
 typedef std::vector<scouter::ImageTaggerCaffe>* ImageTaggerCaffe;
 typedef struct Taggers {
   std::map<std::string, cv::Mat_<cv::Vec3b> >* drawResultsMap;
@@ -45,6 +47,7 @@ typedef void* Frame;
 typedef void* DetectionResult;
 typedef void* FrameProcessor;
 typedef void* Detector;
+typedef void* MultiModelDetector;
 typedef void* ImageTaggerCaffe;
 typedef struct Taggers {
   void* drawResultsMap;
@@ -77,6 +80,11 @@ Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
 Detector Detector_New(const char *config);
 void Detector_Delete(Detector detector);
 DetectionResult Detector_Detect(Detector detector, Frame frame);
+
+MultiModelDetector MultiModelDetector_New(const char *config);
+void MultiModelDetector_Delete(MultiModelDetector detector);
+DetectionResult MultiModelDetector_Detect(MultiModelDetector detector, Frame frame);
+
 MatVec3b DetectDrawResult(Frame frame, DetectionResult dr, long long ms);
 
 ImageTaggerCaffe ImageTaggerCaffe_New(const char *config);
