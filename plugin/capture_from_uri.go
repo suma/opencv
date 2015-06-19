@@ -3,8 +3,10 @@ package plugin
 import (
 	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"strconv"
 	"time"
 )
 
@@ -15,8 +17,8 @@ type CaptureFromURI struct {
 	finish bool
 
 	URI       string
-	FrameSkip int
-	CameraId  int
+	FrameSkip int64
+	CameraID  int64
 }
 
 // GenerateStream streams video capture datum. OpenCV video capture read
@@ -45,12 +47,12 @@ func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			return fmt.Errorf("cannot read a new frame: %v", c.URI)
 		}
 		if c.FrameSkip > 0 {
-			c.vcap.Grab(c.FrameSkip)
+			c.vcap.Grab(int(c.FrameSkip))
 		}
 
 		var m = tuple.Map{
 			"capture":  tuple.Blob(buf.Serialize()),
-			"cameraID": tuple.Int(c.CameraId),
+			"cameraID": tuple.Int(c.CameraID),
 		}
 		now := time.Now()
 		t := tuple.Tuple{
@@ -72,4 +74,41 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 
 func (c *CaptureFromURI) Schema() *core.Schema {
 	return nil
+}
+
+func (c *CaptureFromURI) GetSourceCreator() (bql.SourceCreator, error) {
+	creator := func(with map[string]string) (core.Source, error) {
+		uri, ok := with["uri"]
+		if !ok {
+			return nil, fmt.Errorf("capture source need URI")
+		}
+
+		fs, ok := with["frame_skip"]
+		if !ok {
+			fs = "0" // will be ignored
+		}
+		frameSkip, err := strconv.ParseInt(fs, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		cid, ok := with["camera_id"]
+		if !ok {
+			cid = "0"
+		}
+		cameraID, err := strconv.ParseInt(cid, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		c.URI = uri
+		c.FrameSkip = frameSkip
+		c.CameraID = cameraID
+		return c, nil
+	}
+	return creator, nil
+}
+
+func (c *CaptureFromURI) TypeName() string {
+	return "capture_from_uri"
 }

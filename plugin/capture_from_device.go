@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/core/tuple"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -15,30 +17,30 @@ type CaptureFromDevice struct {
 	vcap   bridge.VideoCapture
 	finish bool
 
-	DeviceID int
-	Width    int
-	Height   int
-	FPS      int
-	CameraId int
+	DeviceID int64
+	Width    int64
+	Height   int64
+	FPS      int64
+	CameraID int64
 }
 
 // GenerateStream streams video capture datum. OpenCV parameters
 // (e.g width, height...) are set in struct members.
 func (c *CaptureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
 	c.vcap = bridge.NewVideoCapture()
-	if ok := c.vcap.OpenDevice(c.DeviceID); !ok {
+	if ok := c.vcap.OpenDevice(int(c.DeviceID)); !ok {
 		return fmt.Errorf("error opening device: %v", c.DeviceID)
 	}
 
 	// OpenCV video capture configuration
 	if c.Width > 0 {
-		c.vcap.Set(conf.CvCapPropFrameWidth, c.Width)
+		c.vcap.Set(conf.CvCapPropFrameWidth, int(c.Width))
 	}
 	if c.Height > 0 {
-		c.vcap.Set(conf.CvCapPropFrameHeight, c.Height)
+		c.vcap.Set(conf.CvCapPropFrameHeight, int(c.Height))
 	}
 	if c.FPS > 0 {
-		c.vcap.Set(conf.CvCapPropFps, c.FPS)
+		c.vcap.Set(conf.CvCapPropFps, int(c.FPS))
 	}
 
 	// read camera frames
@@ -77,7 +79,7 @@ func (c *CaptureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 
 		var m = tuple.Map{
 			"capture":  tuple.Blob(buf.Serialize()),
-			"cameraID": tuple.Int(c.CameraId),
+			"cameraID": tuple.Int(c.CameraID),
 		}
 		now := time.Now()
 		t := tuple.Tuple{
@@ -116,4 +118,65 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 
 func (c *CaptureFromDevice) Schema() *core.Schema {
 	return nil
+}
+
+func (c *CaptureFromDevice) GetSourceCreator() (bql.SourceCreator, error) {
+	creator := func(with map[string]string) (core.Source, error) {
+		did, ok := with["device_id"]
+		if !ok {
+			return nil, fmt.Errorf("capture source need device ID")
+		}
+		deviceID, err := strconv.ParseInt(did, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		w, ok := with["width"]
+		if !ok {
+			w = "0" // will be ignored
+		}
+		width, err := strconv.ParseInt(w, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		h, ok := with["height"]
+		if !ok {
+			h = "0" // will be ignored
+		}
+		height, err := strconv.ParseInt(h, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		f, ok := with["fps"]
+		if !ok {
+			f = "0" // will be ignored
+		}
+		fps, err := strconv.ParseInt(f, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		cid, ok := with["camera_id"]
+		if !ok {
+			cid = "0"
+		}
+		cameraID, err := strconv.ParseInt(cid, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		c.DeviceID = deviceID
+		c.Width = width
+		c.Height = height
+		c.FPS = fps
+		c.CameraID = cameraID
+		return c, nil
+	}
+	return creator, nil
+}
+
+func (c *CaptureFromDevice) TypeName() string {
+	return "capture_from_device"
 }
