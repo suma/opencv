@@ -13,6 +13,12 @@ import (
 )
 
 // CaptureFromDevice is a frame generator using OpenCV video capture.
+// Usage of WITH parameters:
+//  DeviceID: [required] the ID of associated device
+//  Width: frame width, if set empty or "0" then will be ignore
+//  Height: frame height, if set empty or "0" then will be ignore
+//  FPS: frame per second, if set empty or "0" then will be ignore
+//  CameraID: the unique ID of this source if set empty then the ID will be 0
 type CaptureFromDevice struct {
 	vcap   bridge.VideoCapture
 	finish bool

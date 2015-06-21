@@ -4,7 +4,14 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 )
 
-func register() error {
+// Register scouter components.
+// Usage:
+//  TYPE capture_from_uri
+//    source component, generate frame data from URI
+//    (e.g. network camera, video file)
+//  TYPE capture_from_device
+//    source component, generate frame data from device
+func Register() error {
 	sources := []PluginSourceCreator{
 		&CaptureFromURI{},
 		&CaptureFromDevice{},

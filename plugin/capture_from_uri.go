@@ -11,7 +11,11 @@ import (
 )
 
 // CaptureFromURI is a frame generator using OpenCV video capture.
-// URI can be set URL and file path.
+// URI can be set HTTP address or file path.
+// Usage of WITH parameters:
+//  URI: [required] a capture data's URI (e.g. /data/test.avi)
+//  FrameSkip: the number of frame skip, if set empty or "0" then read all frames
+//  CameraID: the unique ID of this source if set empty then the ID will be 0
 type CaptureFromURI struct {
 	vcap   bridge.VideoCapture
 	finish bool
@@ -22,14 +26,14 @@ type CaptureFromURI struct {
 }
 
 // GenerateStream streams video capture datum. OpenCV video capture read
-// frames from URI, but user can control frame streaming frequency use
+// frames from URI, user can control frame streaming frequency use
 // FrameSkip.
 //
 // !ATTENTION!
 // When a capture source is a file-style (e.g. AVI file) and complete to read
 // all frames, an error will be occurred because video capture cannot read
-// a new frame. User can count total frame count to confirm complete of read
-// file. The number of count is logged.
+// a new frame. User can count total frame to confirm complete of read file.
+// The number of count is logged.
 func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
 	c.vcap = bridge.NewVideoCapture()
 	if ok := c.vcap.Open(c.URI); !ok {
