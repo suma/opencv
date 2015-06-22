@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"time"
 )
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"pfi/InStoreAutomation/kanohi-scouter-conf"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"strings"
 )
 

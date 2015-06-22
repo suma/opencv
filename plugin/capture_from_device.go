@@ -6,7 +6,7 @@ import (
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"strconv"
 	"sync"
 	"time"
@@ -119,10 +119,6 @@ func (c *CaptureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex, errChan 
 func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	c.finish = true
 	c.vcap.Delete()
-	return nil
-}
-
-func (c *CaptureFromDevice) Schema() *core.Schema {
 	return nil
 }
 

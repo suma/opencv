@@ -5,7 +5,7 @@ import (
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"strconv"
 	"time"
 )
@@ -73,10 +73,6 @@ func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	c.finish = true
 	c.vcap.Delete()
-	return nil
-}
-
-func (c *CaptureFromURI) Schema() *core.Schema {
 	return nil
 }
 
