@@ -2,7 +2,7 @@ package snippets
 
 import (
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"time"
 )
 
@@ -38,11 +38,6 @@ func (t *Tick) GenerateStream(ctx *core.Context, w core.Writer) error {
 // Stop generating stream.
 func (t *Tick) Stop(ctx *core.Context) error {
 	t.finish = true
-	return nil
-}
-
-// Schema returns registered schema.
-func (t *Tick) Schema() *core.Schema {
 	return nil
 }
 

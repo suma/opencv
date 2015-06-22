@@ -1,0 +1,29 @@
+package plugin
+
+import (
+	"pfi/sensorbee/sensorbee/bql"
+)
+
+// Register scouter components.
+// Usage:
+//  TYPE capture_from_uri
+//    source component, generate frame data from URI
+//    (e.g. network camera, video file)
+//  TYPE capture_from_device
+//    source component, generate frame data from device
+func Register() error {
+	sources := []PluginSourceCreator{
+		&CaptureFromURI{},
+		&CaptureFromDevice{},
+	}
+	for _, source := range sources {
+		creator, err := source.GetSourceCreator()
+		if err != nil {
+			return err
+		}
+		if err = bql.RegisterSourceType(source.TypeName(), creator); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -26,6 +26,17 @@ func (m *MatVec3b) ToJpegData(quality int) []byte {
 	return ToGoBytes(b)
 }
 
+func (m *MatVec3b) Serialize() []byte {
+	b := C.MatVec3b_Serialize(m.p)
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
+}
+
+func DeserializeMatVec3b(m []byte) MatVec3b {
+	b := toByteArray(m)
+	return MatVec3b{p: C.MatVec3b_Deserialize(b)}
+}
+
 func (m *MatVec3b) Delete() {
 	C.MatVec3b_Delete(m.p)
 	m.p = nil

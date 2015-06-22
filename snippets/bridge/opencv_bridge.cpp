@@ -2,6 +2,7 @@
 #include "util.hpp"
 
 #include <string.h>
+#include <msgpack.hpp>
 
 MatVec3b MatVec3b_New() {
   return new cv::Mat_<cv::Vec3b>();
@@ -14,6 +15,35 @@ struct ByteArray MatVec3b_ToJpegData(MatVec3b m, int quality){
   std::vector<uchar> data;
   cv::imencode(".jpg", *m, data, param);
   return toByteArray(reinterpret_cast<const char*>(&data[0]), data.size());
+}
+
+struct ByteArray MatVec3b_Serialize(MatVec3b m) {
+  msgpack::sbuffer buf;
+  msgpack::packer<msgpack::sbuffer> pk(&buf);
+  pk.pack_array(3);
+  pk.pack(m->rows);
+  pk.pack(m->cols);
+  int size = m->rows * m->cols * 3;
+  pk.pack_raw(size);
+  assert(m->isContinuous());
+  pk.pack_raw_body(reinterpret_cast<char*>(m->data), size);
+  return toByteArray(buf.data(), buf.size());
+}
+
+MatVec3b MatVec3b_Deserialize(struct ByteArray src) {
+  msgpack::unpacked msg;
+  msgpack::unpack(&msg, src.data, src.length);
+  msgpack::object obj = msg.get();
+
+  int rows, cols;
+  obj.via.array.ptr[0] >> rows;
+  obj.via.array.ptr[1] >> cols;
+  cv::Mat_<cv::Vec3b>* mat = new cv::Mat_<cv::Vec3b>();
+  mat->rows = rows;
+  mat->cols = cols;
+  memcpy(mat->data, obj.via.array.ptr[2].via.raw.ptr, obj.via.array.ptr[2].via.raw.size);
+
+  return mat;
 }
 
 void MatVec3b_Delete(MatVec3b m) {

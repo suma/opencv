@@ -5,7 +5,7 @@ import (
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/core/tuple"
+	"pfi/sensorbee/sensorbee/tuple"
 	"strconv"
 	"strings"
 	"sync"
@@ -162,11 +162,6 @@ func (c *Capture) Stop(ctx *core.Context) error {
 	time.Sleep(500 * time.Millisecond)
 	c.fp.Delete()
 	c.vcap.Delete()
-	return nil
-}
-
-// Schema returns registered schema.
-func (c *Capture) Schema() *core.Schema {
 	return nil
 }
 
