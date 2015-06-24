@@ -7,7 +7,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -122,49 +121,49 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromDevice) GetSourceCreator() (bql.SourceCreator, error) {
-	creator := func(with map[string]string) (core.Source, error) {
-		did, ok := with["device_id"]
-		if !ok {
-			return nil, fmt.Errorf("capture source need device ID")
+func (c *CaptureFromDevice) GetSourceCreator() bql.SourceCreator {
+	creator := func(ctx *core.Context, with tuple.Map) (core.Source, error) {
+		did, err := with.Get("device_id")
+		if err != nil {
+			return nil, err
 		}
-		deviceID, err := strconv.ParseInt(did, 10, 64)
+		deviceID, err := tuple.AsInt(did)
 		if err != nil {
 			return nil, err
 		}
 
-		w, ok := with["width"]
-		if !ok {
-			w = "0" // will be ignored
+		w, err := with.Get("width")
+		if err != nil {
+			w = tuple.Int(0) // will be ignored
 		}
-		width, err := strconv.ParseInt(w, 10, 64)
+		width, err := tuple.AsInt(w)
 		if err != nil {
 			return nil, err
 		}
 
-		h, ok := with["height"]
-		if !ok {
-			h = "0" // will be ignored
+		h, err := with.Get("height")
+		if err != nil {
+			h = tuple.Int(0) // will be ignored
 		}
-		height, err := strconv.ParseInt(h, 10, 64)
+		height, err := tuple.AsInt(h)
 		if err != nil {
 			return nil, err
 		}
 
-		f, ok := with["fps"]
-		if !ok {
-			f = "0" // will be ignored
+		f, err := with.Get("fps")
+		if err != nil {
+			f = tuple.Int(0) // will be ignored
 		}
-		fps, err := strconv.ParseInt(f, 10, 64)
+		fps, err := tuple.AsInt(f)
 		if err != nil {
 			return nil, err
 		}
 
-		cid, ok := with["camera_id"]
-		if !ok {
-			cid = "0"
+		cid, err := with.Get("camera_id")
+		if err != nil {
+			cid = tuple.Int(0)
 		}
-		cameraID, err := strconv.ParseInt(cid, 10, 64)
+		cameraID, err := tuple.AsInt(cid)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +175,7 @@ func (c *CaptureFromDevice) GetSourceCreator() (bql.SourceCreator, error) {
 		c.CameraID = cameraID
 		return c, nil
 	}
-	return creator, nil
+	return creator
 }
 
 func (c *CaptureFromDevice) TypeName() string {
