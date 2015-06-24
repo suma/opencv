@@ -6,7 +6,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
-	"strconv"
 	"time"
 )
 
@@ -76,37 +75,41 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromURI) GetSourceCreator() (bql.SourceCreator, error) {
-	creator := func(with map[string]string) (core.Source, error) {
-		uri, ok := with["uri"]
-		if !ok {
+func (c *CaptureFromURI) GetSourceCreator() bql.SourceCreator {
+	creator := func(ctx *core.Context, with tuple.Map) (core.Source, error) {
+		uri, err := with.Get("uri")
+		if err != nil {
 			return nil, fmt.Errorf("capture source need URI")
 		}
-
-		fs, ok := with["frame_skip"]
-		if !ok {
-			fs = "0" // will be ignored
-		}
-		frameSkip, err := strconv.ParseInt(fs, 10, 64)
+		uriStr, err := tuple.AsString(uri)
 		if err != nil {
 			return nil, err
 		}
 
-		cid, ok := with["camera_id"]
-		if !ok {
-			cid = "0"
+		fs, err := with.Get("frame_skip")
+		if err != nil {
+			fs = tuple.Int(0) // will be ignored
 		}
-		cameraID, err := strconv.ParseInt(cid, 10, 64)
+		frameSkip, err := tuple.AsInt(fs)
 		if err != nil {
 			return nil, err
 		}
 
-		c.URI = uri
+		cid, err := with.Get("camera_id")
+		if err != nil {
+			cid = tuple.Int(0)
+		}
+		cameraID, err := tuple.AsInt(cid)
+		if err != nil {
+			return nil, err
+		}
+
+		c.URI = uriStr
 		c.FrameSkip = frameSkip
 		c.CameraID = cameraID
 		return c, nil
 	}
-	return creator, nil
+	return creator
 }
 
 func (c *CaptureFromURI) TypeName() string {
