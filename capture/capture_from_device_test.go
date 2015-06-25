@@ -1,9 +1,10 @@
-package plugin
+package capture
 
 import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"pfi/sensorbee/sensorbee/core"
+	"pfi/sensorbee/sensorbee/tuple"
 	"testing"
 )
 
@@ -27,18 +28,18 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromDevice source with", t, func() {
 		capture := CaptureFromDevice{}
 		Convey("When get source creator", func() {
-			creator, err := capture.GetSourceCreator()
-			So(err, ShouldBeNil)
+			creator := capture.GetSourceCreator()
+			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := map[string]string{
-					"device_id": "0",
-					"width":     "500",
-					"height":    "600",
-					"fps":       "25",
-					"camera_id": "101",
+				with := tuple.Map{
+					"device_id": tuple.Int(0),
+					"width":     tuple.Int(500),
+					"height":    tuple.Int(600),
+					"fps":       tuple.Int(25),
+					"camera_id": tuple.Int(101),
 				}
 
-				_, err = creator(with)
+				_, err := creator(&ctx, with)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 500)
@@ -48,23 +49,23 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := map[string]string{
-					"width":     "500",
-					"height":    "600",
-					"fps":       "25",
-					"camera_id": "101",
+				with := tuple.Map{
+					"width":     tuple.Int(500),
+					"height":    tuple.Int(600),
+					"fps":       tuple.Int(25),
+					"camera_id": tuple.Int(101),
 				}
 
-				_, err = creator(with)
+				_, err := creator(&ctx, with)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := map[string]string{
-					"device_id": "0",
+				with := tuple.Map{
+					"device_id": tuple.Int(0),
 				}
 
-				_, err = creator(with)
+				_, err := creator(&ctx, with)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 0)
@@ -74,27 +75,27 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse errors", func() {
-				with := map[string]string{
-					"device_id": "a",
+				with := tuple.Map{
+					"device_id": tuple.String("a"),
 				}
-				_, err = creator(with)
+				_, err := creator(&ctx, with)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := map[string]string{
-					"device_id": "0",
+				with := tuple.Map{
+					"device_id": tuple.Int(0),
 				}
-				testMap := map[string]string{
-					"width":     "a",
-					"height":    "b",
-					"fps":       "@",
-					"camera_id": "#",
+				testMap := tuple.Map{
+					"width":     tuple.String("a"),
+					"height":    tuple.String("b"),
+					"fps":       tuple.String("@"),
+					"camera_id": tuple.String("#"),
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
 						with[k] = v
-						_, err = creator(with)
+						_, err := creator(&ctx, with)
 						So(err, ShouldNotBeNil)
 					})
 				}

@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"pfi/sensorbee/scouter/capture"
 	"pfi/sensorbee/sensorbee/bql"
 )
 
@@ -20,8 +21,8 @@ import (
 //    source component, generate frame data from device
 func init() {
 	sources := []PluginSourceCreator{
-		&CaptureFromURI{},
-		&CaptureFromDevice{},
+		&capture.CaptureFromURI{},
+		&capture.CaptureFromDevice{},
 	}
 	for _, source := range sources {
 		creator := source.GetSourceCreator()
