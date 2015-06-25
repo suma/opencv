@@ -35,11 +35,14 @@ func init() {
 
 	// states
 	states := []PluginStateCreator{
-		&detector.CameraParameter{},
+		&detector.CameraParameterState{},
 	}
 	for _, state := range states {
 		if err := udf.RegisterGlobalUDSCreator(
 			state.TypeName(), udf.UDSCreatorFunc(state.NewState)); err != nil {
+			panic(err)
+		}
+		if err := udf.RegisterGlobalUDF(state.TypeName(), udf.UnaryFunc(state.Func)); err != nil {
 			panic(err)
 		}
 	}
