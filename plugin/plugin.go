@@ -1,9 +1,10 @@
 package plugin
 
 import (
-	"fmt"
 	"pfi/sensorbee/scouter/capture"
+	"pfi/sensorbee/scouter/detector"
 	"pfi/sensorbee/sensorbee/bql"
+	"pfi/sensorbee/sensorbee/bql/udf"
 )
 
 // initialize scouter components. this init method will be called by
@@ -20,6 +21,7 @@ import (
 //  TYPE capture_from_device
 //    source component, generate frame data from device
 func init() {
+	// sources
 	sources := []PluginSourceCreator{
 		&capture.CaptureFromURI{},
 		&capture.CaptureFromDevice{},
@@ -27,7 +29,18 @@ func init() {
 	for _, source := range sources {
 		creator := source.GetSourceCreator()
 		if err := bql.RegisterSourceType(source.TypeName(), creator); err != nil {
-			fmt.Errorf("capture plugin registration error: %v", err.Error())
+			panic(err)
+		}
+	}
+
+	// states
+	states := []PluginStateCreator{
+		&detector.CameraParameter{},
+	}
+	for _, state := range states {
+		if err := udf.RegisterGlobalUDSCreator(
+			state.TypeName(), udf.UDSCreatorFunc(state.NewState)); err != nil {
+			panic(err)
 		}
 	}
 }

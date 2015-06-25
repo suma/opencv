@@ -4,7 +4,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 )
 
-// PluginSourceCreator is an interface to get bq.SourceCreator.
+// PluginSourceCreator is an interface to get bql.SourceCreator.
 type PluginSourceCreator interface {
 	// GetSourceCreator returns bql.SourceCreator which is set with
 	// parameters (see each Source components godoc).
