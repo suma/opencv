@@ -1,10 +1,8 @@
 package detector
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"pfi/ComputerVision/scouter-core-conf"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
