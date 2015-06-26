@@ -27,8 +27,7 @@ func init() {
 		&capture.CaptureFromDevice{},
 	}
 	for _, source := range sources {
-		creator := source.GetSourceCreator()
-		if err := bql.RegisterSourceType(source.TypeName(), creator); err != nil {
+		if err := bql.RegisterGlobalSourceCreator(source.TypeName(), source); err != nil {
 			panic(err)
 		}
 	}

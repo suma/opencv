@@ -28,7 +28,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromDevice source with", t, func() {
 		capture := CaptureFromDevice{}
 		Convey("When get source creator", func() {
-			creator := capture.GetSourceCreator()
+			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
 				with := tuple.Map{

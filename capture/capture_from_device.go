@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
 	"pfi/scouter-snippets/snippets/conf"
-	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
 	"sync"
@@ -121,61 +120,58 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromDevice) GetSourceCreator() bql.SourceCreator {
-	creator := func(ctx *core.Context, with tuple.Map) (core.Source, error) {
-		did, err := with.Get("device_id")
-		if err != nil {
-			return nil, err
-		}
-		deviceID, err := tuple.AsInt(did)
-		if err != nil {
-			return nil, err
-		}
-
-		w, err := with.Get("width")
-		if err != nil {
-			w = tuple.Int(0) // will be ignored
-		}
-		width, err := tuple.AsInt(w)
-		if err != nil {
-			return nil, err
-		}
-
-		h, err := with.Get("height")
-		if err != nil {
-			h = tuple.Int(0) // will be ignored
-		}
-		height, err := tuple.AsInt(h)
-		if err != nil {
-			return nil, err
-		}
-
-		f, err := with.Get("fps")
-		if err != nil {
-			f = tuple.Int(0) // will be ignored
-		}
-		fps, err := tuple.AsInt(f)
-		if err != nil {
-			return nil, err
-		}
-
-		cid, err := with.Get("camera_id")
-		if err != nil {
-			cid = tuple.Int(0)
-		}
-		cameraID, err := tuple.AsInt(cid)
-		if err != nil {
-			return nil, err
-		}
-
-		c.DeviceID = deviceID
-		c.Width = width
-		c.Height = height
-		c.FPS = fps
-		c.CameraID = cameraID
-		return c, nil
+func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error) {
+	did, err := with.Get("device_id")
+	if err != nil {
+		return nil, err
 	}
-	return creator
+	deviceID, err := tuple.AsInt(did)
+	if err != nil {
+		return nil, err
+	}
+
+	w, err := with.Get("width")
+	if err != nil {
+		w = tuple.Int(0) // will be ignored
+	}
+	width, err := tuple.AsInt(w)
+	if err != nil {
+		return nil, err
+	}
+
+	h, err := with.Get("height")
+	if err != nil {
+		h = tuple.Int(0) // will be ignored
+	}
+	height, err := tuple.AsInt(h)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := with.Get("fps")
+	if err != nil {
+		f = tuple.Int(0) // will be ignored
+	}
+	fps, err := tuple.AsInt(f)
+	if err != nil {
+		return nil, err
+	}
+
+	cid, err := with.Get("camera_id")
+	if err != nil {
+		cid = tuple.Int(0)
+	}
+	cameraID, err := tuple.AsInt(cid)
+	if err != nil {
+		return nil, err
+	}
+
+	c.DeviceID = deviceID
+	c.Width = width
+	c.Height = height
+	c.FPS = fps
+	c.CameraID = cameraID
+	return c, nil
 }
 
 func (c *CaptureFromDevice) TypeName() string {

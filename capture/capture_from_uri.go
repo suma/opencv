@@ -3,7 +3,6 @@ package capture
 import (
 	"fmt"
 	"pfi/scouter-snippets/snippets/bridge"
-	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
 	"time"
@@ -75,41 +74,38 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromURI) GetSourceCreator() bql.SourceCreator {
-	creator := func(ctx *core.Context, with tuple.Map) (core.Source, error) {
-		uri, err := with.Get("uri")
-		if err != nil {
-			return nil, fmt.Errorf("capture source need URI")
-		}
-		uriStr, err := tuple.AsString(uri)
-		if err != nil {
-			return nil, err
-		}
-
-		fs, err := with.Get("frame_skip")
-		if err != nil {
-			fs = tuple.Int(0) // will be ignored
-		}
-		frameSkip, err := tuple.AsInt(fs)
-		if err != nil {
-			return nil, err
-		}
-
-		cid, err := with.Get("camera_id")
-		if err != nil {
-			cid = tuple.Int(0)
-		}
-		cameraID, err := tuple.AsInt(cid)
-		if err != nil {
-			return nil, err
-		}
-
-		c.URI = uriStr
-		c.FrameSkip = frameSkip
-		c.CameraID = cameraID
-		return c, nil
+func (c *CaptureFromURI) CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error) {
+	uri, err := with.Get("uri")
+	if err != nil {
+		return nil, fmt.Errorf("capture source need URI")
 	}
-	return creator
+	uriStr, err := tuple.AsString(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	fs, err := with.Get("frame_skip")
+	if err != nil {
+		fs = tuple.Int(0) // will be ignored
+	}
+	frameSkip, err := tuple.AsInt(fs)
+	if err != nil {
+		return nil, err
+	}
+
+	cid, err := with.Get("camera_id")
+	if err != nil {
+		cid = tuple.Int(0)
+	}
+	cameraID, err := tuple.AsInt(cid)
+	if err != nil {
+		return nil, err
+	}
+
+	c.URI = uriStr
+	c.FrameSkip = frameSkip
+	c.CameraID = cameraID
+	return c, nil
 }
 
 func (c *CaptureFromURI) TypeName() string {

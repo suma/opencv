@@ -34,7 +34,7 @@ func TestGetURISourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromURI source with", t, func() {
 		capture := CaptureFromURI{}
 		Convey("When get source creator", func() {
-			creator := capture.GetSourceCreator()
+			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
 				with := tuple.Map{

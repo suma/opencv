@@ -1,14 +1,15 @@
 package plugin
 
 import (
-	"pfi/sensorbee/sensorbee/bql"
+	"pfi/sensorbee/sensorbee/core"
+	"pfi/sensorbee/sensorbee/tuple"
 )
 
 // PluginSourceCreator is an interface to get bql.SourceCreator.
 type PluginSourceCreator interface {
-	// GetSourceCreator returns bql.SourceCreator which is set with
-	// parameters (see each Source components godoc).
-	GetSourceCreator() bql.SourceCreator
+	// CreateSource returns user plug-in source type. Returns error when
+	// parameter is invalid.
+	CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error)
 	// TypeName return name of registration.
 	// Example:
 	//  a type name is "capture", then
