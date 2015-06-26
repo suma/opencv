@@ -7,7 +7,7 @@ import (
 	"pfi/sensorbee/sensorbee/tuple"
 )
 
-func Func(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (tuple.Value, error) {
+func FrameApplierFunc(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (tuple.Value, error) {
 	s, err := lookupCamerparameState(ctx, cameraParam)
 	if err != nil {
 		return nil, err

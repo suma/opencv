@@ -35,6 +35,7 @@ func init() {
 	// states
 	states := []PluginStateCreator{
 		&detector.CameraParameterState{},
+		&detector.ACFDetectionParamState{},
 	}
 	for _, state := range states {
 		if err := udf.RegisterGlobalUDSCreator(
@@ -44,7 +45,7 @@ func init() {
 	}
 
 	// UDFs
-	if err := udf.RegisterGlobalUDF("detection", udf.BinaryFunc(detector.Func)); err != nil {
+	if err := udf.RegisterGlobalUDF("frame_applier", udf.BinaryFunc(detector.FrameApplierFunc)); err != nil {
 		panic(err)
 	}
 }
