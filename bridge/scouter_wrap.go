@@ -35,7 +35,6 @@ type MultiModelDetector struct {
 	p C.MultiModelDetector
 }
 
-
 type ImageTaggerCaffe struct {
 	p C.ImageTaggerCaffe
 }
@@ -107,9 +106,12 @@ func (fp *FrameProcessor) Delete() {
 	fp.p = nil
 }
 
-func (fp *FrameProcessor) Apply(buf MatVec3b, timestamp int64,
-	cameraID int) Frame {
-	return Frame{p: C.FrameProcessor_Apply(fp.p, buf.p, C.longlong(timestamp), C.int(cameraID))}
+func (fp *FrameProcessor) Projection(buf MatVec3b) (MatVec3b, int, int) {
+	frame := C.FrameProcessor_Projection(fp.p, buf.p)
+	img := MatVec3b{p: frame.image}
+	offsetX := int(frame.offset_x)
+	offsetY := int(frame.offset_y)
+	return img, offsetX, offsetY
 }
 
 func NewDetector(config string) Detector {
@@ -127,7 +129,6 @@ func (d *Detector) Detect(f Frame) DetectionResult {
 	return DetectionResult{p: C.Detector_Detect(d.p, f.p)}
 }
 
-
 func NewMultiModelDetector(config string) MultiModelDetector {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
@@ -142,7 +143,6 @@ func (d *MultiModelDetector) Delete() {
 func (d *MultiModelDetector) Detect(f Frame) DetectionResult {
 	return DetectionResult{p: C.MultiModelDetector_Detect(d.p, f.p)}
 }
-
 
 func DetectDrawResult(f Frame, dr DetectionResult, ms int64) MatVec3b {
 	return MatVec3b{p: C.DetectDrawResult(f.p, dr.p, C.longlong(ms))}

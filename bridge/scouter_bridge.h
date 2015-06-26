@@ -22,8 +22,14 @@ typedef struct String {
   const char* str;
   int length;
 } String;
+
 #ifdef __cplusplus
 typedef scouter::Frame* Frame;
+typedef struct ScouterFrame {
+  cv::Mat_<cv::Vec3b>* image;
+  int offset_x;
+  int offset_y;
+} ScouterFrame;
 typedef scouter::DetectionResult* DetectionResult;
 typedef scouter::FrameProcessor* FrameProcessor;
 typedef scouter::Detector* Detector;
@@ -44,6 +50,11 @@ typedef struct PlotTrajectories {
 } PlotTrajectories;
 #else
 typedef void* Frame;
+typedef struct ScouterFrame {
+  MatVec3b image;
+  int offset_x;
+  int offset_y;
+} ScouterFrame;
 typedef void* DetectionResult;
 typedef void* FrameProcessor;
 typedef void* Detector;
@@ -74,8 +85,7 @@ void DetectionResult_Delete(DetectionResult dr);
 
 FrameProcessor FrameProcessor_New(const char *config);
 void FrameProcessor_Delete(FrameProcessor fp);
-Frame FrameProcessor_Apply(FrameProcessor fp, MatVec3b buf,
-                           long long timestamp, int cameraID);
+struct ScouterFrame FrameProcessor_Projection(FrameProcessor pf, MatVec3b buf);
 
 Detector Detector_New(const char *config);
 void Detector_Delete(Detector detector);

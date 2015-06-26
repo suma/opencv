@@ -5,7 +5,6 @@ import (
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
-	"time"
 )
 
 func Func(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (tuple.Value, error) {
@@ -18,15 +17,15 @@ func Func(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (t
 	if err != nil {
 		return nil, fmt.Errorf("capture data must be a Map: %v", err.Error())
 	}
-	buf, cameraID, err := lookupMatData(ctx, capMat)
+	buf, _, err := lookupMatData(ctx, capMat)
 	if err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
-	inow := now.UnixNano() / int64(time.Millisecond)                      // [ms]
-	f := s.fp.Apply(bridge.DeserializeMatVec3b(buf), inow, int(cameraID)) // TODO now is wrong, should be get capture time
-	capMat["frame"] = tuple.Blob(f.Serialize())
+	img, offsetX, offsetY := s.fp.Projection(bridge.DeserializeMatVec3b(buf))
+	capMat["projection_img"] = tuple.Blob(img.Serialize())
+	capMat["offset_x"] = tuple.Int(offsetX)
+	capMat["offset_y"] = tuple.Int(offsetY)
 	return capMat, nil
 }
 
