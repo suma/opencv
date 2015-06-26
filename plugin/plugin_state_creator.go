@@ -11,6 +11,4 @@ type PluginStateCreator interface {
 	NewState(*core.Context, tuple.Map) (core.SharedState, error)
 	// TypeName returns the SharedState' type.
 	TypeName() string
-	// Func is user specific function: UDF.
-	Func(*core.Context, tuple.Value) (tuple.Value, error)
 }

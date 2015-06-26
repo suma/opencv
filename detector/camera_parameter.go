@@ -1,9 +1,8 @@
 package detector
 
 import (
-	"fmt"
 	"io/ioutil"
-	"pfi/scouter-snippets/snippets/bridge"
+	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
 )
@@ -49,30 +48,4 @@ func (s *CameraParameterState) Write(ctx *core.Context, t *tuple.Tuple) error {
 func (s *CameraParameterState) Terminate(ctx *core.Context) error {
 	s.fp.Delete()
 	return nil
-}
-
-func (s *CameraParameterState) Func(ctx *core.Context, stateName tuple.Value) (tuple.Value, error) {
-	s, err := lookupState(ctx, stateName)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-func lookupState(ctx *core.Context, stateName tuple.Value) (*CameraParameterState, error) {
-	name, err := tuple.AsString(stateName)
-	if err != nil {
-		return nil, fmt.Errorf("name of the state must be a string: %v", stateName)
-	}
-
-	st, err := ctx.GetSharedState(name)
-	if err != nil {
-		return nil, err
-	}
-
-	if s, ok := st.(*CameraParameterState); ok {
-		return s, nil
-	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", name)
 }

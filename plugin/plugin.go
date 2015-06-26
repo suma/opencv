@@ -41,8 +41,10 @@ func init() {
 			state.TypeName(), udf.UDSCreatorFunc(state.NewState)); err != nil {
 			panic(err)
 		}
-		if err := udf.RegisterGlobalUDF(state.TypeName(), udf.UnaryFunc(state.Func)); err != nil {
-			panic(err)
-		}
+	}
+
+	// UDFs
+	if err := udf.RegisterGlobalUDF("detection", udf.BinaryFunc(detector.Func)); err != nil {
+		panic(err)
 	}
 }
