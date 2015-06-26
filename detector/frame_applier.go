@@ -14,15 +14,20 @@ func Func(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (t
 		return nil, err
 	}
 
-	buf, cameraID, err := lookupMatData(ctx, captureMat)
+	capMat, err := tuple.AsMap(captureMat)
+	if err != nil {
+		return nil, fmt.Errorf("capture data must be a Map: %v", err.Error())
+	}
+	buf, cameraID, err := lookupMatData(ctx, capMat)
 	if err != nil {
 		return nil, err
 	}
 
 	now := time.Now()
-	inow := now.UnixNano() / int64(time.Millisecond)                 // [ms]
-	s.fp.Apply(bridge.DeserializeMatVec3b(buf), inow, int(cameraID)) // TODO now is wrong, should be get capture time
-	return nil, nil
+	inow := now.UnixNano() / int64(time.Millisecond)                      // [ms]
+	f := s.fp.Apply(bridge.DeserializeMatVec3b(buf), inow, int(cameraID)) // TODO now is wrong, should be get capture time
+	capMat["frame"] = tuple.Blob(f.Serialize())
+	return capMat, nil
 }
 
 func lookupCamerparameState(ctx *core.Context, stateName tuple.Value) (*CameraParameterState, error) {
@@ -42,12 +47,7 @@ func lookupCamerparameState(ctx *core.Context, stateName tuple.Value) (*CameraPa
 	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", name)
 }
 
-func lookupMatData(ctx *core.Context, captureMat tuple.Value) ([]byte, int64, error) {
-	capMat, err := tuple.AsMap(captureMat)
-	if err != nil {
-		return []byte{}, 0, fmt.Errorf("capture data must be a Map: %v", err.Error())
-	}
-
+func lookupMatData(ctx *core.Context, capMat tuple.Map) ([]byte, int64, error) {
 	mat, err := capMat.Get("capture")
 	if err != nil {
 		return []byte{}, 0, err
