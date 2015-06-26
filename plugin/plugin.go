@@ -34,7 +34,7 @@ func init() {
 
 	// states
 	states := []PluginStateCreator{
-		&detector.CameraParameterState{},
+		&detector.CameraParamState{},
 		&detector.ACFDetectionParamState{},
 	}
 	for _, state := range states {

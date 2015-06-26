@@ -7,11 +7,11 @@ import (
 	"pfi/sensorbee/sensorbee/tuple"
 )
 
-type CameraParameterState struct {
+type CameraParamState struct {
 	fp bridge.FrameProcessor
 }
 
-func (s *CameraParameterState) NewState(ctx *core.Context, with tuple.Map) (core.SharedState, error) {
+func (s *CameraParamState) NewState(ctx *core.Context, with tuple.Map) (core.SharedState, error) {
 	p, err := with.Get("file")
 	if err != nil {
 		return nil, err
@@ -33,19 +33,19 @@ func (s *CameraParameterState) NewState(ctx *core.Context, with tuple.Map) (core
 	return s, nil
 }
 
-func (s *CameraParameterState) TypeName() string {
+func (s *CameraParamState) TypeName() string {
 	return "camera_parameter"
 }
 
-func (s *CameraParameterState) Init(ctx *core.Context) error {
+func (s *CameraParamState) Init(ctx *core.Context) error {
 	return nil
 }
 
-func (s *CameraParameterState) Write(ctx *core.Context, t *tuple.Tuple) error {
+func (s *CameraParamState) Write(ctx *core.Context, t *tuple.Tuple) error {
 	return nil
 }
 
-func (s *CameraParameterState) Terminate(ctx *core.Context) error {
+func (s *CameraParamState) Terminate(ctx *core.Context) error {
 	s.fp.Delete()
 	return nil
 }

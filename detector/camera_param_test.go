@@ -10,7 +10,7 @@ import (
 func TestValidNewState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := CameraParameterState{}
+		state := CameraParamState{}
 		Convey("When the state get valid config json", func() {
 			with := tuple.Map{
 				"file": tuple.String("frame_processor_param_test.json"),
@@ -28,7 +28,7 @@ func TestValidNewState(t *testing.T) {
 func TestErrorNewState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := CameraParameterState{}
+		state := CameraParamState{}
 		Convey("When the state get invalid param", func() {
 			with := tuple.Map{}
 			Convey("Given an error", func() {

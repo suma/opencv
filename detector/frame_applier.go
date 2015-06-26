@@ -8,7 +8,7 @@ import (
 )
 
 func FrameApplierFunc(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (tuple.Value, error) {
-	s, err := lookupCamerparameState(ctx, cameraParam)
+	s, err := lookupCameraParamState(ctx, cameraParam)
 	if err != nil {
 		return nil, err
 	}
@@ -23,13 +23,13 @@ func FrameApplierFunc(ctx *core.Context, cameraParam tuple.Value, captureMat tup
 	}
 
 	img, offsetX, offsetY := s.fp.Projection(bridge.DeserializeMatVec3b(buf))
-	capMat["projection_img"] = tuple.Blob(img.Serialize())
+	capMat["projected_img"] = tuple.Blob(img.Serialize())
 	capMat["offset_x"] = tuple.Int(offsetX)
 	capMat["offset_y"] = tuple.Int(offsetY)
 	return capMat, nil
 }
 
-func lookupCamerparameState(ctx *core.Context, stateName tuple.Value) (*CameraParameterState, error) {
+func lookupCameraParamState(ctx *core.Context, stateName tuple.Value) (*CameraParamState, error) {
 	name, err := tuple.AsString(stateName)
 	if err != nil {
 		return nil, fmt.Errorf("name of the state must be a string: %v", stateName)
@@ -40,7 +40,7 @@ func lookupCamerparameState(ctx *core.Context, stateName tuple.Value) (*CameraPa
 		return nil, err
 	}
 
-	if s, ok := st.(*CameraParameterState); ok {
+	if s, ok := st.(*CameraParamState); ok {
 		return s, nil
 	}
 	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", name)
