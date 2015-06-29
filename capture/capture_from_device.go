@@ -2,8 +2,7 @@ package capture
 
 import (
 	"fmt"
-	"pfi/scouter-snippets/snippets/bridge"
-	"pfi/scouter-snippets/snippets/conf"
+	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
 	"sync"
@@ -38,13 +37,13 @@ func (c *CaptureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 
 	// OpenCV video capture configuration
 	if c.Width > 0 {
-		c.vcap.Set(conf.CvCapPropFrameWidth, int(c.Width))
+		c.vcap.Set(bridge.CvCapPropFrameWidth, int(c.Width))
 	}
 	if c.Height > 0 {
-		c.vcap.Set(conf.CvCapPropFrameHeight, int(c.Height))
+		c.vcap.Set(bridge.CvCapPropFrameHeight, int(c.Height))
 	}
 	if c.FPS > 0 {
-		c.vcap.Set(conf.CvCapPropFps, int(c.FPS))
+		c.vcap.Set(bridge.CvCapPropFps, int(c.FPS))
 	}
 
 	// read camera frames

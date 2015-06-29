@@ -4,6 +4,8 @@
 #include "util.h"
 #include <cstdlib>
 #include <msgpack.hpp>
+#include <pficommon/text/json.h>
+#include <jsonconfig.hpp>
 
 ByteArray toByteArray(const char* buf, int len);
 
@@ -23,6 +25,14 @@ T* deserializeObject(const ByteArray& src) {
   T* ret = new T();
   obj.convert(ret);
   return ret;
+}
+
+template <class Type>
+Type load_json(const char *config) {
+  std::stringstream ss(config);
+  pfi::text::json::json config_raw;
+  ss >> config_raw;
+  return jsonconfig::config_cast<Type>(jsonconfig::config_root(config_raw));
 }
 
 #endif // _BRIDGE_UTIL_HPP_

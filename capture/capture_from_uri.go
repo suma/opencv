@@ -2,7 +2,7 @@ package capture
 
 import (
 	"fmt"
-	"pfi/scouter-snippets/snippets/bridge"
+	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/tuple"
 	"time"
