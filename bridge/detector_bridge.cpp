@@ -43,9 +43,12 @@ struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offs
   return c;
 }
 
-struct Candidates Detector_FilterCndidateByMask(Detector detector, struct Candidates candidates) {
-  std::vector<scouter::ObjectCandidate> filtered = detector->filter_candidate_by_mask(
-    *candidates.candidateVec);
+struct Candidates Detector_FilterCandidateByMask(Detector detector, Candidate* candidates, int length) {
+  std::vector<scouter::ObjectCandidate> candidateVec;
+  for (int i = 0; i < length; ++i) {
+    candidateVec.push_back(*candidates[i]);
+  }
+  std::vector<scouter::ObjectCandidate> filtered = detector->filter_candidate_by_mask(candidateVec);
   std::vector<scouter::ObjectCandidate>* ret = new std::vector<scouter::ObjectCandidate>();
   for (size_t i = 0; i < filtered.size(); ++i) {
     ret->push_back(filtered[i]);
@@ -54,7 +57,13 @@ struct Candidates Detector_FilterCndidateByMask(Detector detector, struct Candid
   return c;
 }
 
-void Detector_EstimateCandidateHeight(Detector detector, struct Candidates candidates,
+struct Candidates Detector_EstimateCandidateHeight(Detector detector, Candidate* candidates, int length,
     int offsetX, int offsetY) {
-  detector->estimate_candidate_height(*candidates.candidateVec, offsetX, offsetY);
+  std::vector<scouter::ObjectCandidate>* candidateVec = new std::vector<scouter::ObjectCandidate>();
+  for (int i = 0; i < length; ++i) {
+    candidateVec->push_back(*candidates[i]);
+  }
+  detector->estimate_candidate_height(*candidateVec, offsetX, offsetY);
+  Candidates c = {candidateVec, length};
+  return c;
 }

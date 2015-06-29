@@ -48,4 +48,26 @@ func init() {
 	if err := udf.RegisterGlobalUDF("frame_applier", udf.BinaryFunc(detector.FrameApplierFunc)); err != nil {
 		panic(err)
 	}
+	acfDetectFunc, err := udf.GenericFunc(detector.ACFDetectFunc)
+	if err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("acf_detector", acfDetectFunc); err != nil {
+		panic(err)
+	}
+	filterByMaskFunc, err := udf.GenericFunc(detector.FilterByMaskFunc)
+	if err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("filter_by_mask", filterByMaskFunc); err != nil {
+		panic(err)
+	}
+	estimateHeightFunc, err := udf.GenericFunc(detector.EstimateHeight)
+	if err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("estimate_height", estimateHeightFunc); err != nil {
+		panic(err)
+	}
+
 }
