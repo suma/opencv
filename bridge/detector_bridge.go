@@ -59,5 +59,23 @@ func (d *Detector) Delete() {
 }
 
 func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+	candidateVecPointer := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	defer C.Candidates_Delete(candidateVecPointer)
+	l := int(candidateVecPointer.length)
+	candidates := make([]C.Candidate, l)
+	C.ResolveCandidates(candidateVecPointer, (*C.Candidate)(&candidates[0]))
+
+	ret := make([]Candidate, l)
+	for i := 0; i < l; i++ {
+		ret[i] = Candidate{p: candidates[i]}
+	}
+	return ret
+}
+
+func (d *Detector) FilterByMask(candidates []Candidate) []Candidate {
+	return nil
+}
+
+func (d *Detector) EstimateHeight(candidates []Candidate, offsetX int, offsetY int) []Candidate {
 	return nil
 }

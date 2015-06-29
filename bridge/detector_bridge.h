@@ -12,14 +12,14 @@ extern "C" {
 typedef scouter::Detector* Detector;
 typedef scouter::ObjectCandidate* Candidate;
 typedef struct Candidates {
-  std::vector<scouter::ObjectCandidate>* candidatesVec;
+  std::vector<scouter::ObjectCandidate>* candidateVec;
   int length;
 } Candidates;
 #else
 typedef void* Detector;
 typedef void* Candidate;
 typedef struct Candidates {
-  void* candidatesVec;
+  void* candidateVec;
   int length;
 } Candidates;
 #endif
@@ -30,10 +30,12 @@ void Candidate_Delete(Candidate c);
 
 Detector Detector_New(const char *config);
 void Detector_Delete(Detector detector);
-void ResolveCondidates(struct Candidates candidates, Candidate* obj);
-struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offssetY);
-struct Candidates Detector_FilterCndidateByMask(struct Candidates candidates);
-void Detector_EstimateCandidateHeight(struct Candidates candidates, int offsetX, int offsetY);
+void ResolveCandidates(struct Candidates candidates, Candidate* obj);
+void Candidates_Delete(struct Candidates candidates);
+struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY);
+struct Candidates Detector_FilterCndidateByMask(Detector detector, struct Candidates candidates);
+void Detector_EstimateCandidateHeight(Detector detector, struct Candidates candidates,
+  int offsetX, int offsetY);
 
 #ifdef __cplusplus
 }
