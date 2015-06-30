@@ -40,7 +40,7 @@ func init() {
 
 	// sinks
 	mjpegSink := &mjpegserv.MJPEGServ{}
-	if err := bql.RegisterGlobalSinkCreator("mjpe_server", mjpegSink); err != nil {
+	if err := bql.RegisterGlobalSinkCreator("mjpeg_server", mjpegSink); err != nil {
 		panic(err)
 	}
 
