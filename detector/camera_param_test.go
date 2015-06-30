@@ -15,7 +15,7 @@ func TestValidNewCameraParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.String("frame_processor_param_test.json"),
 			}
-			Convey("Given the state set with frame processor", func() {
+			Convey("Then the state set with frame processor", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldBeNil)
 				So(state.fp, ShouldNotBeNil)
@@ -31,7 +31,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 		state := CameraParamState{}
 		Convey("When the state get invalid param", func() {
 			with := tuple.Map{}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -40,7 +40,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.Null{},
 			}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -49,7 +49,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.String("not_exist.json"),
 			}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})

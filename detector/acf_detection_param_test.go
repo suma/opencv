@@ -15,7 +15,7 @@ func TestValidNewACFDetectionParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.String("detector_param_test.json"),
 			}
-			Convey("Given the state set with detector", func() {
+			Convey("Then the state set with detector", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldBeNil)
 			})
@@ -29,7 +29,7 @@ func TestErrorNewACFDetectionParamState(t *testing.T) {
 		state := ACFDetectionParamState{}
 		Convey("When the state get invalid param", func() {
 			with := tuple.Map{}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -38,7 +38,7 @@ func TestErrorNewACFDetectionParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.Null{},
 			}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -47,7 +47,7 @@ func TestErrorNewACFDetectionParamState(t *testing.T) {
 			with := tuple.Map{
 				"file": tuple.String("not_exist.json"),
 			}
-			Convey("Given an error", func() {
+			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})

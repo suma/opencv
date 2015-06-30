@@ -3,6 +3,7 @@ package plugin
 import (
 	"pfi/sensorbee/scouter/capture"
 	"pfi/sensorbee/scouter/detector"
+	"pfi/sensorbee/scouter/mjpegserv"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/bql/udf"
 )
@@ -11,15 +12,20 @@ import (
 // SensorBee customized main.go.
 //
 //  import(
-//      _ "pfi/scouter-snippets/plugin"
+//      _ "pfi/sensorbee/scouter/plugin"
 //  )
 //
 // Usage:
+// Source
 //  TYPE capture_from_uri
 //    source component, generate frame data from URI
 //    (e.g. network camera, video file)
 //  TYPE capture_from_device
 //    source component, generate frame data from device
+//
+// Sink (TODO)
+// State (TODO)
+// UDF (TODO)
 func init() {
 	// sources
 	sources := []PluginSourceCreator{
@@ -30,6 +36,12 @@ func init() {
 		if err := bql.RegisterGlobalSourceCreator(source.TypeName(), source); err != nil {
 			panic(err)
 		}
+	}
+
+	// sinks
+	mjpegSink := &mjpegserv.MJPEGServ{}
+	if err := bql.RegisterGlobalSinkCreator("mjpe_server", mjpegSink); err != nil {
+		panic(err)
 	}
 
 	// states

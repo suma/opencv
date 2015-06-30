@@ -77,7 +77,7 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 func (c *CaptureFromURI) CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error) {
 	uri, err := with.Get("uri")
 	if err != nil {
-		return nil, fmt.Errorf("capture source need URI")
+		return nil, fmt.Errorf("capture source needs URI")
 	}
 	uriStr, err := tuple.AsString(uri)
 	if err != nil {
