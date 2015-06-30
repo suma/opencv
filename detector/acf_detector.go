@@ -66,7 +66,7 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, frame tuple.Map) (t
 	return frame, nil
 }
 
-func EstimateHeight(ctx *core.Context, detectParam string, frame tuple.Map) (tuple.Value, error) {
+func EstimateHeightFunc(ctx *core.Context, detectParam string, frame tuple.Map) (tuple.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err

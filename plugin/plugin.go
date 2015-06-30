@@ -62,7 +62,7 @@ func init() {
 	if err := udf.RegisterGlobalUDF("filter_by_mask", filterByMaskFunc); err != nil {
 		panic(err)
 	}
-	estimateHeightFunc, err := udf.GenericFunc(detector.EstimateHeight)
+	estimateHeightFunc, err := udf.GenericFunc(detector.EstimateHeightFunc)
 	if err != nil {
 		panic(err)
 	}

@@ -7,28 +7,26 @@ import (
 	"testing"
 )
 
-func TestValidNewCameraParamState(t *testing.T) {
+func TestValidNewACFDetectionParamState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := CameraParamState{}
+		state := ACFDetectionParamState{}
 		Convey("When the state get valid config json", func() {
 			with := tuple.Map{
-				"file": tuple.String("frame_processor_param_test.json"),
+				"file": tuple.String("detector_param_test.json"),
 			}
-			Convey("Given the state set with frame processor", func() {
+			Convey("Given the state set with detector", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldBeNil)
-				So(state.fp, ShouldNotBeNil)
-				state.fp.Delete()
 			})
 		})
 	})
 }
 
-func TestErrorNewCameraParamState(t *testing.T) {
+func TestErrorNewACFDetectionParamState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := CameraParamState{}
+		state := ACFDetectionParamState{}
 		Convey("When the state get invalid param", func() {
 			with := tuple.Map{}
 			Convey("Given an error", func() {
