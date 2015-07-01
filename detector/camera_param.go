@@ -4,19 +4,19 @@ import (
 	"io/ioutil"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 )
 
 type CameraParamState struct {
 	fp bridge.FrameProcessor
 }
 
-func (s *CameraParamState) NewState(ctx *core.Context, with tuple.Map) (core.SharedState, error) {
+func (s *CameraParamState) NewState(ctx *core.Context, with data.Map) (core.SharedState, error) {
 	p, err := with.Get("file")
 	if err != nil {
 		return nil, err
 	}
-	path, err := tuple.AsString(p)
+	path, err := data.AsString(p)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *CameraParamState) Init(ctx *core.Context) error {
 	return nil
 }
 
-func (s *CameraParamState) Write(ctx *core.Context, t *tuple.Tuple) error {
+func (s *CameraParamState) Write(ctx *core.Context, t *core.Tuple) error {
 	return nil
 }
 

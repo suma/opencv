@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"sync"
 )
 
@@ -26,12 +26,12 @@ type MJPEGServ struct {
 	inChan chan input
 }
 
-func (m *MJPEGServ) Write(ctx *core.Context, t *tuple.Tuple) error {
+func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {
 		return err
 	}
-	nameStr, err := tuple.AsString(name)
+	nameStr, err := data.AsString(name)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *tuple.Tuple) error {
 	if err != nil {
 		return err
 	}
-	imgByte, err := tuple.AsBlob(img)
+	imgByte, err := data.AsBlob(img)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ func (m *MJPEGServ) Close(ctx *core.Context) error {
 	return nil
 }
 
-func (m *MJPEGServ) CreateSink(ctx *core.Context, params tuple.Map) (core.Sink, error) {
+func (m *MJPEGServ) CreateSink(ctx *core.Context, params data.Map) (core.Sink, error) {
 	port, err := params.Get("port")
 	if err != nil {
-		port = tuple.Int(10090)
+		port = data.Int(10090)
 	}
-	portNum, err := tuple.AsInt(port)
+	portNum, err := data.AsInt(port)
 	if err != nil {
 		return nil, err
 	}

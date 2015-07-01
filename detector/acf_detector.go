@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 )
 
-func ACFDetectFunc(ctx *core.Context, detectParam string, frame tuple.Map) (tuple.Value, error) {
+func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -22,16 +22,16 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame tuple.Map) (tupl
 		return nil, err
 	}
 	candidates := s.d.ACFDetect(bridge.DeserializeMatVec3b(img), offsetX, offsetY)
-	detected := tuple.Array{}
+	detected := data.Array{}
 	for _, candidate := range candidates {
-		detected = append(detected, tuple.Blob(candidate.Serialize()))
+		detected = append(detected, data.Blob(candidate.Serialize()))
 		candidate.Delete() // TODO use defer
 	}
 	frame["detect"] = detected
 	return frame, nil
 }
 
-func FilterByMaskFunc(ctx *core.Context, detectParam string, frame tuple.Map) (tuple.Value, error) {
+func FilterByMaskFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -41,14 +41,14 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, frame tuple.Map) (t
 	if err != nil {
 		return nil, err
 	}
-	cans, err := tuple.AsArray(candidates)
+	cans, err := data.AsArray(candidates)
 	if err != nil {
 		return nil, err
 	}
 
 	cansByte := [][]byte{}
 	for _, c := range cans {
-		b, err := tuple.AsBlob(c)
+		b, err := data.AsBlob(c)
 		if err != nil {
 			return nil, err // TODO return is OK?
 		}
@@ -56,9 +56,9 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, frame tuple.Map) (t
 	}
 
 	filteredCans := s.d.FilterByMask(cansByte)
-	filtered := tuple.Array{}
+	filtered := data.Array{}
 	for _, fc := range filteredCans {
-		filtered = append(filtered, tuple.Blob(fc.Serialize()))
+		filtered = append(filtered, data.Blob(fc.Serialize()))
 		fc.Delete() // TODO use defer
 	}
 
@@ -66,7 +66,7 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, frame tuple.Map) (t
 	return frame, nil
 }
 
-func EstimateHeightFunc(ctx *core.Context, detectParam string, frame tuple.Map) (tuple.Value, error) {
+func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -81,14 +81,14 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame tuple.Map) 
 	if err != nil {
 		return nil, err
 	}
-	cans, err := tuple.AsArray(candidates)
+	cans, err := data.AsArray(candidates)
 	if err != nil {
 		return nil, err
 	}
 
 	cansByte := [][]byte{}
 	for _, c := range cans {
-		b, err := tuple.AsBlob(c)
+		b, err := data.AsBlob(c)
 		if err != nil {
 			return nil, err // TODO return is OK?
 		}
@@ -96,9 +96,9 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame tuple.Map) 
 	}
 
 	estimatedCans := s.d.EstimateHeight(cansByte, offsetX, offsetY)
-	estimated := tuple.Array{}
+	estimated := data.Array{}
 	for _, ec := range estimatedCans {
-		estimated = append(estimated, tuple.Blob(ec.Serialize()))
+		estimated = append(estimated, data.Blob(ec.Serialize()))
 		ec.Delete() // TODO use defer
 	}
 
@@ -118,12 +118,12 @@ func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetec
 	return nil, fmt.Errorf("state '%v' cannot be converted to acf_detection_param.state", detectParam)
 }
 
-func lookupFrameData(frame tuple.Map) ([]byte, error) {
+func lookupFrameData(frame data.Map) ([]byte, error) {
 	img, err := frame.Get("projected_img")
 	if err != nil {
 		return []byte{}, err
 	}
-	image, err := tuple.AsBlob(img)
+	image, err := data.AsBlob(img)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -131,12 +131,12 @@ func lookupFrameData(frame tuple.Map) ([]byte, error) {
 	return image, nil
 }
 
-func loopupOffsets(frame tuple.Map) (int, int, error) {
+func loopupOffsets(frame data.Map) (int, int, error) {
 	ox, err := frame.Get("offset_x")
 	if err != nil {
 		return 0, 0, err
 	}
-	offsetX, err := tuple.AsInt(ox)
+	offsetX, err := data.AsInt(ox)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -145,7 +145,7 @@ func loopupOffsets(frame tuple.Map) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	offsetY, err := tuple.AsInt(oy)
+	offsetY, err := data.AsInt(oy)
 	if err != nil {
 		return 0, 0, err
 	}

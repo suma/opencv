@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 )
 
-func FrameApplierFunc(ctx *core.Context, cameraParam tuple.Value, captureMat tuple.Value) (tuple.Value, error) {
+func FrameApplierFunc(ctx *core.Context, cameraParam data.Value, captureMat data.Value) (data.Value, error) {
 	s, err := lookupCameraParamState(ctx, cameraParam)
 	if err != nil {
 		return nil, err
 	}
 
-	capMat, err := tuple.AsMap(captureMat)
+	capMat, err := data.AsMap(captureMat)
 	if err != nil {
 		return nil, fmt.Errorf("capture data must be a Map: %v", err.Error())
 	}
@@ -23,14 +23,14 @@ func FrameApplierFunc(ctx *core.Context, cameraParam tuple.Value, captureMat tup
 	}
 
 	img, offsetX, offsetY := s.fp.Projection(bridge.DeserializeMatVec3b(buf))
-	capMat["projected_img"] = tuple.Blob(img.Serialize())
-	capMat["offset_x"] = tuple.Int(offsetX)
-	capMat["offset_y"] = tuple.Int(offsetY)
+	capMat["projected_img"] = data.Blob(img.Serialize())
+	capMat["offset_x"] = data.Int(offsetX)
+	capMat["offset_y"] = data.Int(offsetY)
 	return capMat, nil
 }
 
-func lookupCameraParamState(ctx *core.Context, stateName tuple.Value) (*CameraParamState, error) {
-	name, err := tuple.AsString(stateName)
+func lookupCameraParamState(ctx *core.Context, stateName data.Value) (*CameraParamState, error) {
+	name, err := data.AsString(stateName)
 	if err != nil {
 		return nil, fmt.Errorf("name of the state must be a string: %v", stateName)
 	}
@@ -46,12 +46,12 @@ func lookupCameraParamState(ctx *core.Context, stateName tuple.Value) (*CameraPa
 	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", name)
 }
 
-func lookupMatData(ctx *core.Context, capMat tuple.Map) ([]byte, int64, error) {
+func lookupMatData(ctx *core.Context, capMat data.Map) ([]byte, int64, error) {
 	mat, err := capMat.Get("capture")
 	if err != nil {
 		return []byte{}, 0, err
 	}
-	buf, err := tuple.AsBlob(mat)
+	buf, err := data.AsBlob(mat)
 	if err != nil {
 		return []byte{}, 0, err
 	}
@@ -60,7 +60,7 @@ func lookupMatData(ctx *core.Context, capMat tuple.Map) ([]byte, int64, error) {
 	if err != nil {
 		return []byte{}, 0, err
 	}
-	cameraID, err := tuple.AsInt(ci)
+	cameraID, err := data.AsInt(ci)
 	if err != nil {
 		return []byte{}, 0, err
 	}

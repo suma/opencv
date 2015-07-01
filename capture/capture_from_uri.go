@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"time"
 )
 
@@ -52,16 +52,16 @@ func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			c.vcap.Grab(int(c.FrameSkip))
 		}
 
-		var m = tuple.Map{
-			"capture":  tuple.Blob(buf.Serialize()),
-			"cameraID": tuple.Int(c.CameraID),
+		var m = data.Map{
+			"capture":  data.Blob(buf.Serialize()),
+			"cameraID": data.Int(c.CameraID),
 		}
 		now := time.Now()
-		t := tuple.Tuple{
+		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: now,
-			Trace:         make([]tuple.TraceEvent, 0),
+			Trace:         make([]core.TraceEvent, 0),
 		}
 		w.Write(ctx, &t)
 	}
@@ -74,30 +74,30 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromURI) CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error) {
+func (c *CaptureFromURI) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
 	uri, err := with.Get("uri")
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
 	}
-	uriStr, err := tuple.AsString(uri)
+	uriStr, err := data.AsString(uri)
 	if err != nil {
 		return nil, err
 	}
 
 	fs, err := with.Get("frame_skip")
 	if err != nil {
-		fs = tuple.Int(0) // will be ignored
+		fs = data.Int(0) // will be ignored
 	}
-	frameSkip, err := tuple.AsInt(fs)
+	frameSkip, err := data.AsInt(fs)
 	if err != nil {
 		return nil, err
 	}
 
 	cid, err := with.Get("camera_id")
 	if err != nil {
-		cid = tuple.Int(0)
+		cid = data.Int(0)
 	}
-	cameraID, err := tuple.AsInt(cid)
+	cameraID, err := data.AsInt(cid)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package mjpegserv
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"testing"
 )
 
@@ -12,7 +12,7 @@ func TestMJPEGServCreateDefaultSink(t *testing.T) {
 	Convey("Given a MJPEG server sink", t, func() {
 		sink := MJPEGServ{}
 		Convey("When parameter is not included port", func() {
-			params := tuple.Map{}
+			params := data.Map{}
 			Convey("Then sink has default port number", func() {
 				_, err := sink.CreateSink(ctx, params)
 				So(err, ShouldBeNil)
@@ -20,8 +20,8 @@ func TestMJPEGServCreateDefaultSink(t *testing.T) {
 			})
 		})
 		Convey("When parameter has valid port", func() {
-			params := tuple.Map{
-				"port": tuple.Int(8080),
+			params := data.Map{
+				"port": data.Int(8080),
 			}
 			Convey("Then sink set port number", func() {
 				_, err := sink.CreateSink(ctx, params)
@@ -37,8 +37,8 @@ func TestMJPEGServCreateSinkWithError(t *testing.T) {
 	Convey("Given a MJPEG server sink", t, func() {
 		sink := MJPEGServ{}
 		Convey("When parameters have an invalid port", func() {
-			params := tuple.Map{
-				"port": tuple.String("8080"),
+			params := data.Map{
+				"port": data.String("8080"),
 			}
 			Convey("Then returns an error", func() {
 				_, err := sink.CreateSink(ctx, params)

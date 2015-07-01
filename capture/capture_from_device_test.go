@@ -4,7 +4,7 @@ import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"testing"
 )
 
@@ -31,12 +31,12 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := tuple.Map{
-					"device_id": tuple.Int(0),
-					"width":     tuple.Int(500),
-					"height":    tuple.Int(600),
-					"fps":       tuple.Int(25),
-					"camera_id": tuple.Int(101),
+				with := data.Map{
+					"device_id": data.Int(0),
+					"width":     data.Int(500),
+					"height":    data.Int(600),
+					"fps":       data.Int(25),
+					"camera_id": data.Int(101),
 				}
 
 				_, err := creator(&ctx, with)
@@ -49,11 +49,11 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := tuple.Map{
-					"width":     tuple.Int(500),
-					"height":    tuple.Int(600),
-					"fps":       tuple.Int(25),
-					"camera_id": tuple.Int(101),
+				with := data.Map{
+					"width":     data.Int(500),
+					"height":    data.Int(600),
+					"fps":       data.Int(25),
+					"camera_id": data.Int(101),
 				}
 
 				_, err := creator(&ctx, with)
@@ -61,8 +61,8 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := tuple.Map{
-					"device_id": tuple.Int(0),
+				with := data.Map{
+					"device_id": data.Int(0),
 				}
 
 				_, err := creator(&ctx, with)
@@ -75,22 +75,22 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse errors", func() {
-				with := tuple.Map{
-					"device_id": tuple.String("a"),
+				with := data.Map{
+					"device_id": data.String("a"),
 				}
 				_, err := creator(&ctx, with)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := tuple.Map{
-					"device_id": tuple.Int(0),
+				with := data.Map{
+					"device_id": data.Int(0),
 				}
-				testMap := tuple.Map{
-					"width":     tuple.String("a"),
-					"height":    tuple.String("b"),
-					"fps":       tuple.String("@"),
-					"camera_id": tuple.String("#"),
+				testMap := data.Map{
+					"width":     data.String("a"),
+					"height":    data.String("b"),
+					"fps":       data.String("@"),
+					"camera_id": data.String("#"),
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {

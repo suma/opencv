@@ -3,7 +3,7 @@ package detector
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"testing"
 )
 
@@ -12,8 +12,8 @@ func TestValidNewCameraParamState(t *testing.T) {
 	Convey("Given a new state", t, func() {
 		state := CameraParamState{}
 		Convey("When the state get valid config json", func() {
-			with := tuple.Map{
-				"file": tuple.String("frame_processor_param_test.json"),
+			with := data.Map{
+				"file": data.String("frame_processor_param_test.json"),
 			}
 			Convey("Then the state set with frame processor", func() {
 				_, err := state.NewState(ctx, with)
@@ -30,15 +30,15 @@ func TestErrorNewCameraParamState(t *testing.T) {
 	Convey("Given a new state", t, func() {
 		state := CameraParamState{}
 		Convey("When the state get invalid param", func() {
-			with := tuple.Map{}
+			with := data.Map{}
 			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the state get null file path", func() {
-			with := tuple.Map{
-				"file": tuple.Null{},
+			with := data.Map{
+				"file": data.Null{},
 			}
 			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)
@@ -46,8 +46,8 @@ func TestErrorNewCameraParamState(t *testing.T) {
 			})
 		})
 		Convey("When the state get invalid file path", func() {
-			with := tuple.Map{
-				"file": tuple.String("not_exist.json"),
+			with := data.Map{
+				"file": data.String("not_exist.json"),
 			}
 			Convey("Then an error", func() {
 				_, err := state.NewState(ctx, with)

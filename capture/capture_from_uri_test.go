@@ -4,7 +4,7 @@ import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"testing"
 )
 
@@ -26,7 +26,7 @@ func TestGenerateStreamURIError(t *testing.T) {
 
 type dummyWriter struct{}
 
-func (w *dummyWriter) Write(ctx *core.Context, t *tuple.Tuple) error {
+func (w *dummyWriter) Write(ctx *core.Context, t *core.Tuple) error {
 	return nil
 }
 
@@ -37,10 +37,10 @@ func TestGetURISourceCreator(t *testing.T) {
 			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := tuple.Map{
-					"uri":        tuple.String("/data/file.avi"),
-					"frame_skip": tuple.Int(5),
-					"camera_id":  tuple.Int(1),
+				with := data.Map{
+					"uri":        data.String("/data/file.avi"),
+					"frame_skip": data.Int(5),
+					"camera_id":  data.Int(1),
 				}
 
 				_, err := creator(&ctx, with)
@@ -51,9 +51,9 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := tuple.Map{
-					"frame_skip": tuple.Int(5),
-					"camera_id":  tuple.Int(1),
+				with := data.Map{
+					"frame_skip": data.Int(5),
+					"camera_id":  data.Int(1),
 				}
 
 				_, err := creator(&ctx, with)
@@ -61,8 +61,8 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := tuple.Map{
-					"uri": tuple.String("/data/file.avi"),
+				with := data.Map{
+					"uri": data.String("/data/file.avi"),
 				}
 
 				_, err := creator(&ctx, with)
@@ -73,12 +73,12 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := tuple.Map{
-					"uri": tuple.String("/data/file.avi"),
+				with := data.Map{
+					"uri": data.String("/data/file.avi"),
 				}
-				testMap := tuple.Map{
-					"frame_skip": tuple.String("@"),
-					"camera_id":  tuple.String("全角"),
+				testMap := data.Map{
+					"frame_skip": data.String("@"),
+					"camera_id":  data.String("全角"),
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {

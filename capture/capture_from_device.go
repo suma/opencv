@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/tuple"
+	"pfi/sensorbee/sensorbee/data"
 	"sync"
 	"time"
 )
@@ -80,16 +80,16 @@ func (c *CaptureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 			continue
 		}
 
-		var m = tuple.Map{
-			"capture":  tuple.Blob(buf.Serialize()),
-			"cameraID": tuple.Int(c.CameraID),
+		var m = data.Map{
+			"capture":  data.Blob(buf.Serialize()),
+			"cameraID": data.Int(c.CameraID),
 		}
 		now := time.Now()
-		t := tuple.Tuple{
+		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: now,
-			Trace:         make([]tuple.TraceEvent, 0),
+			Trace:         make([]core.TraceEvent, 0),
 		}
 		w.Write(ctx, &t)
 	}
@@ -119,48 +119,48 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with tuple.Map) (core.Source, error) {
+func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
 	did, err := with.Get("device_id")
 	if err != nil {
 		return nil, err
 	}
-	deviceID, err := tuple.AsInt(did)
+	deviceID, err := data.AsInt(did)
 	if err != nil {
 		return nil, err
 	}
 
 	w, err := with.Get("width")
 	if err != nil {
-		w = tuple.Int(0) // will be ignored
+		w = data.Int(0) // will be ignored
 	}
-	width, err := tuple.AsInt(w)
+	width, err := data.AsInt(w)
 	if err != nil {
 		return nil, err
 	}
 
 	h, err := with.Get("height")
 	if err != nil {
-		h = tuple.Int(0) // will be ignored
+		h = data.Int(0) // will be ignored
 	}
-	height, err := tuple.AsInt(h)
+	height, err := data.AsInt(h)
 	if err != nil {
 		return nil, err
 	}
 
 	f, err := with.Get("fps")
 	if err != nil {
-		f = tuple.Int(0) // will be ignored
+		f = data.Int(0) // will be ignored
 	}
-	fps, err := tuple.AsInt(f)
+	fps, err := data.AsInt(f)
 	if err != nil {
 		return nil, err
 	}
 
 	cid, err := with.Get("camera_id")
 	if err != nil {
-		cid = tuple.Int(0)
+		cid = data.Int(0)
 	}
-	cameraID, err := tuple.AsInt(cid)
+	cameraID, err := data.AsInt(cid)
 	if err != nil {
 		return nil, err
 	}
