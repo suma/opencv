@@ -31,7 +31,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 		state := CameraParamState{}
 		Convey("When the state get invalid param", func() {
 			with := data.Map{}
-			Convey("Then an error", func() {
+			Convey("Then an error should be occur", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -40,7 +40,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 			with := data.Map{
 				"file": data.Null{},
 			}
-			Convey("Then an error", func() {
+			Convey("Then an error should be occur", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})
@@ -49,7 +49,7 @@ func TestErrorNewCameraParamState(t *testing.T) {
 			with := data.Map{
 				"file": data.String("not_exist.json"),
 			}
-			Convey("Then an error", func() {
+			Convey("Then an error should be occur", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldNotBeNil)
 			})

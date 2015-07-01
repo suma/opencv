@@ -4,6 +4,7 @@ import (
 	"pfi/sensorbee/scouter/capture"
 	"pfi/sensorbee/scouter/detector"
 	"pfi/sensorbee/scouter/mjpegserv"
+	"pfi/sensorbee/scouter/recognizer"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/bql/udf"
 )
@@ -48,6 +49,7 @@ func init() {
 	states := []PluginStateCreator{
 		&detector.CameraParamState{},
 		&detector.ACFDetectionParamState{},
+		&recog.ImageTaggerCaffeParamState{},
 	}
 	for _, state := range states {
 		if err := udf.RegisterGlobalUDSCreator(

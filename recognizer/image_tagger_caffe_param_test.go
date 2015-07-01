@@ -1,4 +1,4 @@
-package detector
+package recog
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -7,50 +7,50 @@ import (
 	"testing"
 )
 
-func TestValidNewACFDetectionParamState(t *testing.T) {
+func TestValidNewImageTaggerCaffeParam(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := ACFDetectionParamState{}
+		state := ImageTaggerCaffeParamState{}
 		Convey("When the state get valid config json", func() {
-			with := data.Map{
-				"file": data.String("detector_param_test.json"),
+			params := data.Map{
+				"file": data.String("image_tagger_caffe_param_test.json"),
 			}
-			Convey("Then the state set with detector", func() {
-				_, err := state.NewState(ctx, with)
+			Convey("Then the state set with tagger", func() {
+				_, err := state.NewState(ctx, params)
 				So(err, ShouldBeNil)
-				So(state.d, ShouldNotBeNil)
-				state.d.Delete()
+				So(state.tagger, ShouldNotBeNil)
+				state.tagger.Delete()
 			})
 		})
 	})
 }
 
-func TestErrorNewACFDetectionParamState(t *testing.T) {
+func TestErrorNewImageTaggerCaffeParam(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a new state", t, func() {
-		state := ACFDetectionParamState{}
+		state := ImageTaggerCaffeParamState{}
 		Convey("When the state get invalid param", func() {
-			with := data.Map{}
+			params := data.Map{}
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, with)
+				_, err := state.NewState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the state get null file path", func() {
-			with := data.Map{
+			params := data.Map{
 				"file": data.Null{},
 			}
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, with)
+				_, err := state.NewState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the state get invalid file path", func() {
-			with := data.Map{
+			params := data.Map{
 				"file": data.String("not_exist.json"),
 			}
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, with)
+				_, err := state.NewState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
