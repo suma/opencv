@@ -90,5 +90,12 @@ func init() {
 	if err := udf.RegisterGlobalUDF("draw_detection_result", drawDetectionResultFunc); err != nil {
 		panic(err)
 	}
+	recognizeCaffe, err := udf.GenericFunc(recog.RecognizeFunc)
+	if err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("recognize_caffe", recognizeCaffe); err != nil {
+		panic(err)
+	}
 
 }
