@@ -123,7 +123,11 @@ func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Ar
 	}
 
 	ret := bridge.DrawDetectionResult(img, canObjs)
-	return data.Blob(ret.Serialize()), nil
+	m := data.Map{
+		"img":  data.Blob(ret.Serialize()),
+		"name": data.String("detection_result"),
+	}
+	return m, nil
 }
 
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetectionParamState, error) {
