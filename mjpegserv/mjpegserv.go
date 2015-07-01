@@ -50,7 +50,7 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 		imageData: imgByte,
 	}
 	in := input{
-		key:       "",
+		key:       "", // TODO
 		inputData: inData,
 	}
 
