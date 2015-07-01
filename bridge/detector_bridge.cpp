@@ -67,3 +67,13 @@ struct Candidates Detector_EstimateCandidateHeight(Detector detector, Candidate*
   Candidates c = {candidateVec, length};
   return c;
 }
+
+MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length) {
+  cv::Mat_<cv::Vec3b>* c = new cv::Mat_<cv::Vec3b>();
+  image->copyTo(*c);
+  for (int i = 0; i < length; ++i) {
+    const scouter::ObjectCandidate& o = *candidates[i];
+    o.draw(*c, cv::Scalar(0, 0, 255), 2);
+  }
+  return c;
+}

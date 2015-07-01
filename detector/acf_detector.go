@@ -46,16 +46,16 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, frame data.Map) (da
 		return nil, err
 	}
 
-	cansByte := [][]byte{}
+	canObjs := []bridge.Candidate{}
 	for _, c := range cans {
 		b, err := data.AsBlob(c)
 		if err != nil {
 			return nil, err // TODO return is OK?
 		}
-		cansByte = append(cansByte, b)
+		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
 	}
 
-	filteredCans := s.d.FilterByMask(cansByte)
+	filteredCans := s.d.FilterByMask(canObjs)
 	filtered := data.Array{}
 	for _, fc := range filteredCans {
 		filtered = append(filtered, data.Blob(fc.Serialize()))
@@ -86,16 +86,16 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (
 		return nil, err
 	}
 
-	cansByte := [][]byte{}
+	canObjs := []bridge.Candidate{}
 	for _, c := range cans {
 		b, err := data.AsBlob(c)
 		if err != nil {
 			return nil, err // TODO return is OK?
 		}
-		cansByte = append(cansByte, b)
+		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
 	}
 
-	estimatedCans := s.d.EstimateHeight(cansByte, offsetX, offsetY)
+	estimatedCans := s.d.EstimateHeight(canObjs, offsetX, offsetY)
 	estimated := data.Array{}
 	for _, ec := range estimatedCans {
 		estimated = append(estimated, data.Blob(ec.Serialize()))
@@ -104,6 +104,26 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (
 
 	frame["detect"] = estimated // TODO overwrite is OK?
 	return estimated, nil
+}
+
+func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
+	b, err := data.AsBlob(frame)
+	if err != nil {
+		return nil, err
+	}
+	img := bridge.DeserializeMatVec3b(b)
+
+	canObjs := []bridge.Candidate{}
+	for _, c := range regions {
+		b, err := data.AsBlob(c)
+		if err != nil {
+			return nil, err
+		}
+		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
+	}
+
+	ret := bridge.DrawDetectionResult(img, canObjs)
+	return data.Blob(ret.Serialize()), nil
 }
 
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetectionParamState, error) {

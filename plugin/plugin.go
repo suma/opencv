@@ -81,5 +81,12 @@ func init() {
 	if err := udf.RegisterGlobalUDF("estimate_height", estimateHeightFunc); err != nil {
 		panic(err)
 	}
+	drawDetectionResultFunc, err := udf.GenericFunc(detector.DrawDetectionResultFunc)
+	if err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("draw_detection_result", drawDetectionResultFunc); err != nil {
+		panic(err)
+	}
 
 }

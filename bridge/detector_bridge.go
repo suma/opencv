@@ -38,6 +38,14 @@ func DeserializeCandidate(c []byte) Candidate {
 	return Candidate{p: C.Candidate_Deserialize(b)}
 }
 
+func ConvertCandidatesToPointer(candidates []Candidate) []C.Candidate {
+	candidatePointers := []C.Candidate{}
+	for _, c := range candidates {
+		candidatePointers = append(candidatePointers, c.p)
+	}
+	return candidatePointers
+}
+
 func (c Candidate) Delete() {
 	C.Candidate_Delete(c.p)
 	c.p = nil
@@ -72,12 +80,9 @@ func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate
 	return ret
 }
 
-func (d *Detector) FilterByMask(candidates [][]byte) []Candidate {
+func (d *Detector) FilterByMask(candidates []Candidate) []Candidate {
 	l := len(candidates)
-	candidatePointer := make([]C.Candidate, l)
-	for _, candidate := range candidates {
-		candidatePointer = append(candidatePointer, DeserializeCandidate(candidate).p)
-	}
+	candidatePointer := ConvertCandidatesToPointer(candidates)
 	filteredVec := C.Detector_FilterCandidateByMask(d.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
 	defer C.Candidates_Delete(filteredVec)
 	filteredLength := int(filteredVec.length)
@@ -91,12 +96,9 @@ func (d *Detector) FilterByMask(candidates [][]byte) []Candidate {
 	return ret
 }
 
-func (d *Detector) EstimateHeight(candidates [][]byte, offsetX int, offsetY int) []Candidate {
+func (d *Detector) EstimateHeight(candidates []Candidate, offsetX int, offsetY int) []Candidate {
 	l := len(candidates)
-	candidatePointer := make([]C.Candidate, l)
-	for _, candidate := range candidates {
-		candidatePointer = append(candidatePointer, DeserializeCandidate(candidate).p)
-	}
+	candidatePointer := ConvertCandidatesToPointer(candidates)
 	estimatedVec := C.Detector_EstimateCandidateHeight(d.p, (*C.Candidate)(&candidatePointer[0]),
 		C.int(l), C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(estimatedVec)
@@ -109,4 +111,13 @@ func (d *Detector) EstimateHeight(candidates [][]byte, offsetX int, offsetY int)
 		ret[i] = Candidate{p: estimated[i]}
 	}
 	return ret
+}
+
+func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
+	// draw result should be called by each candidate,
+	// but think the cost of copying MatVec3b, called by []C.Candidate
+	l := len(candidates)
+	candidatePointer := ConvertCandidatesToPointer(candidates)
+	ret := C.Candidates_Draw(img.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
+	return MatVec3b{p: ret}
 }
