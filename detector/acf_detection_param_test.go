@@ -18,6 +18,8 @@ func TestValidNewACFDetectionParamState(t *testing.T) {
 			Convey("Then the state set with detector", func() {
 				_, err := state.NewState(ctx, with)
 				So(err, ShouldBeNil)
+				So(state.d, ShouldNotBeNil)
+				state.d.Delete()
 			})
 		})
 	})
