@@ -2,40 +2,44 @@ package detector
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"time"
 )
 
-func FrameApplierFunc(ctx *core.Context, cameraParam data.Value, captureMat data.Value) (data.Value, error) {
+func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob) (data.Value, error) {
 	s, err := lookupCameraParamState(ctx, cameraParam)
 	if err != nil {
 		return nil, err
 	}
 
-	capMat, err := data.AsMap(captureMat)
-	if err != nil {
-		return nil, fmt.Errorf("capture data must be a Map: %v", err.Error())
-	}
-	buf, _, err := lookupMatData(ctx, capMat)
+	buf, err := data.AsBlob(capture)
 	if err != nil {
 		return nil, err
 	}
 
-	img, offsetX, offsetY := s.fp.Projection(bridge.DeserializeMatVec3b(buf))
-	capMat["projected_img"] = data.Blob(img.Serialize())
-	capMat["offset_x"] = data.Int(offsetX)
-	capMat["offset_y"] = data.Int(offsetY)
-	return capMat, nil
-}
+	ctx.Logger.Log(core.Debug, "buffer loaded: %v", len(buf))
 
-func lookupCameraParamState(ctx *core.Context, stateName data.Value) (*CameraParamState, error) {
-	name, err := data.AsString(stateName)
-	if err != nil {
-		return nil, fmt.Errorf("name of the state must be a string: %v", stateName)
+	bufp := bridge.DeserializeMatVec3b(buf)
+	defer bufp.Delete()
+	img, offsetX, offsetY := s.fp.Projection(bufp)
+
+	m := data.Map{
+		"projected_img": data.Blob(img.Serialize()),
+		"offset_x":      data.Int(offsetX),
+		"offset_y":      data.Int(offsetY),
 	}
 
-	st, err := ctx.GetSharedState(name)
+	timeStr := time.Now().Format("15_04_05.999999")
+	ioutil.WriteFile(fmt.Sprintf("frame_%v.jpg", timeStr), img.ToJpegData(50), os.ModePerm)
+	return m, nil
+}
+
+func lookupCameraParamState(ctx *core.Context, stateName string) (*CameraParamState, error) {
+	st, err := ctx.GetSharedState(stateName)
 	if err != nil {
 		return nil, err
 	}
@@ -43,26 +47,5 @@ func lookupCameraParamState(ctx *core.Context, stateName data.Value) (*CameraPar
 	if s, ok := st.(*CameraParamState); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", name)
-}
-
-func lookupMatData(ctx *core.Context, capMat data.Map) ([]byte, int64, error) {
-	mat, err := capMat.Get("capture")
-	if err != nil {
-		return []byte{}, 0, err
-	}
-	buf, err := data.AsBlob(mat)
-	if err != nil {
-		return []byte{}, 0, err
-	}
-
-	ci, err := capMat.Get("cameraID")
-	if err != nil {
-		return []byte{}, 0, err
-	}
-	cameraID, err := data.AsInt(ci)
-	if err != nil {
-		return []byte{}, 0, err
-	}
-	return buf, cameraID, nil
+	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", stateName)
 }

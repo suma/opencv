@@ -35,6 +35,8 @@ MatVec3b MatVec3b_Deserialize(struct ByteArray src) {
   msgpack::unpack(&msg, src.data, src.length);
   msgpack::object obj = msg.get();
 
+  obj = obj.via.array.ptr[0];
+  assert(obj.via.array.size == 3);
   int rows, cols;
   obj.via.array.ptr[0] >> rows;
   obj.via.array.ptr[1] >> cols;
@@ -42,7 +44,6 @@ MatVec3b MatVec3b_Deserialize(struct ByteArray src) {
   mat->rows = rows;
   mat->cols = cols;
   memcpy(mat->data, obj.via.array.ptr[2].via.raw.ptr, obj.via.array.ptr[2].via.raw.size);
-
   return mat;
 }
 

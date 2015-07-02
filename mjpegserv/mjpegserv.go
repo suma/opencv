@@ -3,8 +3,11 @@ package mjpegserv
 import (
 	"fmt"
 	"github.com/gocraft/web"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"sync"
@@ -44,10 +47,12 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 	if err != nil {
 		return err
 	}
+	imgp := bridge.DeserializeMatVec3b(imgByte)
+	defer imgp.Delete()
 
 	inData := inputData{
 		name:      nameStr,
-		imageData: imgByte,
+		imageData: imgp.ToJpegData(50),
 	}
 	in := input{
 		key:       "", // TODO
@@ -55,6 +60,9 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 	}
 
 	m.inChan <- in
+	// debug code
+	timeStr := t.Timestamp.Format("15_04_05.999999")
+	ioutil.WriteFile(fmt.Sprintf("detect_%v.jpg", timeStr), imgByte, os.ModePerm)
 	return nil
 }
 
