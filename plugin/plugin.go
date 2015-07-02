@@ -62,35 +62,35 @@ func init() {
 	if err := udf.RegisterGlobalUDF("frame_applier", udf.BinaryFunc(detector.FrameApplierFunc)); err != nil {
 		panic(err)
 	}
-	acfDetectFunc, err := udf.GenericFunc(detector.ACFDetectFunc)
+	acfDetectFunc, err := udf.ConvertGeneric(detector.ACFDetectFunc)
 	if err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDF("acf_detector", acfDetectFunc); err != nil {
 		panic(err)
 	}
-	filterByMaskFunc, err := udf.GenericFunc(detector.FilterByMaskFunc)
+	filterByMaskFunc, err := udf.ConvertGeneric(detector.FilterByMaskFunc)
 	if err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDF("filter_by_mask", filterByMaskFunc); err != nil {
 		panic(err)
 	}
-	estimateHeightFunc, err := udf.GenericFunc(detector.EstimateHeightFunc)
+	estimateHeightFunc, err := udf.ConvertGeneric(detector.EstimateHeightFunc)
 	if err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDF("estimate_height", estimateHeightFunc); err != nil {
 		panic(err)
 	}
-	drawDetectionResultFunc, err := udf.GenericFunc(detector.DrawDetectionResultFunc)
+	drawDetectionResultFunc, err := udf.ConvertGeneric(detector.DrawDetectionResultFunc)
 	if err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDF("draw_detection_result", drawDetectionResultFunc); err != nil {
 		panic(err)
 	}
-	recognizeCaffe, err := udf.GenericFunc(recog.RecognizeFunc)
+	recognizeCaffe, err := udf.ConvertGeneric(recog.RecognizeFunc)
 	if err != nil {
 		panic(err)
 	}
