@@ -11,10 +11,15 @@ import (
 func TestMJPEGServWrite(t *testing.T) {
 	ctx := &core.Context{}
 	params := data.Map{"port": data.Int(8081)}
-	img, _ := ioutil.ReadFile("dummy_image.jpg")
+	img, err := ioutil.ReadFile("dummy_image.jpg")
+	if err != nil {
+		t.Fatalf("cannot load test image file: %v", err)
+	}
 
 	sink := MJPEGServ{}
-	sink.CreateSink(ctx, params)
+	if _, err := sink.CreateSink(ctx, params); err != nil {
+		t.Fatalf("cannot create sink: %v", err)
+	}
 	Convey("Given a MJPEG server sink and start", t, func() {
 		Convey("When passes a tuple", func() {
 			m := data.Map{
@@ -36,7 +41,9 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 	ctx := &core.Context{}
 	params := data.Map{"port": data.Int(8082)}
 	sink := MJPEGServ{}
-	sink.CreateSink(ctx, params)
+	if _, err := sink.CreateSink(ctx, params); err != nil {
+		t.Fatalf("cannot create sink: %v", err)
+	}
 	Convey("Given a MJPEG server sink and start", t, func() {
 		Convey("When passes no name tuple", func() {
 			m := data.Map{
