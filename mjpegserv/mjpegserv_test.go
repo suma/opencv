@@ -11,7 +11,7 @@ import (
 func TestMJPEGServWrite(t *testing.T) {
 	ctx := &core.Context{}
 	params := data.Map{"port": data.Int(8081)}
-	img, err := ioutil.ReadFile("dummy_image.jpg")
+	img, err := ioutil.ReadFile("test_cvmat")
 	if err != nil {
 		t.Fatalf("cannot load test image file: %v", err)
 	}

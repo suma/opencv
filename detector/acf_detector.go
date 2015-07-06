@@ -21,11 +21,12 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.
 	if err != nil {
 		return nil, err
 	}
-	candidates := s.d.ACFDetect(bridge.DeserializeMatVec3b(img), offsetX, offsetY)
+	imgP := bridge.DeserializeMatVec3b(img)
+	defer imgP.Delete()
+	candidates := s.d.ACFDetect(imgP, offsetX, offsetY)
 	detected := data.Array{}
 	for _, candidate := range candidates {
 		detected = append(detected, data.Blob(candidate.Serialize()))
-		candidate.Delete() // TODO use defer
 	}
 	frame["detect"] = detected
 	return frame, nil
@@ -99,11 +100,10 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (
 	estimated := data.Array{}
 	for _, ec := range estimatedCans {
 		estimated = append(estimated, data.Blob(ec.Serialize()))
-		ec.Delete() // TODO use defer
 	}
 
 	frame["detect"] = estimated // TODO overwrite is OK?
-	return estimated, nil
+	return frame, nil
 }
 
 func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {

@@ -3,10 +3,8 @@ package mjpegserv
 import (
 	"fmt"
 	"github.com/gocraft/web"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -60,9 +58,6 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 	}
 
 	m.inChan <- in
-	// debug code
-	timeStr := t.Timestamp.Format("15_04_05.999999")
-	ioutil.WriteFile(fmt.Sprintf("detect_%v.jpg", timeStr), imgByte, os.ModePerm)
 	return nil
 }
 

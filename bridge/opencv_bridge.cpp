@@ -35,15 +35,13 @@ MatVec3b MatVec3b_Deserialize(struct ByteArray src) {
   msgpack::unpack(&msg, src.data, src.length);
   msgpack::object obj = msg.get();
 
-  obj = obj.via.array.ptr[0];
-  assert(obj.via.array.size == 3);
+  msgpack::object_array obj_array = obj.via.array;
+  assert(obj_array.size == 3);
   int rows, cols;
-  obj.via.array.ptr[0] >> rows;
-  obj.via.array.ptr[1] >> cols;
-  cv::Mat_<cv::Vec3b>* mat = new cv::Mat_<cv::Vec3b>();
-  mat->rows = rows;
-  mat->cols = cols;
-  memcpy(mat->data, obj.via.array.ptr[2].via.raw.ptr, obj.via.array.ptr[2].via.raw.size);
+  obj_array.ptr[0] >> rows;
+  obj_array.ptr[1] >> cols;
+  cv::Mat_<cv::Vec3b>* mat = new cv::Mat_<cv::Vec3b>(rows, cols);
+  memcpy(mat->data, obj_array.ptr[2].via.raw.ptr, obj_array.ptr[2].via.raw.size);
   return mat;
 }
 
