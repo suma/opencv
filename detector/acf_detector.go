@@ -3,6 +3,7 @@ package detector
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -13,7 +14,7 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.
 		return nil, err
 	}
 
-	img, err := lookupFrameData(frame)
+	_, img, err := lookupFrameData(frame)
 	if err != nil {
 		return nil, err
 	}
@@ -30,6 +31,54 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.
 	}
 	frame["detect"] = detected
 	return frame, nil
+}
+
+type acfDetectUDSF struct {
+	id         int64
+	candidates []bridge.Candidate
+}
+
+func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
+	for _, c := range sf.candidates {
+		m := data.Map{
+			"frame_id": data.Int(sf.id),
+			"region":   data.Blob(c.Serialize()),
+		}
+		t.Data = m
+		w.Write(ctx, t)
+	}
+	return nil
+}
+
+func (d *acfDetectUDSF) Terminate(ctx *core.Context) error {
+	return nil
+}
+
+func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
+	detectParam string, frame data.Map) (udf.UDSF, error) {
+	// TODO declarer input
+
+	s, err := lookupACFDetectParamState(ctx, detectParam)
+	if err != nil {
+		return nil, err
+	}
+
+	id, img, err := lookupFrameData(frame)
+	if err != nil {
+		return nil, err
+	}
+	offsetX, offsetY, err := loopupOffsets(frame)
+	if err != nil {
+		return nil, err
+	}
+	imgP := bridge.DeserializeMatVec3b(img)
+	defer imgP.Delete()
+	candidates := s.d.ACFDetect(imgP, offsetX, offsetY)
+
+	return &acfDetectUDSF{
+		id:         id,
+		candidates: candidates,
+	}, nil
 }
 
 func FilterByMaskFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
@@ -138,17 +187,26 @@ func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetec
 	return nil, fmt.Errorf("state '%v' cannot be converted to acf_detection_param.state", detectParam)
 }
 
-func lookupFrameData(frame data.Map) ([]byte, error) {
+func lookupFrameData(frame data.Map) (int64, []byte, error) {
+	id, err := frame.Get("frame_id")
+	if err != nil {
+		return 0, []byte{}, err
+	}
+	frameId, err := data.AsInt(id)
+	if err != nil {
+		return 0, []byte{}, err
+	}
+
 	img, err := frame.Get("projected_img")
 	if err != nil {
-		return []byte{}, err
+		return 0, []byte{}, err
 	}
 	image, err := data.AsBlob(img)
 	if err != nil {
-		return []byte{}, err
+		return 0, []byte{}, err
 	}
 
-	return image, nil
+	return frameId, image, nil
 }
 
 func loopupOffsets(frame data.Map) (int, int, error) {

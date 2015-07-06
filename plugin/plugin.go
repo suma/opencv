@@ -67,6 +67,7 @@ func init() {
 		udf.MustConvertGeneric(detector.ACFDetectFunc)); err != nil {
 		panic(err)
 	}
+	udf.RegisterGlobalUDSFCreator("acf_detector_stream", udf.MustConvertToUDSFCreator(detector.CreateACFDetectUDSF))
 	if err := udf.RegisterGlobalUDF("filter_by_mask",
 		udf.MustConvertGeneric(detector.FilterByMaskFunc)); err != nil {
 		panic(err)

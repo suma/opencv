@@ -42,6 +42,7 @@ func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 	defer buf.Delete()
 	cnt := 0
 	c.finish = false
+	ctx.Logger.Log(core.Debug, "start reading video stream of file: %v", c.URI)
 	for !c.finish {
 		cnt++
 		if ok := c.vcap.Read(buf); !ok {
