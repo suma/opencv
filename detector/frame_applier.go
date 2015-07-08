@@ -7,7 +7,7 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob, id int) (data.Value, error) {
+func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob) (data.Value, error) {
 	s, err := lookupCameraParamState(ctx, cameraParam)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,6 @@ func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob, 
 	img, offsetX, offsetY := s.fp.Projection(bufp)
 
 	m := data.Map{
-		"frame_id":      data.Int(id),
 		"projected_img": data.Blob(img.Serialize()),
 		"offset_x":      data.Int(offsetX),
 		"offset_y":      data.Int(offsetY),

@@ -33,9 +33,8 @@ void Detector_Delete(Detector detector);
 void ResolveCandidates(struct Candidates candidates, Candidate* obj);
 void Candidates_Delete(struct Candidates candidates);
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY);
-struct Candidates Detector_FilterCandidateByMask(Detector detector, Candidate* candidates, int length);
-struct Candidates Detector_EstimateCandidateHeight(Detector detector, Candidate* candidates, int length,
-  int offsetX, int offsetY);
+int Detector_FilterByMask(Detector detector, Candidate candidate);
+void Detector_EstimateHeight(Detector detector, Candidate candidate, int offsetX, int offsetY);
 MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length);
 
 #ifdef __cplusplus

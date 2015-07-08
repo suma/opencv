@@ -80,37 +80,13 @@ func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate
 	return ret
 }
 
-func (d *Detector) FilterByMask(candidates []Candidate) []Candidate {
-	l := len(candidates)
-	candidatePointer := ConvertCandidatesToPointer(candidates)
-	filteredVec := C.Detector_FilterCandidateByMask(d.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
-	defer C.Candidates_Delete(filteredVec)
-	filteredLength := int(filteredVec.length)
-	filtered := make([]C.Candidate, filteredLength)
-	C.ResolveCandidates(filteredVec, (*C.Candidate)(&filtered[0]))
-
-	ret := make([]Candidate, filteredLength)
-	for i := 0; i < filteredLength; i++ {
-		ret[i] = Candidate{p: filtered[i]}
-	}
-	return ret
+func (d *Detector) FilterByMask(candidate Candidate) bool {
+	masked := C.Detector_FilterByMask(d.p, candidate.p)
+	return int(masked) == 0
 }
 
-func (d *Detector) EstimateHeight(candidates []Candidate, offsetX int, offsetY int) []Candidate {
-	l := len(candidates)
-	candidatePointer := ConvertCandidatesToPointer(candidates)
-	estimatedVec := C.Detector_EstimateCandidateHeight(d.p, (*C.Candidate)(&candidatePointer[0]),
-		C.int(l), C.int(offsetX), C.int(offsetY))
-	defer C.Candidates_Delete(estimatedVec)
-	estimatedLength := int(estimatedVec.length)
-	estimated := make([]C.Candidate, estimatedLength)
-	C.ResolveCandidates(estimatedVec, (*C.Candidate)(&estimated[0]))
-
-	ret := make([]Candidate, estimatedLength)
-	for i := 0; i < estimatedLength; i++ {
-		ret[i] = Candidate{p: estimated[i]}
-	}
-	return ret
+func (d *Detector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
+	C.Detector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
 func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {

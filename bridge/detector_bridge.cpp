@@ -43,29 +43,12 @@ struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offs
   return c;
 }
 
-struct Candidates Detector_FilterCandidateByMask(Detector detector, Candidate* candidates, int length) {
-  std::vector<scouter::ObjectCandidate> candidateVec;
-  for (int i = 0; i < length; ++i) {
-    candidateVec.push_back(*candidates[i]);
-  }
-  std::vector<scouter::ObjectCandidate> filtered = detector->filter_candidate_by_mask(candidateVec);
-  std::vector<scouter::ObjectCandidate>* ret = new std::vector<scouter::ObjectCandidate>();
-  for (size_t i = 0; i < filtered.size(); ++i) {
-    ret->push_back(filtered[i]);
-  }
-  Candidates c = {ret, (int)filtered.size()};
-  return c;
+int Detector_FilterByMask(Detector detector, Candidate candidate) {
+  return detector->filter_by_mask(*candidate) ? 0 : 1;
 }
 
-struct Candidates Detector_EstimateCandidateHeight(Detector detector, Candidate* candidates, int length,
-    int offsetX, int offsetY) {
-  std::vector<scouter::ObjectCandidate>* candidateVec = new std::vector<scouter::ObjectCandidate>();
-  for (int i = 0; i < length; ++i) {
-    candidateVec->push_back(*candidates[i]);
-  }
-  detector->estimate_candidate_height(*candidateVec, offsetX, offsetY);
-  Candidates c = {candidateVec, length};
-  return c;
+void Detector_EstimateHeight(Detector detector, Candidate candidate, int offsetX, int offsetY) {
+  detector->estimate_height(*candidate, offsetX, offsetY);
 }
 
 MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length) {

@@ -14,7 +14,7 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.
 		return nil, err
 	}
 
-	_, img, err := lookupFrameData(frame)
+	img, err := lookupFrameData(frame)
 	if err != nil {
 		return nil, err
 	}
@@ -34,15 +34,42 @@ func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.
 }
 
 type acfDetectUDSF struct {
-	id         int64
-	candidates []bridge.Candidate
+	acfDetect          func(bridge.MatVec3b, int, int) []bridge.Candidate
+	frameIdFieldName   string
+	frameDataFieldName string
 }
 
 func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	for _, c := range sf.candidates {
+	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	if err != nil {
+		return err
+	}
+
+	frame, err := t.Data.Get(sf.frameDataFieldName)
+	if err != nil {
+		return err
+	}
+	frameMeta, err := data.AsMap(frame)
+	if err != nil {
+		return err
+	}
+
+	img, err := lookupFrameData(frameMeta)
+	if err != nil {
+		return err
+	}
+	offsetX, offsetY, err := loopupOffsets(frameMeta)
+	if err != nil {
+		return err
+	}
+
+	imgP := bridge.DeserializeMatVec3b(img)
+	defer imgP.Delete()
+	candidates := sf.acfDetect(imgP, offsetX, offsetY)
+	for _, c := range candidates {
 		m := data.Map{
-			"frame_id": data.Int(sf.id),
 			"region":   data.Blob(c.Serialize()),
+			"frame_id": frameId,
 		}
 		t.Data = m
 		w.Write(ctx, t)
@@ -54,69 +81,44 @@ func (d *acfDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
-	detectParam string, frame data.Map) (udf.UDSF, error) {
-	// TODO declarer input
+func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
+	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
+	if err := decl.Input(stream, &udf.UDSFInputConfig{
+		InputName: "acf_detector_stream",
+	}); err != nil {
+		return nil, err
+	}
 
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
 	}
 
-	id, img, err := lookupFrameData(frame)
-	if err != nil {
-		return nil, err
-	}
-	offsetX, offsetY, err := loopupOffsets(frame)
-	if err != nil {
-		return nil, err
-	}
-	imgP := bridge.DeserializeMatVec3b(img)
-	defer imgP.Delete()
-	candidates := s.d.ACFDetect(imgP, offsetX, offsetY)
-
 	return &acfDetectUDSF{
-		id:         id,
-		candidates: candidates,
+		acfDetect:          s.d.ACFDetect,
+		frameIdFieldName:   frameIdFieldName,
+		frameDataFieldName: frameDataFieldName,
 	}, nil
 }
 
-func FilterByMaskFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
+func FilterByMaskFunc(ctx *core.Context, detectParam string, region data.Blob) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
 	}
 
-	candidates, err := frame.Get("detect")
-	if err != nil {
-		return nil, err
-	}
-	cans, err := data.AsArray(candidates)
+	r, err := data.AsBlob(region)
 	if err != nil {
 		return nil, err
 	}
 
-	canObjs := []bridge.Candidate{}
-	for _, c := range cans {
-		b, err := data.AsBlob(c)
-		if err != nil {
-			return nil, err // TODO return is OK?
-		}
-		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
-	}
-
-	filteredCans := s.d.FilterByMask(canObjs)
-	filtered := data.Array{}
-	for _, fc := range filteredCans {
-		filtered = append(filtered, data.Blob(fc.Serialize()))
-		fc.Delete() // TODO use defer
-	}
-
-	frame["detect"] = filtered // TODO overwrite is OK?
-	return frame, nil
+	regionPtr := bridge.DeserializeCandidate(r)
+	defer regionPtr.Delete()
+	masked := s.d.FilterByMask(regionPtr)
+	return data.Bool(!masked), nil
 }
 
-func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
+func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -127,32 +129,16 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map) (
 		return nil, err
 	}
 
-	candidates, err := frame.Get("detect")
-	if err != nil {
-		return nil, err
-	}
-	cans, err := data.AsArray(candidates)
+	r, err := data.AsBlob(region)
 	if err != nil {
 		return nil, err
 	}
 
-	canObjs := []bridge.Candidate{}
-	for _, c := range cans {
-		b, err := data.AsBlob(c)
-		if err != nil {
-			return nil, err // TODO return is OK?
-		}
-		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
-	}
+	regionPtr := bridge.DeserializeCandidate(r)
+	defer regionPtr.Delete()
+	s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
 
-	estimatedCans := s.d.EstimateHeight(canObjs, offsetX, offsetY)
-	estimated := data.Array{}
-	for _, ec := range estimatedCans {
-		estimated = append(estimated, data.Blob(ec.Serialize()))
-	}
-
-	frame["detect"] = estimated // TODO overwrite is OK?
-	return frame, nil
+	return data.Blob(regionPtr.Serialize()), nil
 }
 
 func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
@@ -187,26 +173,17 @@ func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetec
 	return nil, fmt.Errorf("state '%v' cannot be converted to acf_detection_param.state", detectParam)
 }
 
-func lookupFrameData(frame data.Map) (int64, []byte, error) {
-	id, err := frame.Get("frame_id")
-	if err != nil {
-		return 0, []byte{}, err
-	}
-	frameId, err := data.AsInt(id)
-	if err != nil {
-		return 0, []byte{}, err
-	}
-
+func lookupFrameData(frame data.Map) ([]byte, error) {
 	img, err := frame.Get("projected_img")
 	if err != nil {
-		return 0, []byte{}, err
+		return []byte{}, err
 	}
 	image, err := data.AsBlob(img)
 	if err != nil {
-		return 0, []byte{}, err
+		return []byte{}, err
 	}
 
-	return frameId, image, nil
+	return image, nil
 }
 
 func loopupOffsets(frame data.Map) (int, int, error) {
