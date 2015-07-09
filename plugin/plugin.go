@@ -86,8 +86,8 @@ func init() {
 	if err := udf.RegisterGlobalUDF("crop", udf.MustConvertGeneric(recog.CropFunc)); err != nil {
 		panic(err)
 	}
-	if err := udf.RegisterGlobalUDF("predict_tags_batch",
-		udf.MustConvertGeneric(recog.PredictTagsBatchFunc)); err != nil {
+	if err := udf.RegisterGlobalUDSFCreator("predict_tags_batch_stream",
+		udf.MustConvertToUDSFCreator(recog.CreatePredictTagsBatchUDSF)); err != nil {
 		panic(err)
 	}
 

@@ -3,6 +3,7 @@ package recog
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -29,41 +30,94 @@ func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image dat
 	return data.Blob(cropped.Serialize()), nil
 }
 
-func PredictTagsBatchFunc(ctx *core.Context, taggerParam string, regions data.Array, croppedImgs data.Array) (data.Value, error) {
+type predictTagsBatchUDSF struct {
+	predictTagsBatch      func([]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
+	frameIdFieldName      string
+	regionsFieldName      string
+	croppedImageFieldName string
+}
+
+func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
+	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	if err != nil {
+		return err
+	}
+
+	regionsData, err := t.Data.Get(sf.regionsFieldName)
+	if err != nil {
+		return err
+	}
+	regions, err := data.AsArray(regionsData)
+	if err != nil {
+		return err
+	}
+
+	croppedImgsData, err := t.Data.Get(sf.croppedImageFieldName)
+	if err != nil {
+		return err
+	}
+	croppedImgs, err := data.AsArray(croppedImgsData)
+	if err != nil {
+		return err
+	}
+
 	if len(regions) != len(croppedImgs) {
-		return nil, fmt.Errorf("region size and cropped image size must same [region: %d, cropped image: %d",
+		return fmt.Errorf("region size and cropped image size must same [region: %d, cropped image: %d",
 			len(regions), len(croppedImgs))
 	}
+
+	candidates := []bridge.Candidate{}
+	cropps := []bridge.MatVec3b{}
+	for i, r := range regions {
+		rb, err := data.AsBlob(r)
+		if err != nil {
+			return err
+		}
+		candidates = append(candidates, bridge.DeserializeCandidate(rb))
+
+		cb, err := data.AsBlob(croppedImgs[i])
+		if err != nil {
+			return err
+		}
+		cropps = append(cropps, bridge.DeserializeMatVec3b(cb))
+	}
+
+	recognized := sf.predictTagsBatch(candidates, cropps)
+	for _, r := range recognized {
+		m := data.Map{
+			"region_with_tagger": data.Blob(r.Serialize()),
+			"frame_id":           frameId,
+		}
+		t.Data = m
+		w.Write(ctx, t)
+	}
+	return nil
+}
+
+func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
+	return nil
+}
+
+func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
+	stream string, frameIdFieldName string, regionsFieldName string,
+	croppedImageFieldName string) (udf.UDSF, error) {
+	if err := decl.Input(stream, &udf.UDSFInputConfig{
+		InputName: "predict_tags_batch_stream",
+	}); err != nil {
+		return nil, err
+	}
+
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
 	}
 
-	candidates := []bridge.Candidate{}
-	for _, r := range regions {
-		b, err := data.AsBlob(r)
-		if err != nil {
-			return nil, err
-		}
-		candidates = append(candidates, bridge.DeserializeCandidate(b))
-	}
-
-	cropps := []bridge.MatVec3b{}
-	for _, c := range croppedImgs {
-		b, err := data.AsBlob(c)
-		if err != nil {
-			return nil, err
-		}
-		cropps = append(cropps, bridge.DeserializeMatVec3b(b))
-	}
-
-	recognized := s.tagger.PredictTagsBatch(candidates, cropps)
-	ret := data.Array{}
-	for _, r := range recognized {
-		ret = append(ret, data.Blob(r.Serialize()))
-	}
-
-	return data.Array(ret), nil
+	return &predictTagsBatchUDSF{
+		predictTagsBatch:      s.tagger.PredictTagsBatch,
+		frameIdFieldName:      frameIdFieldName,
+		regionsFieldName:      regionsFieldName,
+		croppedImageFieldName: croppedImageFieldName,
+	}, nil
 }
 
 func lookupImageTaggerCaffeParamState(ctx *core.Context, taggerParam string) (*ImageTaggerCaffeParamState, error) {
