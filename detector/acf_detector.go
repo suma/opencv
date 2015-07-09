@@ -6,6 +6,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"time"
 )
 
 func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
@@ -67,12 +68,18 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer
 	defer imgP.Delete()
 	candidates := sf.acfDetect(imgP, offsetX, offsetY)
 	for _, c := range candidates {
+		now := time.Now()
 		m := data.Map{
 			"region":   data.Blob(c.Serialize()),
 			"frame_id": frameId,
 		}
-		t.Data = m
-		w.Write(ctx, t)
+		tu := &core.Tuple{
+			Data:          m,
+			Timestamp:     now,
+			ProcTimestamp: t.ProcTimestamp,
+			Trace:         make([]core.TraceEvent, 0),
+		}
+		w.Write(ctx, tu)
 	}
 	return nil
 }
@@ -101,21 +108,22 @@ func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 	}, nil
 }
 
-func FilterByMaskFunc(ctx *core.Context, detectParam string, region data.Blob) (data.Value, error) {
+func FilterByMaskFunc(ctx *core.Context, detectParam string, region data.Blob) (bool, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	r, err := data.AsBlob(region)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	regionPtr := bridge.DeserializeCandidate(r)
 	defer regionPtr.Delete()
 	masked := s.d.FilterByMask(regionPtr)
-	return data.Bool(!masked), nil
+
+	return !masked, nil
 }
 
 func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
@@ -137,7 +145,6 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map, r
 	regionPtr := bridge.DeserializeCandidate(r)
 	defer regionPtr.Delete()
 	s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
-
 	return data.Blob(regionPtr.Serialize()), nil
 }
 
@@ -158,6 +165,7 @@ func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Ar
 	}
 
 	ret := bridge.DrawDetectionResult(img, canObjs)
+	defer ret.Delete()
 	return data.Blob(ret.Serialize()), nil
 }
 

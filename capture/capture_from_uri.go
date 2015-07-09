@@ -54,8 +54,8 @@ func (c *CaptureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 		}
 
 		var m = data.Map{
-			"capture":  data.Blob(buf.Serialize()),
-			"cameraID": data.Int(c.CameraID),
+			"capture":   data.Blob(buf.Serialize()),
+			"camera_id": data.Int(c.CameraID),
 		}
 		now := time.Now()
 		t := core.Tuple{

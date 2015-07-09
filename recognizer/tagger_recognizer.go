@@ -6,6 +6,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"time"
 )
 
 func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
@@ -19,14 +20,17 @@ func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image dat
 		return nil, err
 	}
 	r := bridge.DeserializeCandidate(regionByte)
+	defer r.Delete()
 
 	imageByte, err := data.AsBlob(image)
 	if err != nil {
 		return nil, err
 	}
 	img := bridge.DeserializeMatVec3b(imageByte)
+	defer img.Delete()
 
 	cropped := s.tagger.Crop(r, img)
+	defer cropped.Delete()
 	return data.Blob(cropped.Serialize()), nil
 }
 
@@ -84,12 +88,18 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 
 	recognized := sf.predictTagsBatch(candidates, cropps)
 	for _, r := range recognized {
+		now := time.Now()
 		m := data.Map{
 			"region_with_tagger": data.Blob(r.Serialize()),
 			"frame_id":           frameId,
 		}
-		t.Data = m
-		w.Write(ctx, t)
+		tu := &core.Tuple{
+			Data:          m,
+			Timestamp:     now,
+			ProcTimestamp: t.ProcTimestamp,
+			Trace:         make([]core.TraceEvent, 0),
+		}
+		w.Write(ctx, tu)
 	}
 	return nil
 }
