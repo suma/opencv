@@ -30,11 +30,17 @@ func (t *ImageTaggerCaffe) Delete() {
 	t.p = nil
 }
 
-func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate, img MatVec3b) []Candidate {
+func (t *ImageTaggerCaffe) Crop(candidate Candidate, image MatVec3b) MatVec3b {
+	cropped := C.ImageTaggerCaffe_Crop(t.p, candidate.p, image.p)
+	return MatVec3b{p: cropped}
+}
+
+func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate, croppedImg []MatVec3b) []Candidate {
 	l := len(candidates)
 	candidatePointer := ConvertCandidatesToPointer(candidates)
+	imgPointer := ConvertMatVec3bsToPointer(croppedImg)
 	recognizedVec := C.ImageTaggerCaffe_PredictTagsBatch(t.p,
-		(*C.Candidate)(&candidatePointer[0]), C.int(l), img.p)
+		(*C.Candidate)(&candidatePointer[0]), (*C.MatVec3b)(&imgPointer[0]), C.int(l))
 	defer C.Candidates_Delete(recognizedVec)
 	recognizedLength := int(recognizedVec.length)
 	recognized := make([]C.Candidate, recognizedLength)

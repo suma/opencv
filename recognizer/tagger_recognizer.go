@@ -7,17 +7,33 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-func RecognizeFunc(ctx *core.Context, taggerParam string, frame data.Blob, regions data.Array) (data.Value, error) {
+func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := data.AsBlob(frame)
+	regionByte, err := data.AsBlob(region)
 	if err != nil {
 		return nil, err
 	}
-	img := bridge.DeserializeMatVec3b(b)
+	r := bridge.DeserializeCandidate(regionByte)
+
+	imageByte, err := data.AsBlob(image)
+	if err != nil {
+		return nil, err
+	}
+	img := bridge.DeserializeMatVec3b(imageByte)
+
+	cropped := s.tagger.Crop(r, img)
+	return data.Blob(cropped.Serialize()), nil
+}
+
+func RecognizeFunc(ctx *core.Context, taggerParam string, regions data.Array, croppedImgs data.Array) (data.Value, error) {
+	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
+	if err != nil {
+		return nil, err
+	}
 
 	candidates := []bridge.Candidate{}
 	for _, r := range regions {
@@ -28,11 +44,19 @@ func RecognizeFunc(ctx *core.Context, taggerParam string, frame data.Blob, regio
 		candidates = append(candidates, bridge.DeserializeCandidate(b))
 	}
 
-	recognized := s.tagger.PredictTagsBatch(candidates, img)
+	cropps := []bridge.MatVec3b{}
+	for _, c := range croppedImgs {
+		b, err := data.AsBlob(c)
+		if err != nil {
+			return nil, err
+		}
+		cropps = append(cropps, bridge.DeserializeMatVec3b(b))
+	}
+
+	recognized := s.tagger.PredictTagsBatch(candidates, cropps)
 	ret := data.Array{}
 	for _, r := range recognized {
 		ret = append(ret, data.Blob(r.Serialize()))
-		r.Delete() // TODO use defer
 	}
 
 	return data.Array(ret), nil
