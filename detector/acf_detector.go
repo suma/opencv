@@ -170,7 +170,7 @@ func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Ar
 }
 
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetectionParamState, error) {
-	st, err := ctx.GetSharedState(detectParam)
+	st, err := ctx.SharedStates.Get(detectParam)
 	if err != nil {
 		return nil, err
 	}

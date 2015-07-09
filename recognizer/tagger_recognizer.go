@@ -131,7 +131,7 @@ func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 }
 
 func lookupImageTaggerCaffeParamState(ctx *core.Context, taggerParam string) (*ImageTaggerCaffeParamState, error) {
-	st, err := ctx.GetSharedState(taggerParam)
+	st, err := ctx.SharedStates.Get(taggerParam)
 	if err != nil {
 		return nil, err
 	}

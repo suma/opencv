@@ -32,7 +32,7 @@ func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob) 
 }
 
 func lookupCameraParamState(ctx *core.Context, stateName string) (*CameraParamState, error) {
-	st, err := ctx.GetSharedState(stateName)
+	st, err := ctx.SharedStates.Get(stateName)
 	if err != nil {
 		return nil, err
 	}
