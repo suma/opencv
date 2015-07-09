@@ -29,7 +29,11 @@ func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image dat
 	return data.Blob(cropped.Serialize()), nil
 }
 
-func RecognizeFunc(ctx *core.Context, taggerParam string, regions data.Array, croppedImgs data.Array) (data.Value, error) {
+func PredictTagsBatchFunc(ctx *core.Context, taggerParam string, regions data.Array, croppedImgs data.Array) (data.Value, error) {
+	if len(regions) != len(croppedImgs) {
+		return nil, fmt.Errorf("region size and cropped image size must same [region: %d, cropped image: %d",
+			len(regions), len(croppedImgs))
+	}
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err

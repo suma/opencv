@@ -83,8 +83,11 @@ func init() {
 		udf.MustConvertGeneric(detector.DrawDetectionResultFunc)); err != nil {
 		panic(err)
 	}
-	if err := udf.RegisterGlobalUDF("recognize_caffe",
-		udf.MustConvertGeneric(recog.RecognizeFunc)); err != nil {
+	if err := udf.RegisterGlobalUDF("crop", udf.MustConvertGeneric(recog.CropFunc)); err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDF("predict_tags_batch",
+		udf.MustConvertGeneric(recog.PredictTagsBatchFunc)); err != nil {
 		panic(err)
 	}
 
