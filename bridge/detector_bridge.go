@@ -89,6 +89,48 @@ func (d *Detector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int
 	C.Detector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
+func (d *Detector) PutFeature(candidate *Candidate, img MatVec3b) {
+	C.Detector_PutFeature(d.p, candidate.p, img.p)
+}
+
+type MMDetector struct {
+	p C.MMDetector
+}
+
+func NewMMDetector(config string) MMDetector {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	return MMDetector{p: C.MMDetector_New(cConfig)}
+}
+
+func (d *MMDetector) Delete() {
+	C.MMDetector_Delete(d.p)
+	d.p = nil
+}
+
+func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+	candidateVecPointer := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	defer C.Candidates_Delete(candidateVecPointer)
+	l := int(candidateVecPointer.length)
+	candidates := make([]C.Candidate, l)
+	C.ResolveCandidates(candidateVecPointer, (*C.Candidate)(&candidates[0]))
+
+	ret := make([]Candidate, l)
+	for i := 0; i < l; i++ {
+		ret[i] = Candidate{p: candidates[i]}
+	}
+	return ret
+}
+
+func (d *MMDetector) FilterByMask(candidate Candidate) bool {
+	masked := C.MMDetector_FilterByMask(d.p, candidate.p)
+	return int(masked) == 0
+}
+
+func (d *MMDetector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
+	C.MMDetector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
+}
+
 func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
 	// draw result should be called by each candidate,
 	// but think the cost of copying MatVec3b, called by []C.Candidate

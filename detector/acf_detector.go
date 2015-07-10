@@ -84,7 +84,7 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer
 	return nil
 }
 
-func (d *acfDetectUDSF) Terminate(ctx *core.Context) error {
+func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 

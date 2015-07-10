@@ -49,6 +49,7 @@ func init() {
 	states := []PluginStateCreator{
 		&detector.CameraParamState{},
 		&detector.ACFDetectionParamState{},
+		&detector.MMDetectionParamState{},
 		&recog.ImageTaggerCaffeParamState{},
 	}
 	for _, state := range states {
@@ -63,12 +64,12 @@ func init() {
 		udf.MustConvertGeneric(detector.FrameApplierFunc)); err != nil {
 		panic(err)
 	}
-	if err := udf.RegisterGlobalUDF("acf_detector",
-		udf.MustConvertGeneric(detector.ACFDetectFunc)); err != nil {
-		panic(err)
-	}
 	if err := udf.RegisterGlobalUDSFCreator("acf_detector_stream",
 		udf.MustConvertToUDSFCreator(detector.CreateACFDetectUDSF)); err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDSFCreator("multi_model_detector_stream",
+		udf.MustConvertToUDSFCreator(detector.CreateMMDetectUDSF)); err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDF("filter_by_mask",

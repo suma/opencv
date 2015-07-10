@@ -13,15 +13,6 @@ void Candidate_Delete(Candidate c) {
   delete c;
 }
 
-Detector Detector_New(const char *config) {
-  scouter::Detector::Config dc = load_json<scouter::Detector::Config>(config);
-  return new scouter::Detector(dc);
-}
-
-void Detector_Delete(Detector detector) {
-  delete detector;
-}
-
 void ResolveCandidates(struct Candidates candidates, Candidate* obj) {
   for (size_t i = 0; i < candidates.candidateVec->size(); ++i) {
     obj[i] = new scouter::ObjectCandidate((*candidates.candidateVec)[i]);
@@ -31,6 +22,15 @@ void ResolveCandidates(struct Candidates candidates, Candidate* obj) {
 
 void Candidates_Delete(struct Candidates candidates) {
   delete candidates.candidateVec;
+}
+
+Detector Detector_New(const char *config) {
+  scouter::Detector::Config dc = load_json<scouter::Detector::Config>(config);
+  return new scouter::Detector(dc);
+}
+
+void Detector_Delete(Detector detector) {
+  delete detector;
 }
 
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY) {
@@ -48,6 +48,37 @@ int Detector_FilterByMask(Detector detector, Candidate candidate) {
 }
 
 void Detector_EstimateHeight(Detector detector, Candidate candidate, int offsetX, int offsetY) {
+  detector->estimate_height(*candidate, offsetX, offsetY);
+}
+
+void Detector_PutFeature(Detector detector, Candidate candidate, MatVec3b image) {
+  detector->put_feature(*candidate, *image);
+}
+
+MMDetector MMDetector_New(const char *config) {
+  scouter::MultiModelDetector::Config dc = load_json<scouter::MultiModelDetector::Config>(config);
+  return new scouter::MultiModelDetector(dc);
+}
+
+void MMDetector_Delete(MMDetector detector) {
+  delete detector;
+}
+
+struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image, int offsetX, int offsetY) {
+  std::vector<scouter::ObjectCandidate> candidates = detector->mm_detect(*image, offsetX, offsetY);
+  std::vector<scouter::ObjectCandidate>* ret = new std::vector<scouter::ObjectCandidate>();
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    ret->push_back(candidates[i]);
+  }
+  Candidates c = {ret, (int)candidates.size()};
+  return c;
+}
+
+int MMDetector_FilterByMask(MMDetector detector, Candidate candidate) {
+  return detector->filter_by_mask(*candidate) ? 0 : 1;
+}
+
+void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate, int offsetX, int offsetY) {
   detector->estimate_height(*candidate, offsetX, offsetY);
 }
 
