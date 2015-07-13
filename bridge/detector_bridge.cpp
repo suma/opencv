@@ -20,6 +20,15 @@ void ResolveCandidates(struct Candidates candidates, Candidate* obj) {
   return;
 }
 
+struct Candidates InvertCandidates(Candidate* obj, int length) {
+  std::vector<scouter::ObjectCandidate>* o = new std::vector<scouter::ObjectCandidate>();
+  for (int i = 0; i < length; ++i) {
+    o->push_back(*obj[i]);
+  }
+  Candidates c = {o, length};
+  return c;
+}
+
 void Candidates_Delete(struct Candidates candidates) {
   delete candidates.candidateVec;
 }

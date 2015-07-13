@@ -11,38 +11,58 @@ package bridge
 */
 import "C"
 
-func convertCandidatezToPointer(candidatez [][]Candidate) ([]*C.Candidate, []int32) {
-	candidatesPointers := []*C.Candidate{}
-	lengths := []int32{}
-	for _, cz := range candidatez {
-		candidatePointers := convertCandidatesToPointer(cz)
-		candidatesPointers = append(candidatesPointers, (*C.Candidate)(&candidatePointers[0]))
-		lengths = append(lengths, int32(len(candidatePointers)))
-	}
-	return candidatesPointers, lengths
+type Frame struct {
+	cameraID   int
+	candidates []Candidate
 }
 
-func GetMatching(kThreashold float32, frames ...[]Candidate) [][]Candidate {
-	candidatesPointers, ls := convertCandidatezToPointer(frames)
-	views := C.MVOM_GetMatching((**C.Candidate)(&candidatesPointers[0]),
-		(*C.int)(&ls[0]), C.int(len(frames)), C.float(kThreashold))
-	defer C.Candidatez_Delete(views)
+type MVCandidate struct {
+	p C.MVCandidate
+}
 
-	l := int(views.length)
-	viewsP := make([]C.Candidates, l)
-	C.ResolveCandidatez(views, (*C.Candidates)(&viewsP[0]))
+func (c MVCandidate) Serialize() []byte {
+	b := C.MVCandidate_Serialize(c.p)
+	defer C.ByteArray_Release(b)
+	return ToGoBytes(b)
+}
 
-	ret := make([][]Candidate, l)
-	for i := 0; i < l; i++ {
-		regionLength := int(viewsP[i].length)
-		candidates := make([]C.Candidate, regionLength)
-		C.ResolveCandidates(viewsP[i], (*C.Candidate)(&candidates[0]))
+func DeserializeMVCandiate(c []byte) MVCandidate {
+	b := toByteArray(c)
+	return MVCandidate{p: C.MVCandidate_Deserialize(b)}
+}
 
-		mvRegions := make([]Candidate, regionLength)
-		for j := 0; j < regionLength; j++ {
-			mvRegions[j] = Candidate{p: candidates[j]}
+func convertCandidatezToPointer(frames []Frame) []C.struct_Frame {
+	framePointers := []C.struct_Frame{}
+	for _, f := range frames {
+		candidatePointers := convertCandidatesToPointer(f.candidates) // -> []C.Candidate
+		candidateVec := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
+			C.int(len(candidatePointers))) // -> C.struct_Candidates
+		defer C.Candidates_Delete(candidateVec)
+		f := C.struct_Frame{
+			candidates: C.struct_Candidates{
+				candidateVec: candidateVec.candidateVec,
+				length:       C.int(len(candidatePointers)),
+			},
+			cameraID: C.int(f.cameraID),
 		}
-		ret[i] = mvRegions
+		framePointers = append(framePointers, f)
+	}
+	return framePointers
+}
+
+func GetMatching(kThreashold float32, frames ...Frame) []MVCandidate {
+	framePointers := convertCandidatezToPointer(frames) // -> []C.struct_Frame
+	mvCandidatePointers := C.MVOM_GetMatching((*C.struct_Frame)(&framePointers[0]),
+		C.int(len(frames)), C.float(kThreashold)) // -> vector<vector<ObjectCandidate>>
+	defer C.MVCandidates_Delete(mvCandidatePointers)
+
+	l := int(mvCandidatePointers.length)
+	mvCandidates := make([]C.MVCandidate, l)
+	C.ResolveMVCandidates(mvCandidatePointers, (*C.MVCandidate)(&mvCandidates[0])) // -> []C.MVCandidate
+
+	ret := make([]MVCandidate, l)
+	for i := 0; i < l; i++ {
+		ret[i] = MVCandidate{p: mvCandidates[i]}
 	}
 	return ret
 }

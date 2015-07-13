@@ -5,24 +5,35 @@
 #include "detector_bridge.h"
 
 #ifdef __cplusplus
+#include <scouter-core/mv_detection_result.hpp>
 extern "C" {
 #endif
 
 #ifdef __cplusplus
-typedef struct Candidatez {
-  std::vector<std::vector<scouter::ObjectCandidate> >* candidatesVec;
+typedef scouter::MVObjectCandidate* MVCandidate;
+typedef struct MVCandidates {
+  std::vector<scouter::MVObjectCandidate>* candidateVec;
   int length;
-} Candidatez;
+} MVCandidates;
 #else
-typedef struct Candidatez {
-  void* candidatesVec;
+typedef void* MVCandidate;
+typedef struct MVCandidates {
+  void* candidateVec;
   int length;
-} Candidatez;
+} MVCandidates;
 #endif
+typedef struct Frame {
+  Candidates candidates;
+  int cameraID;
+} Frame;
 
-void ResolveCandidatez(struct Candidatez candidatez, Candidates* obj);
-void Candidatez_Delete(struct Candidatez candidatesVec);
-struct Candidatez MVOM_GetMatching(Candidate** candidatez, int* lengths, int length, float kThreshold);
+struct ByteArray MVCandidate_Serialize(MVCandidate c);
+MVCandidate MVCandidate_Deserialize(struct ByteArray src);
+void MVCandidate_Delete(MVCandidate c);
+
+void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj);
+void MVCandidates_Delete(struct MVCandidates mcCandidates);
+struct MVCandidates MVOM_GetMatching(Frame* frames, int length, float kThreshold);
 
 #ifdef __cplusplus
 }
