@@ -38,7 +38,7 @@ func DeserializeCandidate(c []byte) Candidate {
 	return Candidate{p: C.Candidate_Deserialize(b)}
 }
 
-func ConvertCandidatesToPointer(candidates []Candidate) []C.Candidate {
+func convertCandidatesToPointer(candidates []Candidate) []C.Candidate {
 	candidatePointers := []C.Candidate{}
 	for _, c := range candidates {
 		candidatePointers = append(candidatePointers, c.p)
@@ -135,7 +135,7 @@ func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
 	// draw result should be called by each candidate,
 	// but think the cost of copying MatVec3b, called by []C.Candidate
 	l := len(candidates)
-	candidatePointer := ConvertCandidatesToPointer(candidates)
+	candidatePointer := convertCandidatesToPointer(candidates)
 	ret := C.Candidates_Draw(img.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
 	return MatVec3b{p: ret}
 }

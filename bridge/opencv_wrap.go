@@ -32,7 +32,7 @@ func (m *MatVec3b) Serialize() []byte {
 	return ToGoBytes(b)
 }
 
-func ConvertMatVec3bsToPointer(mats []MatVec3b) []C.MatVec3b {
+func convertMatVec3bsToPointer(mats []MatVec3b) []C.MatVec3b {
 	imgPointers := []C.MatVec3b{}
 	for _, img := range mats {
 		imgPointers = append(imgPointers, img.p)
