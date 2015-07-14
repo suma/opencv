@@ -37,14 +37,6 @@ func (s *ImageTaggerCaffeParamState) TypeName() string {
 	return "image_tagger_caffe"
 }
 
-func (s *ImageTaggerCaffeParamState) Init(ctx *core.Context) error {
-	return nil
-}
-
-func (s *ImageTaggerCaffeParamState) Write(ctx *core.Context, t *core.Tuple) error {
-	return nil
-}
-
 func (s *ImageTaggerCaffeParamState) Terminate(ctx *core.Context) error {
 	s.tagger.Delete()
 	return nil

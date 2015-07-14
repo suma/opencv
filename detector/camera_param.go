@@ -37,14 +37,6 @@ func (s *CameraParamState) TypeName() string {
 	return "camera_parameter"
 }
 
-func (s *CameraParamState) Init(ctx *core.Context) error {
-	return nil
-}
-
-func (s *CameraParamState) Write(ctx *core.Context, t *core.Tuple) error {
-	return nil
-}
-
 func (s *CameraParamState) Terminate(ctx *core.Context) error {
 	s.fp.Delete()
 	return nil

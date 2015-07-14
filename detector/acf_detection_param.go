@@ -37,14 +37,6 @@ func (s *ACFDetectionParamState) TypeName() string {
 	return "acf_detection_parameter"
 }
 
-func (s *ACFDetectionParamState) Init(ctx *core.Context) error {
-	return nil
-}
-
-func (s *ACFDetectionParamState) Write(ctx *core.Context, t *core.Tuple) error {
-	return nil
-}
-
 func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 	s.d.Delete()
 	return nil
