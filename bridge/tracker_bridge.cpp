@@ -25,13 +25,13 @@ void MVCandidates_Delete(struct MVCandidates mvCandidates) {
   delete mvCandidates.candidateVec;
 }
 
-struct MVCandidates MVOM_GetMatching(Frame* frames, int length, float kThreshold) {
+struct MVCandidates MVOM_GetMatching(RegionsWithCamerID* regions, int length, float kThreshold) {
   std::vector<std::vector<scouter::ObjectCandidate> > candidatez;
   for (int i = 0; i < length; ++i) {
     std::vector<scouter::ObjectCandidate> candidates;
-    for (int j = 0; j < frames[i].candidates.length; ++j) {
-      scouter::ObjectCandidate& o = (*(frames[i].candidates.candidateVec))[j];
-      o.camera_id = frames[i].cameraID;
+    for (int j = 0; j < regions[i].candidates.length; ++j) {
+      scouter::ObjectCandidate& o = (*(regions[i].candidates.candidateVec))[j];
+      o.camera_id = regions[i].cameraID;
       candidates.push_back(o);
     }
     candidatez.push_back(candidates);

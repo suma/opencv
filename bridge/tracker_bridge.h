@@ -22,10 +22,10 @@ typedef struct MVCandidates {
   int length;
 } MVCandidates;
 #endif
-typedef struct Frame {
+typedef struct RegionsWithCamerID {
   Candidates candidates;
   int cameraID;
-} Frame;
+} RegionsWithCamerID;
 
 struct ByteArray MVCandidate_Serialize(MVCandidate c);
 MVCandidate MVCandidate_Deserialize(struct ByteArray src);
@@ -33,7 +33,7 @@ void MVCandidate_Delete(MVCandidate c);
 
 void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj);
 void MVCandidates_Delete(struct MVCandidates mcCandidates);
-struct MVCandidates MVOM_GetMatching(Frame* frames, int length, float kThreshold);
+struct MVCandidates MVOM_GetMatching(RegionsWithCamerID* regions, int length, float kThreshold);
 
 #ifdef __cplusplus
 }
