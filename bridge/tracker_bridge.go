@@ -1,12 +1,7 @@
 package bridge
 
 /*
-#cgo darwin CXXFLAGS: -I/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework/Headers/ -DCPU_ONLY
-#cgo LDFLAGS: -ljsonconfig
 #cgo pkg-config: scouter-core
-#cgo pkg-config: pficv
-#cgo pkg-config: pficommon
-#include <stdlib.h>
 #include "tracker_bridge.h"
 */
 import "C"
