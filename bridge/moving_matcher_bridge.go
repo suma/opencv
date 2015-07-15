@@ -6,7 +6,7 @@ package bridge
 */
 import "C"
 
-type RegionsWithCamerID struct {
+type RegionsWithCameraID struct {
 	cameraID   int
 	candidates []Candidate
 }
@@ -26,14 +26,14 @@ func DeserializeMVCandiate(c []byte) MVCandidate {
 	return MVCandidate{p: C.MVCandidate_Deserialize(b)}
 }
 
-func convertCandidatezToPointer(regions []RegionsWithCamerID) []C.struct_RegionsWithCamerID {
-	regionsPointers := []C.struct_RegionsWithCamerID{}
+func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_RegionsWithCameraID {
+	regionsPointers := []C.struct_RegionsWithCameraID{}
 	for _, f := range regions {
 		candidatePointers := convertCandidatesToPointer(f.candidates) // -> []C.Candidate
 		candidateVec := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
 			C.int(len(candidatePointers))) // -> C.struct_Candidates
 		defer C.Candidates_Delete(candidateVec)
-		f := C.struct_RegionsWithCamerID{
+		f := C.struct_RegionsWithCameraID{
 			candidates: C.struct_Candidates{
 				candidateVec: candidateVec.candidateVec,
 				length:       C.int(len(candidatePointers)),
@@ -45,9 +45,9 @@ func convertCandidatezToPointer(regions []RegionsWithCamerID) []C.struct_Regions
 	return regionsPointers
 }
 
-func GetMatching(kThreashold float32, regions ...RegionsWithCamerID) []MVCandidate {
-	regionsPointers := convertCandidatezToPointer(regions) // -> []C.struct_RegionsWithCamerID
-	mvCandidatePointers := C.MVOM_GetMatching((*C.struct_RegionsWithCamerID)(&regionsPointers[0]),
+func GetMatching(kThreashold float32, regions ...RegionsWithCameraID) []MVCandidate {
+	regionsPointers := convertCandidatezToPointer(regions) // -> []C.struct_RegionsWithCameraID
+	mvCandidatePointers := C.MVOM_GetMatching((*C.struct_RegionsWithCameraID)(&regionsPointers[0]),
 		C.int(len(regions)), C.float(kThreashold)) // -> vector<vector<ObjectCandidate>>
 	defer C.MVCandidates_Delete(mvCandidatePointers)
 
