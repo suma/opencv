@@ -98,5 +98,9 @@ func init() {
 		udf.MustConvertToUDSFCreator(integrator.MovingMatcher)); err != nil {
 		panic(err)
 	}
+	if err := udf.RegisterGlobalUDSFCreator("tracking",
+		udf.MustConvertToUDSFCreator(integrator.CreateFramesTrackerUDSF)); err != nil {
+		panic(err)
+	}
 
 }
