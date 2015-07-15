@@ -2,7 +2,7 @@ package bridge
 
 /*
 #cgo pkg-config: scouter-core
-#include "tracker_bridge.h"
+#include "moving_matcher_bridge.h"
 */
 import "C"
 

@@ -1,5 +1,5 @@
-#ifndef _TRACKER_BRIDGE_H_
-#define _TRACKER_BRIDGE_H_
+#ifndef _MOVING_MATCHER_BRIDGE_H_
+#define _MOVING_MATCHER_BRIDGE_H_
 
 #include "opencv_bridge.h"
 #include "detector_bridge.h"
@@ -39,4 +39,4 @@ struct MVCandidates MVOM_GetMatching(RegionsWithCamerID* regions, int length, fl
 }
 #endif
 
-#endif //_TRACKER_BRIDGE_H_
+#endif //_MOVING_MATCHER_BRIDGE_H_
