@@ -52,6 +52,8 @@ func init() {
 		&detector.ACFDetectionParamState{},
 		&detector.MMDetectionParamState{},
 		&recog.ImageTaggerCaffeParamState{},
+		&integrator.TrackerParamState{},
+		&integrator.InstanceManagerParamState{},
 	}
 	for _, state := range states {
 		if err := udf.RegisterGlobalUDSCreator(
