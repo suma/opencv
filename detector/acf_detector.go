@@ -9,31 +9,6 @@ import (
 	"time"
 )
 
-func ACFDetectFunc(ctx *core.Context, detectParam string, frame data.Map) (data.Value, error) {
-	s, err := lookupACFDetectParamState(ctx, detectParam)
-	if err != nil {
-		return nil, err
-	}
-
-	img, err := lookupFrameData(frame)
-	if err != nil {
-		return nil, err
-	}
-	offsetX, offsetY, err := loopupOffsets(frame)
-	if err != nil {
-		return nil, err
-	}
-	imgP := bridge.DeserializeMatVec3b(img)
-	defer imgP.Delete()
-	candidates := s.d.ACFDetect(imgP, offsetX, offsetY)
-	detected := data.Array{}
-	for _, candidate := range candidates {
-		detected = append(detected, data.Blob(candidate.Serialize()))
-	}
-	frame["detect"] = detected
-	return frame, nil
-}
-
 type acfDetectUDSF struct {
 	acfDetect          func(bridge.MatVec3b, int, int) []bridge.Candidate
 	frameIdFieldName   string
