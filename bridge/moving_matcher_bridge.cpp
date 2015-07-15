@@ -21,6 +21,15 @@ void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj) {
   return;
 }
 
+struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length) {
+  std::vector<scouter::MVObjectCandidate>* o = new std::vector<scouter::MVObjectCandidate>();
+  for (int i = 0; i < length; ++i) {
+    o->push_back(*obj[i]);
+  }
+  MVCandidates c = {o, length};
+  return c;
+}
+
 void MVCandidates_Delete(struct MVCandidates mvCandidates) {
   delete mvCandidates.candidateVec;
 }

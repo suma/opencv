@@ -11,8 +11,10 @@ extern "C" {
 
 #ifdef __cplusplus
 typedef scouter::TrackerSP* Tracker;
+typedef scouter::TrackingResult* TrackingResult;
 #else
 typedef void* Tracker;
+typedef void* TrackingResult;
 #endif
 typedef struct MatWithCameraID {
   int cameraID;
@@ -22,10 +24,12 @@ typedef struct MatWithCameraID {
 Tracker Tracker_New(const char *config);
 void Tracker_Delete(Tracker tracker);
 
+void TrackingResult_Delete(TrackingResult trackingResult);
+
 void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
   struct MVCandidates mvCandidates, unsigned long long timestamp);
-void Tracker_track(Tracker tracker, unsigned long long timestamp);
-int ready(Tracker tracker);
+TrackingResult Tracker_Track(Tracker tracker, unsigned long long timestamp);
+int Tracker_Ready(Tracker tracker);
 
 #ifdef __cplusplus
 }
