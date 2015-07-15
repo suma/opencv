@@ -3,6 +3,7 @@ package plugin
 import (
 	"pfi/sensorbee/scouter/capture"
 	"pfi/sensorbee/scouter/detector"
+	"pfi/sensorbee/scouter/integrator"
 	"pfi/sensorbee/scouter/mjpegserv"
 	"pfi/sensorbee/scouter/recognizer"
 	"pfi/sensorbee/sensorbee/bql"
@@ -89,6 +90,10 @@ func init() {
 	}
 	if err := udf.RegisterGlobalUDSFCreator("predict_tags_batch_stream",
 		udf.MustConvertToUDSFCreator(recog.CreatePredictTagsBatchUDSF)); err != nil {
+		panic(err)
+	}
+	if err := udf.RegisterGlobalUDSFCreator("greedily_moving_matching",
+		udf.MustConvertToUDSFCreator(integrator.MovingMatcher)); err != nil {
 		panic(err)
 	}
 
