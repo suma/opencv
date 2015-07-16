@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"time"
@@ -75,7 +76,7 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromURI) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
+func (c *CaptureFromURI) CreateSource(ctx *core.Context, ioParams *bql.IOParams, with data.Map) (core.Source, error) {
 	uri, err := with.Get("uri")
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")

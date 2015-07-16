@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"testing"
@@ -27,6 +28,7 @@ func TestGenerateStreamDeviceError(t *testing.T) {
 func TestGetDeviceSourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromDevice source with", t, func() {
 		capture := CaptureFromDevice{}
+		ioParams := bql.IOParams{}
 		Convey("When get source creator", func() {
 			creator := capture.CreateSource
 			ctx := core.Context{}
@@ -39,7 +41,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 					"camera_id": data.Int(101),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 500)
@@ -56,7 +58,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 					"camera_id": data.Int(101),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -65,7 +67,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 					"device_id": data.Int(0),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 0)
@@ -78,7 +80,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				with := data.Map{
 					"device_id": data.String("a"),
 				}
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -95,7 +97,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
 						with[k] = v
-						_, err := creator(&ctx, with)
+						_, err := creator(&ctx, &ioParams, with)
 						So(err, ShouldNotBeNil)
 					})
 				}

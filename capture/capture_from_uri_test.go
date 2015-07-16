@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"testing"
@@ -33,6 +34,7 @@ func (w *dummyWriter) Write(ctx *core.Context, t *core.Tuple) error {
 func TestGetURISourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromURI source with", t, func() {
 		capture := CaptureFromURI{}
+		ioParams := bql.IOParams{}
 		Convey("When get source creator", func() {
 			creator := capture.CreateSource
 			ctx := core.Context{}
@@ -43,7 +45,7 @@ func TestGetURISourceCreator(t *testing.T) {
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 5)
@@ -56,7 +58,7 @@ func TestGetURISourceCreator(t *testing.T) {
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -65,7 +67,7 @@ func TestGetURISourceCreator(t *testing.T) {
 					"uri": data.String("/data/file.avi"),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, with)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 0)
@@ -83,7 +85,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
 						with[k] = v
-						_, err := creator(&ctx, with)
+						_, err := creator(&ctx, &ioParams, with)
 						So(err, ShouldNotBeNil)
 					})
 				}

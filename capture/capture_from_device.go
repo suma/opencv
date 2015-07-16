@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"sync"
@@ -119,7 +120,7 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
+func (c *CaptureFromDevice) CreateSource(ctx *core.Context, ioParams *bql.IOParams, with data.Map) (core.Source, error) {
 	did, err := with.Get("device_id")
 	if err != nil {
 		return nil, err

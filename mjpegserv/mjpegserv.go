@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"sync"
@@ -65,7 +66,7 @@ func (m *MJPEGServ) Close(ctx *core.Context) error {
 	return nil
 }
 
-func (m *MJPEGServ) CreateSink(ctx *core.Context, params data.Map) (core.Sink, error) {
+func (m *MJPEGServ) CreateSink(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Sink, error) {
 	port, err := params.Get("port")
 	if err != nil {
 		port = data.Int(10090)
