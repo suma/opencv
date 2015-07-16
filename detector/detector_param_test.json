@@ -1,0 +1,17 @@
+{
+  "detector_config": {
+    "cascade_tolerance": 0.1,
+    "scaler": {
+       "step": 1.09050773266526,
+        "range": [
+            4,
+            22
+        ]
+    },
+    "stride": 1,
+    "duplication_threshold": 0.5,
+    "confidence_threshold": 0.526,
+    "inclusion_threshold": 0.8
+  },
+  "detector_model": "dummy.model"
+}

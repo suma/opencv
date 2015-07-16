@@ -1,0 +1,8 @@
+{
+  "instance_manager": {
+    "reid_threshold": 1,
+    "reid_db": {
+      "lifetime": 0
+    }
+  }
+}
