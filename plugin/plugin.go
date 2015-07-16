@@ -6,6 +6,7 @@ import (
 	"pfi/sensorbee/scouter/integrator"
 	"pfi/sensorbee/scouter/mjpegserv"
 	"pfi/sensorbee/scouter/recognizer"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/bql/udf"
 )
@@ -64,6 +65,7 @@ func init() {
 		&detector.FilterByMaskMMFuncCreator{},
 		&detector.EstimateHeightMMFuncCreator{},
 		&recog.RegionCropFuncCreator{},
+		&utils.TypeCheckedAggregateFuncCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(), udf.MustConvertGeneric(f.CreateFunction()))
