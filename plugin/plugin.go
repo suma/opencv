@@ -52,10 +52,7 @@ func init() {
 		&integrator.InstanceManagerParamState{},
 	}
 	for _, state := range states {
-		if err := udf.RegisterGlobalUDSCreator(
-			state.TypeName(), udf.UDSCreatorFunc(state.NewState)); err != nil {
-			panic(err)
-		}
+		udf.MustRegisterGlobalUDSCreator(state.TypeName(), udf.UDSCreatorFunc(state.NewState))
 	}
 
 	// UDFs
