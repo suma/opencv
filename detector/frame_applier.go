@@ -7,7 +7,9 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob) (data.Value, error) {
+type FrameApplierFuncCreator struct{}
+
+func frameApplier(ctx *core.Context, cameraParam string, capture data.Blob) (data.Value, error) {
 	s, err := lookupCameraParamState(ctx, cameraParam)
 	if err != nil {
 		return nil, err
@@ -29,6 +31,14 @@ func FrameApplierFunc(ctx *core.Context, cameraParam string, capture data.Blob) 
 	}
 
 	return m, nil
+}
+
+func (c *FrameApplierFuncCreator) CreateFunction() interface{} {
+	return frameApplier
+}
+
+func (c *FrameApplierFuncCreator) TypeName() string {
+	return "frame_applier"
 }
 
 func lookupCameraParamState(ctx *core.Context, stateName string) (*CameraParamState, error) {

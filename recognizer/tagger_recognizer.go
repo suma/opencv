@@ -9,7 +9,9 @@ import (
 	"time"
 )
 
-func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
+type RegionCropFuncCreator struct{}
+
+func crop(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
@@ -32,6 +34,14 @@ func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image dat
 	cropped := s.tagger.Crop(r, img)
 	defer cropped.Delete()
 	return data.Blob(cropped.Serialize()), nil
+}
+
+func (c *RegionCropFuncCreator) CreateFunction() interface{} {
+	return crop
+}
+
+func (c *RegionCropFuncCreator) TypeName() string {
+	return "region_crop"
 }
 
 type predictTagsBatchUDSF struct {

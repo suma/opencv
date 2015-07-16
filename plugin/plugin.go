@@ -59,31 +59,26 @@ func init() {
 	}
 
 	// UDFs
-	if err := udf.RegisterGlobalUDF("frame_applier",
-		udf.MustConvertGeneric(detector.FrameApplierFunc)); err != nil {
-		panic(err)
+	udfuncs := []PluginUDFCreator{
+		&detector.FrameApplierFuncCreator{},
+		&detector.FilterByMaskFuncCreator{},
+		&detector.EstimateHeightFuncCreator{},
+		&detector.DrawDetectionResultFuncCreator{},
+		&detector.FilterByMaskMMFuncCreator{},
+		&detector.EstimateHeightMMFuncCreator{},
+		&recog.RegionCropFuncCreator{},
 	}
+	for _, f := range udfuncs {
+		udf.MustRegisterGlobalUDF(f.TypeName(), udf.MustConvertGeneric(f.CreateFunction()))
+	}
+
+	// UDSFs
 	if err := udf.RegisterGlobalUDSFCreator("acf_detector_stream",
 		udf.MustConvertToUDSFCreator(detector.CreateACFDetectUDSF)); err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDSFCreator("multi_model_detector_stream",
 		udf.MustConvertToUDSFCreator(detector.CreateMMDetectUDSF)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDF("filter_by_mask",
-		udf.MustConvertGeneric(detector.FilterByMaskFunc)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDF("estimate_height",
-		udf.MustConvertGeneric(detector.EstimateHeightFunc)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDF("draw_detection_result",
-		udf.MustConvertGeneric(detector.DrawDetectionResultFunc)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDF("crop", udf.MustConvertGeneric(recog.CropFunc)); err != nil {
 		panic(err)
 	}
 	if err := udf.RegisterGlobalUDSFCreator("predict_tags_batch_stream",

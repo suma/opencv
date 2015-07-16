@@ -83,7 +83,9 @@ func CreateMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam st
 	}, nil
 }
 
-func FilterByMaskMMFunc(ctx *core.Context, detectParam string, region data.Blob) (bool, error) {
+type FilterByMaskMMFuncCreator struct{}
+
+func filterByMaskMM(ctx *core.Context, detectParam string, region data.Blob) (bool, error) {
 	s, err := lookupMMDetectParamState(ctx, detectParam)
 	if err != nil {
 		return false, err
@@ -101,7 +103,17 @@ func FilterByMaskMMFunc(ctx *core.Context, detectParam string, region data.Blob)
 	return !masked, nil
 }
 
-func EstimateHeightMMFunc(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
+func (c *FilterByMaskMMFuncCreator) CreateFunction() interface{} {
+	return filterByMaskMM
+}
+
+func (c *FilterByMaskMMFuncCreator) TypeName() string {
+	return "multi_model_filter_by_mask"
+}
+
+type EstimateHeightMMFuncCreator struct{}
+
+func estimateHeightMM(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
 	s, err := lookupMMDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -121,6 +133,14 @@ func EstimateHeightMMFunc(ctx *core.Context, detectParam string, frame data.Map,
 	defer regionPtr.Delete()
 	s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
 	return data.Blob(regionPtr.Serialize()), nil
+}
+
+func (c *EstimateHeightMMFuncCreator) CreateFunction() interface{} {
+	return estimateHeightMM
+}
+
+func (c *EstimateHeightMMFuncCreator) TypeName() string {
+	return "multi_model_estimate_height"
 }
 
 func lookupMMDetectParamState(ctx *core.Context, detectParam string) (*MMDetectionParamState, error) {
