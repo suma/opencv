@@ -42,6 +42,11 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer
 	imgP := bridge.DeserializeMatVec3b(img)
 	defer imgP.Delete()
 	candidates := sf.acfDetect(imgP, offsetX, offsetY)
+	defer func() {
+		for _, c := range candidates {
+			c.Delete()
+		}
+	}()
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{
@@ -161,6 +166,7 @@ func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array)
 		return nil, err
 	}
 	img := bridge.DeserializeMatVec3b(b)
+	defer img.Delete()
 
 	canObjs := []bridge.Candidate{}
 	for _, c := range regions {
@@ -170,6 +176,11 @@ func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array)
 		}
 		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
 	}
+	defer func() {
+		for _, c := range canObjs {
+			c.Delete()
+		}
+	}()
 
 	ret := bridge.DrawDetectionResult(img, canObjs)
 	defer ret.Delete()

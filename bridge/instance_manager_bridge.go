@@ -25,6 +25,11 @@ func DeserializeInstanceState(s []byte) InstanceState {
 	return InstanceState{p: C.InstanceState_Deserialize(b)}
 }
 
+func (s InstanceState) Delete() {
+	C.InstanceState_Delete(s.p)
+	s.p = nil
+}
+
 type InstanceManager struct {
 	p C.InstanceManager
 }

@@ -10,7 +10,7 @@ MVCandidate MVCandidate_Deserialize(struct ByteArray src) {
   return deserializeObject<scouter::MVObjectCandidate>(src);
 }
 
-void Candidate_Delete(MVCandidate c) {
+void MVCandidate_Delete(MVCandidate c) {
   delete c;
 }
 

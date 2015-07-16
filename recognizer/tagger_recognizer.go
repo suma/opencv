@@ -82,6 +82,14 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 
 	candidates := []bridge.Candidate{}
 	cropps := []bridge.MatVec3b{}
+	defer func() {
+		for _, c := range candidates {
+			c.Delete()
+		}
+		for _, c := range cropps {
+			c.Delete()
+		}
+	}()
 	for i, r := range regions {
 		rb, err := data.AsBlob(r)
 		if err != nil {
@@ -97,6 +105,11 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 	}
 
 	recognized := sf.predictTagsBatch(candidates, cropps)
+	defer func() {
+		for _, r := range recognized {
+			r.Delete()
+		}
+	}()
 	for _, r := range recognized {
 		now := time.Now()
 		m := data.Map{

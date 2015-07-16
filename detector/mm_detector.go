@@ -42,6 +42,11 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 	imgP := bridge.DeserializeMatVec3b(img)
 	defer imgP.Delete()
 	candidates := sf.mmDetect(imgP, offsetX, offsetY)
+	defer func() {
+		for _, c := range candidates {
+			c.Delete()
+		}
+	}()
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{

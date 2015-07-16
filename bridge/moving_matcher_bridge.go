@@ -26,10 +26,15 @@ func DeserializeMVCandiate(c []byte) MVCandidate {
 	return MVCandidate{p: C.MVCandidate_Deserialize(b)}
 }
 
+func (c MVCandidate) Delete() {
+	C.MVCandidate_Delete(c.p)
+	c.p = nil
+}
+
 func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_RegionsWithCameraID {
 	regionsPointers := []C.struct_RegionsWithCameraID{}
-	for _, f := range regions {
-		candidatePointers := convertCandidatesToPointer(f.Candidates) // -> []C.Candidate
+	for _, r := range regions {
+		candidatePointers := convertCandidatesToPointer(r.Candidates) // -> []C.Candidate
 		candidateVec := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
 			C.int(len(candidatePointers))) // -> C.struct_Candidates
 		defer C.Candidates_Delete(candidateVec)
@@ -38,7 +43,7 @@ func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_Region
 				candidateVec: candidateVec.candidateVec,
 				length:       C.int(len(candidatePointers)),
 			},
-			cameraID: C.int(f.CameraID),
+			cameraID: C.int(r.CameraID),
 		}
 		regionsPointers = append(regionsPointers, f)
 	}

@@ -29,6 +29,11 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 	}
 
 	matMap, err := sf.convertToMatVecMap(frameArray)
+	defer func() {
+		for _, v := range matMap {
+			v.Delete()
+		}
+	}()
 	if err != nil {
 		return err
 	}
@@ -43,11 +48,16 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 	}
 
 	mvCans, err := convertToMVCandidateSlice(mvRegionsArray)
+	defer func() {
+		for _, c := range mvCans {
+			c.Delete()
+		}
+	}()
 	if err != nil {
 		return err
 	}
 
-	timestamp := time.Duration(t.Timestamp.UnixNano()) / time.Microsecond
+	timestamp := time.Duration(t.Timestamp.UnixNano()) / time.Millisecond
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
@@ -55,6 +65,11 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 		sf.instanceManager.Updaate(tr)
 
 		currentStates := sf.instanceManager.GetCurrentStates()
+		defer func() {
+			for _, s := range currentStates {
+				s.Delete()
+			}
+		}()
 		for _, s := range currentStates {
 			now := time.Now()
 			m := data.Map{

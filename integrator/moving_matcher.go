@@ -32,11 +32,23 @@ func (sf *movingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 		return err
 	}
 	convertedRegions, err := sf.convertToSliceRegions(aggRegionsArray)
+	defer func() {
+		for _, r := range convertedRegions {
+			for _, c := range r.Candidates {
+				c.Delete()
+			}
+		}
+	}()
 	if err != nil {
 		return err
 	}
 
 	mvCandidates := sf.mvMatcher(sf.kThreashold, convertedRegions)
+	defer func() {
+		for _, c := range mvCandidates {
+			c.Delete()
+		}
+	}()
 	for _, c := range mvCandidates {
 		now := time.Now()
 		m := data.Map{
