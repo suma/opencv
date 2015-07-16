@@ -33,7 +33,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := data.Map{
+				params := data.Map{
 					"device_id": data.Int(0),
 					"width":     data.Int(500),
 					"height":    data.Int(600),
@@ -41,7 +41,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 					"camera_id": data.Int(101),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 500)
@@ -51,23 +51,23 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := data.Map{
+				params := data.Map{
 					"width":     data.Int(500),
 					"height":    data.Int(600),
 					"fps":       data.Int(25),
 					"camera_id": data.Int(101),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := data.Map{
+				params := data.Map{
 					"device_id": data.Int(0),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.DeviceID, ShouldEqual, 0)
 				So(capture.Width, ShouldEqual, 0)
@@ -77,15 +77,15 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse errors", func() {
-				with := data.Map{
+				params := data.Map{
 					"device_id": data.String("a"),
 				}
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := data.Map{
+				params := data.Map{
 					"device_id": data.Int(0),
 				}
 				testMap := data.Map{
@@ -96,8 +96,8 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
-						with[k] = v
-						_, err := creator(&ctx, &ioParams, with)
+						params[k] = v
+						_, err := creator(&ctx, &ioParams, params)
 						So(err, ShouldNotBeNil)
 					})
 				}

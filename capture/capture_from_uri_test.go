@@ -39,13 +39,13 @@ func TestGetURISourceCreator(t *testing.T) {
 			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri":        data.String("/data/file.avi"),
 					"frame_skip": data.Int(5),
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 5)
@@ -53,21 +53,21 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := data.Map{
+				params := data.Map{
 					"frame_skip": data.Int(5),
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri": data.String("/data/file.avi"),
 				}
 
-				_, err := creator(&ctx, &ioParams, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 0)
@@ -75,7 +75,7 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri": data.String("/data/file.avi"),
 				}
 				testMap := data.Map{
@@ -84,8 +84,8 @@ func TestGetURISourceCreator(t *testing.T) {
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
-						with[k] = v
-						_, err := creator(&ctx, &ioParams, with)
+						params[k] = v
+						_, err := creator(&ctx, &ioParams, params)
 						So(err, ShouldNotBeNil)
 					})
 				}
