@@ -35,16 +35,12 @@ func init() {
 		&capture.CaptureFromDevice{},
 	}
 	for _, source := range sources {
-		if err := bql.RegisterGlobalSourceCreator(source.TypeName(), source); err != nil {
-			panic(err)
-		}
+		bql.MustRegisterGlobalSourceCreator(source.TypeName(), source)
 	}
 
 	// sinks
 	mjpegSink := &mjpegserv.MJPEGServ{}
-	if err := bql.RegisterGlobalSinkCreator("mjpeg_server", mjpegSink); err != nil {
-		panic(err)
-	}
+	bql.MustRegisterGlobalSinkCreator("mjpeg_server", mjpegSink)
 
 	// states
 	states := []PluginStateCreator{
