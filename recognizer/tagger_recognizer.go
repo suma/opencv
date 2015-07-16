@@ -118,7 +118,7 @@ func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
+func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
 	stream string, frameIdFieldName string, regionsFieldName string,
 	croppedImageFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
@@ -138,6 +138,16 @@ func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 		regionsFieldName:      regionsFieldName,
 		croppedImageFieldName: croppedImageFieldName,
 	}, nil
+}
+
+type PredictTagsBatchStreamFuncCreator struct{}
+
+func (c *PredictTagsBatchStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createPredictTagsBatchUDSF
+}
+
+func (c *PredictTagsBatchStreamFuncCreator) TypeName() string {
+	return "predict_tags_batch_stream"
 }
 
 func lookupImageTaggerCaffeParamState(ctx *core.Context, taggerParam string) (*ImageTaggerCaffeParamState, error) {

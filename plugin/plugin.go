@@ -73,25 +73,14 @@ func init() {
 	}
 
 	// UDSFs
-	if err := udf.RegisterGlobalUDSFCreator("acf_detector_stream",
-		udf.MustConvertToUDSFCreator(detector.CreateACFDetectUDSF)); err != nil {
-		panic(err)
+	udsfuncs := []PluginUDSFCreator{
+		&detector.DetectRegionStreamFuncCreator{},
+		&detector.MMDetectRegionStreamFuncCreator{},
+		&recog.PredictTagsBatchStreamFuncCreator{},
+		&integrator.MovingMatcherStreamFuncCreator{},
+		&integrator.FramesTrackerStreamFuncCreator{},
 	}
-	if err := udf.RegisterGlobalUDSFCreator("multi_model_detector_stream",
-		udf.MustConvertToUDSFCreator(detector.CreateMMDetectUDSF)); err != nil {
-		panic(err)
+	for _, f := range udsfuncs {
+		udf.MustRegisterGlobalUDSFCreator(f.TypeName(), udf.MustConvertToUDSFCreator(f.CreateStreamFunction()))
 	}
-	if err := udf.RegisterGlobalUDSFCreator("predict_tags_batch_stream",
-		udf.MustConvertToUDSFCreator(recog.CreatePredictTagsBatchUDSF)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDSFCreator("greedily_moving_matching",
-		udf.MustConvertToUDSFCreator(integrator.MovingMatcher)); err != nil {
-		panic(err)
-	}
-	if err := udf.RegisterGlobalUDSFCreator("tracking",
-		udf.MustConvertToUDSFCreator(integrator.CreateFramesTrackerUDSF)); err != nil {
-		panic(err)
-	}
-
 }

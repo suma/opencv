@@ -63,7 +63,7 @@ func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
+func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
 	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "acf_detector_stream",
@@ -81,6 +81,16 @@ func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 		frameIdFieldName:   frameIdFieldName,
 		frameDataFieldName: frameDataFieldName,
 	}, nil
+}
+
+type DetectRegionStreamFuncCreator struct{}
+
+func (c *DetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createACFDetectUDSF
+}
+
+func (c *DetectRegionStreamFuncCreator) TypeName() string {
+	return "acf_detector_stream"
 }
 
 type FilterByMaskFuncCreator struct{}

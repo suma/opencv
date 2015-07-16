@@ -2,7 +2,7 @@ package plugin
 
 // PluginUDFCreator is an interface to get BQL UDF function and to registration.
 type PluginUDFCreator interface {
-	// CreateFunction returns user -lug-in function. This function only deal
+	// CreateFunction returns user plug-in function. This function only deal
 	// with generic function.
 	CreateFunction() interface{}
 	// TypeName returns name of registration.

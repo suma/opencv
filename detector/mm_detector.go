@@ -63,7 +63,7 @@ func (sf *mmDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreateMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
+func createMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
 	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "multi_model_detector_stream",
@@ -81,6 +81,16 @@ func CreateMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam st
 		frameIdFieldName:   frameIdFieldName,
 		frameDataFieldName: frameDataFieldName,
 	}, nil
+}
+
+type MMDetectRegionStreamFuncCreator struct{}
+
+func (c *MMDetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createMMDetectUDSF
+}
+
+func (c *MMDetectRegionStreamFuncCreator) TypeName() string {
+	return "multi_model_detector_stream"
 }
 
 type FilterByMaskMMFuncCreator struct{}
