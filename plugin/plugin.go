@@ -42,6 +42,8 @@ func init() {
 	// sinks
 	mjpegSink := &mjpegserv.MJPEGServ{}
 	bql.MustRegisterGlobalSinkCreator("mjpeg_server", mjpegSink)
+	jpegDebugger := &mjpegserv.DebugJPEGSink{}
+	bql.MustRegisterGlobalSinkCreator("jpeg_debug", jpegDebugger)
 
 	// states
 	states := []PluginStateCreator{
