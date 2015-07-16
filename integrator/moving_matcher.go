@@ -111,7 +111,7 @@ func (sf *movingMatcherUDSF) lookupRegions(regions data.Map) (bridge.RegionsWith
 	}, nil
 }
 
-func MovingMatcher(ctx *core.Context, decl udf.UDSFDeclarer, stream string,
+func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer, stream string,
 	integrationIDFieldName string, aggRegionsFieldName string,
 	cameraIDFieldName string, regionsFieldName string, kThreashlold float32) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
@@ -128,4 +128,14 @@ func MovingMatcher(ctx *core.Context, decl udf.UDSFDeclarer, stream string,
 		regionsFieldName:       regionsFieldName,
 		kThreashold:            kThreashlold,
 	}, nil
+}
+
+type MovingMatcherStreamFuncCreator struct{}
+
+func (c *MovingMatcherStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createMovingMatcherUDSF
+}
+
+func (c *MovingMatcherStreamFuncCreator) TypeName() string {
+	return "greedily_moving_matching"
 }

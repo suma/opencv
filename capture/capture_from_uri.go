@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"time"
@@ -75,8 +76,8 @@ func (c *CaptureFromURI) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromURI) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
-	uri, err := with.Get("uri")
+func (c *CaptureFromURI) CreateSource(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Source, error) {
+	uri, err := params.Get("uri")
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
 	}
@@ -85,7 +86,7 @@ func (c *CaptureFromURI) CreateSource(ctx *core.Context, with data.Map) (core.So
 		return nil, err
 	}
 
-	fs, err := with.Get("frame_skip")
+	fs, err := params.Get("frame_skip")
 	if err != nil {
 		fs = data.Int(0) // will be ignored
 	}
@@ -94,7 +95,7 @@ func (c *CaptureFromURI) CreateSource(ctx *core.Context, with data.Map) (core.So
 		return nil, err
 	}
 
-	cid, err := with.Get("camera_id")
+	cid, err := params.Get("camera_id")
 	if err != nil {
 		cid = data.Int(0)
 	}

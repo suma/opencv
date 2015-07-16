@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"sync"
@@ -119,8 +120,8 @@ func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
 	return nil
 }
 
-func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core.Source, error) {
-	did, err := with.Get("device_id")
+func (c *CaptureFromDevice) CreateSource(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Source, error) {
+	did, err := params.Get("device_id")
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,7 @@ func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core
 		return nil, err
 	}
 
-	w, err := with.Get("width")
+	w, err := params.Get("width")
 	if err != nil {
 		w = data.Int(0) // will be ignored
 	}
@@ -138,7 +139,7 @@ func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core
 		return nil, err
 	}
 
-	h, err := with.Get("height")
+	h, err := params.Get("height")
 	if err != nil {
 		h = data.Int(0) // will be ignored
 	}
@@ -147,7 +148,7 @@ func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core
 		return nil, err
 	}
 
-	f, err := with.Get("fps")
+	f, err := params.Get("fps")
 	if err != nil {
 		f = data.Int(0) // will be ignored
 	}
@@ -156,7 +157,7 @@ func (c *CaptureFromDevice) CreateSource(ctx *core.Context, with data.Map) (core
 		return nil, err
 	}
 
-	cid, err := with.Get("camera_id")
+	cid, err := params.Get("camera_id")
 	if err != nil {
 		cid = data.Int(0)
 	}

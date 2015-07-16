@@ -119,7 +119,7 @@ func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreateFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerParam string,
+func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerParam string,
 	instanceManagerParam string, stream string, framesFieldName string,
 	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string) (
 	udf.UDSF, error) {
@@ -147,6 +147,16 @@ func CreateFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerPa
 		imageFieldName:     imageFieldname,
 		mvRegionsFieldName: mvRegionsFieldName,
 	}, nil
+}
+
+type FramesTrackerStreamFuncCreator struct{}
+
+func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createFramesTrackerUDSF
+}
+
+func (c *FramesTrackerStreamFuncCreator) TypeName() string {
+	return "tracking"
 }
 
 func lookupTrackerParamState(ctx *core.Context, trackerParam string) (*TrackerParamState, error) {

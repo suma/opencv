@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 	"testing"
@@ -33,17 +34,18 @@ func (w *dummyWriter) Write(ctx *core.Context, t *core.Tuple) error {
 func TestGetURISourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromURI source with", t, func() {
 		capture := CaptureFromURI{}
+		ioParams := bql.IOParams{}
 		Convey("When get source creator", func() {
 			creator := capture.CreateSource
 			ctx := core.Context{}
 			Convey("Then creator should set capture struct members", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri":        data.String("/data/file.avi"),
 					"frame_skip": data.Int(5),
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 5)
@@ -51,21 +53,21 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur an error", func() {
-				with := data.Map{
+				params := data.Map{
 					"frame_skip": data.Int(5),
 					"camera_id":  data.Int(1),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Then creator should set default values", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri": data.String("/data/file.avi"),
 				}
 
-				_, err := creator(&ctx, with)
+				_, err := creator(&ctx, &ioParams, params)
 				So(err, ShouldBeNil)
 				So(capture.URI, ShouldEqual, "/data/file.avi")
 				So(capture.FrameSkip, ShouldEqual, 0)
@@ -73,7 +75,7 @@ func TestGetURISourceCreator(t *testing.T) {
 			})
 
 			Convey("Then creator should occur parse error on option parameters", func() {
-				with := data.Map{
+				params := data.Map{
 					"uri": data.String("/data/file.avi"),
 				}
 				testMap := data.Map{
@@ -82,8 +84,8 @@ func TestGetURISourceCreator(t *testing.T) {
 				}
 				for k, v := range testMap {
 					Convey(fmt.Sprintf("with %v error", k), func() {
-						with[k] = v
-						_, err := creator(&ctx, with)
+						params[k] = v
+						_, err := creator(&ctx, &ioParams, params)
 						So(err, ShouldNotBeNil)
 					})
 				}

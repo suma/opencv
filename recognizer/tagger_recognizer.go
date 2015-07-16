@@ -9,7 +9,9 @@ import (
 	"time"
 )
 
-func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
+type RegionCropFuncCreator struct{}
+
+func crop(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
@@ -32,6 +34,14 @@ func CropFunc(ctx *core.Context, taggerParam string, region data.Blob, image dat
 	cropped := s.tagger.Crop(r, img)
 	defer cropped.Delete()
 	return data.Blob(cropped.Serialize()), nil
+}
+
+func (c *RegionCropFuncCreator) CreateFunction() interface{} {
+	return crop
+}
+
+func (c *RegionCropFuncCreator) TypeName() string {
+	return "region_crop"
 }
 
 type predictTagsBatchUDSF struct {
@@ -108,7 +118,7 @@ func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
+func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
 	stream string, frameIdFieldName string, regionsFieldName string,
 	croppedImageFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
@@ -128,6 +138,16 @@ func CreatePredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 		regionsFieldName:      regionsFieldName,
 		croppedImageFieldName: croppedImageFieldName,
 	}, nil
+}
+
+type PredictTagsBatchStreamFuncCreator struct{}
+
+func (c *PredictTagsBatchStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createPredictTagsBatchUDSF
+}
+
+func (c *PredictTagsBatchStreamFuncCreator) TypeName() string {
+	return "predict_tags_batch_stream"
 }
 
 func lookupImageTaggerCaffeParamState(ctx *core.Context, taggerParam string) (*ImageTaggerCaffeParamState, error) {

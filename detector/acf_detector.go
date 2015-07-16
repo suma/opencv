@@ -63,7 +63,7 @@ func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
+func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
 	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "acf_detector_stream",
@@ -83,7 +83,19 @@ func CreateACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 	}, nil
 }
 
-func FilterByMaskFunc(ctx *core.Context, detectParam string, region data.Blob) (bool, error) {
+type DetectRegionStreamFuncCreator struct{}
+
+func (c *DetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
+	return createACFDetectUDSF
+}
+
+func (c *DetectRegionStreamFuncCreator) TypeName() string {
+	return "acf_detector_stream"
+}
+
+type FilterByMaskFuncCreator struct{}
+
+func filterByMask(ctx *core.Context, detectParam string, region data.Blob) (bool, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return false, err
@@ -101,7 +113,17 @@ func FilterByMaskFunc(ctx *core.Context, detectParam string, region data.Blob) (
 	return !masked, nil
 }
 
-func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
+func (c *FilterByMaskFuncCreator) CreateFunction() interface{} {
+	return filterByMask
+}
+
+func (c *FilterByMaskFuncCreator) TypeName() string {
+	return "filter_by_mask"
+}
+
+type EstimateHeightFuncCreator struct{}
+
+func estimateHeight(ctx *core.Context, detectParam string, frame data.Map, region data.Blob) (data.Value, error) {
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
 		return nil, err
@@ -123,7 +145,17 @@ func EstimateHeightFunc(ctx *core.Context, detectParam string, frame data.Map, r
 	return data.Blob(regionPtr.Serialize()), nil
 }
 
-func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
+func (c *EstimateHeightFuncCreator) CreateFunction() interface{} {
+	return estimateHeight
+}
+
+func (c *EstimateHeightFuncCreator) TypeName() string {
+	return "estimate_height"
+}
+
+type DrawDetectionResultFuncCreator struct{}
+
+func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
 	b, err := data.AsBlob(frame)
 	if err != nil {
 		return nil, err
@@ -142,6 +174,14 @@ func DrawDetectionResultFunc(ctx *core.Context, frame data.Blob, regions data.Ar
 	ret := bridge.DrawDetectionResult(img, canObjs)
 	defer ret.Delete()
 	return data.Blob(ret.Serialize()), nil
+}
+
+func (c *DrawDetectionResultFuncCreator) CreateFunction() interface{} {
+	return drawDetectionResult
+}
+
+func (c *DrawDetectionResultFuncCreator) TypeName() string {
+	return "draw_detection_result"
 }
 
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetectionParamState, error) {
