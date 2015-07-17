@@ -49,10 +49,15 @@ type predictTagsBatchUDSF struct {
 	frameIdFieldName      string
 	regionsFieldName      string
 	croppedImageFieldName string
+	detectCount           map[string]int
 }
 
 func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
 	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	if err != nil {
+		return err
+	}
+	frameIdStr, err := data.ToString(frameId)
 	if err != nil {
 		return err
 	}
@@ -79,6 +84,14 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 		return fmt.Errorf("region size and cropped image size must same [region: %d, cropped image: %d",
 			len(regions), len(croppedImgs))
 	}
+
+	if prevCount, ok := sf.detectCount[frameIdStr]; ok {
+		if prevCount > len(regions) {
+			ctx.Log().Debug("prediction has already created")
+			return nil
+		}
+	}
+	sf.detectCount[frameIdStr] = len(regions)
 
 	candidates := []bridge.Candidate{}
 	cropps := []bridge.MatVec3b{}
@@ -150,6 +163,7 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 		frameIdFieldName:      frameIdFieldName,
 		regionsFieldName:      regionsFieldName,
 		croppedImageFieldName: croppedImageFieldName,
+		detectCount:           map[string]int{},
 	}, nil
 }
 
