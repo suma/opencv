@@ -13,9 +13,19 @@ import (
 type DebugJPEGSink struct {
 	outputDir   string
 	jpegQuality int
+	detectCount map[string]int64
 }
 
 func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
+	count, err := t.Data.Get("region_count")
+	if err != nil {
+		return err
+	}
+	countInt, err := data.ToInt(count)
+	if err != nil {
+		return err
+	}
+
 	name, err := t.Data.Get("name")
 	if err != nil {
 		return err
@@ -24,6 +34,14 @@ func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 	if err != nil {
 		return err
 	}
+
+	if prevCount, ok := s.detectCount[nameStr]; ok {
+		if prevCount > countInt {
+			ctx.Log().Debug("JPEG has already created")
+			return nil
+		}
+	}
+	s.detectCount[nameStr] = countInt
 
 	img, err := t.Data.Get("img")
 	if err != nil {
@@ -66,5 +84,6 @@ func (s *DebugJPEGSink) CreateSink(ctx *core.Context, ioParams *bql.IOParams, pa
 
 	s.outputDir = outputDir
 	s.jpegQuality = int(q)
+	s.detectCount = map[string]int64{}
 	return s, nil
 }
