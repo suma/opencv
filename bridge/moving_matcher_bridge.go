@@ -37,7 +37,6 @@ func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_Region
 		candidatePointers := convertCandidatesToPointer(r.Candidates) // -> []C.Candidate
 		candidateVec := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
 			C.int(len(candidatePointers))) // -> C.struct_Candidates
-		defer C.Candidates_Delete(candidateVec)
 		f := C.struct_RegionsWithCameraID{
 			candidates: C.struct_Candidates{
 				candidateVec: candidateVec.candidateVec,
