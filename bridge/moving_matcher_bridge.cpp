@@ -39,7 +39,7 @@ struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, f
   for (int i = 0; i < length; ++i) {
     std::vector<scouter::ObjectCandidate> candidates;
     for (int j = 0; j < regions[i].candidates.length; ++j) {
-      scouter::ObjectCandidate& o = (*(regions[i].candidates.candidateVec))[j];
+      scouter::ObjectCandidate& o = (*(regions[i].candidates.candidates))[j];
       o.camera_id = regions[i].cameraID;
       candidates.push_back(o);
     }

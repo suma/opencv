@@ -14,23 +14,22 @@ void Candidate_Delete(Candidate c) {
 }
 
 void ResolveCandidates(struct Candidates candidates, Candidate* obj) {
-  for (size_t i = 0; i < candidates.candidateVec->size(); ++i) {
-    obj[i] = new scouter::ObjectCandidate((*candidates.candidateVec)[i]);
+  for (int i = 0; i < candidates.length; ++i) {
+    obj[i] = candidates.candidates[i];
   }
-  return;
 }
 
 struct Candidates InvertCandidates(Candidate* obj, int length) {
-  std::vector<scouter::ObjectCandidate>* o = new std::vector<scouter::ObjectCandidate>();
+  scouter::ObjectCandidate** os = new scouter::ObjectCandidate*[length];
   for (int i = 0; i < length; ++i) {
-    o->push_back(*obj[i]);
+    os[i] = new scouter::ObjectCandidate(*obj[i]);
   }
-  Candidates c = {o, length};
-  return c;
+  Candidates cs = {os, length};
+  return cs;
 }
 
 void Candidates_Delete(struct Candidates candidates) {
-  delete candidates.candidateVec;
+  delete candidates.candidates;
 }
 
 Detector Detector_New(const char *config) {
@@ -43,13 +42,13 @@ void Detector_Delete(Detector detector) {
 }
 
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY) {
-  std::vector<scouter::ObjectCandidate> candidates = detector->acf_detect(*image, offsetX, offsetY);
-  std::vector<scouter::ObjectCandidate>* ret = new std::vector<scouter::ObjectCandidate>();
+  const std::vector<scouter::ObjectCandidate>& candidates = detector->acf_detect(*image, offsetX, offsetY);
+  scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
-    ret->push_back(candidates[i]);
+    ret[i] = new scouter::ObjectCandidate(candidates[i]);
   }
-  Candidates c = {ret, (int)candidates.size()};
-  return c;
+  Candidates cs = {ret, (int)candidates.size()};
+  return cs;
 }
 
 int Detector_FilterByMask(Detector detector, Candidate candidate) {
@@ -74,13 +73,13 @@ void MMDetector_Delete(MMDetector detector) {
 }
 
 struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image, int offsetX, int offsetY) {
-  std::vector<scouter::ObjectCandidate> candidates = detector->mm_detect(*image, offsetX, offsetY);
-  std::vector<scouter::ObjectCandidate>* ret = new std::vector<scouter::ObjectCandidate>();
+  const std::vector<scouter::ObjectCandidate>& candidates = detector->mm_detect(*image, offsetX, offsetY);
+  scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
-    ret->push_back(candidates[i]);
+    ret[i] = new scouter::ObjectCandidate(candidates[i]);
   }
-  Candidates c = {ret, (int)candidates.size()};
-  return c;
+  Candidates cs = {ret, (int)candidates.size()};
+  return cs;
 }
 
 int MMDetector_FilterByMask(MMDetector detector, Candidate candidate) {

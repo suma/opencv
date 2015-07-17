@@ -42,6 +42,14 @@ func convertCandidatesToPointer(candidates []Candidate) []C.Candidate {
 	return candidatePointers
 }
 
+func convertCandidatesToSlice(candidates []C.Candidate) []Candidate {
+	cs := make([]Candidate, len(candidates))
+	for i, c := range candidates {
+		cs[i] = Candidate{p: c}
+	}
+	return cs
+}
+
 func (c Candidate) Delete() {
 	C.Candidate_Delete(c.p)
 	c.p = nil
@@ -63,17 +71,12 @@ func (d *Detector) Delete() {
 }
 
 func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
-	candidateVecPointer := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
-	defer C.Candidates_Delete(candidateVecPointer)
-	l := int(candidateVecPointer.length)
-	candidates := make([]C.Candidate, l)
-	C.ResolveCandidates(candidateVecPointer, (*C.Candidate)(&candidates[0]))
+	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	defer C.Candidates_Delete(candidates)
+	cs := make([]C.Candidate, int(candidates.length))
+	C.ResolveCandidates(candidates, (*C.Candidate)(&cs[0]))
 
-	ret := make([]Candidate, l)
-	for i := 0; i < l; i++ {
-		ret[i] = Candidate{p: candidates[i]}
-	}
-	return ret
+	return convertCandidatesToSlice(cs)
 }
 
 func (d *Detector) FilterByMask(candidate Candidate) bool {
@@ -105,17 +108,12 @@ func (d *MMDetector) Delete() {
 }
 
 func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
-	candidateVecPointer := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
-	defer C.Candidates_Delete(candidateVecPointer)
-	l := int(candidateVecPointer.length)
-	candidates := make([]C.Candidate, l)
-	C.ResolveCandidates(candidateVecPointer, (*C.Candidate)(&candidates[0]))
+	candidates := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	defer C.Candidates_Delete(candidates)
+	cs := make([]C.Candidate, int(candidates.length))
+	C.ResolveCandidates(candidates, (*C.Candidate)(&cs[0]))
 
-	ret := make([]Candidate, l)
-	for i := 0; i < l; i++ {
-		ret[i] = Candidate{p: candidates[i]}
-	}
-	return ret
+	return convertCandidatesToSlice(cs)
 }
 
 func (d *MMDetector) FilterByMask(candidate Candidate) bool {

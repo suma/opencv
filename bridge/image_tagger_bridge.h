@@ -18,7 +18,7 @@ typedef void* ImageTaggerCaffe;
 ImageTaggerCaffe ImageTaggerCaffe_New(const char* config);
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe tagger);
 MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate, MatVec3b image);
-Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
+struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
   Candidate* candidates, MatVec3b* croppedImages, int length);
 
 #ifdef __cplusplus

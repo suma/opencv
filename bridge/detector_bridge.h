@@ -13,19 +13,15 @@ extern "C" {
 typedef scouter::Detector* Detector;
 typedef scouter::MultiModelDetector* MMDetector;
 typedef scouter::ObjectCandidate* Candidate;
-typedef struct Candidates {
-  std::vector<scouter::ObjectCandidate>* candidateVec;
-  int length;
-} Candidates;
 #else
 typedef void* Detector;
 typedef void* MMDetector;
 typedef void* Candidate;
+#endif
 typedef struct Candidates {
-  void* candidateVec;
+  Candidate* candidates;
   int length;
 } Candidates;
-#endif
 
 struct ByteArray Candidate_Serialize(Candidate c);
 Candidate Candidate_Deserialize(struct ByteArray src);

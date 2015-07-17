@@ -39,16 +39,11 @@ func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate, croppedImg [
 	l := len(candidates)
 	candidatePointer := convertCandidatesToPointer(candidates)
 	imgPointer := convertMatVec3bsToPointer(croppedImg)
-	recognizedVec := C.ImageTaggerCaffe_PredictTagsBatch(t.p,
+	recognized := C.ImageTaggerCaffe_PredictTagsBatch(t.p,
 		(*C.Candidate)(&candidatePointer[0]), (*C.MatVec3b)(&imgPointer[0]), C.int(l))
-	defer C.Candidates_Delete(recognizedVec)
-	recognizedLength := int(recognizedVec.length)
-	recognized := make([]C.Candidate, recognizedLength)
-	C.ResolveCandidates(recognizedVec, (*C.Candidate)(&recognized[0]))
+	defer C.Candidates_Delete(recognized)
+	recog := make([]C.Candidate, int(recognized.length))
+	C.ResolveCandidates(recognized, (*C.Candidate)(&recog[0]))
 
-	ret := make([]Candidate, recognizedLength)
-	for i := 0; i < recognizedLength; i++ {
-		ret[i] = Candidate{p: recognized[i]}
-	}
-	return ret
+	return convertCandidatesToSlice(recog)
 }
