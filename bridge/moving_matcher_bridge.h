@@ -11,17 +11,13 @@ extern "C" {
 
 #ifdef __cplusplus
 typedef scouter::MVObjectCandidate* MVCandidate;
-typedef struct MVCandidates {
-  std::vector<scouter::MVObjectCandidate>* candidateVec;
-  int length;
-} MVCandidates;
 #else
 typedef void* MVCandidate;
+#endif
 typedef struct MVCandidates {
-  void* candidateVec;
+  MVCandidate* mvCandidates;
   int length;
 } MVCandidates;
-#endif
 typedef struct RegionsWithCameraID {
   Candidates candidates;
   int cameraID;

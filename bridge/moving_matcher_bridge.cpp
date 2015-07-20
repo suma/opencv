@@ -15,23 +15,22 @@ void MVCandidate_Delete(MVCandidate c) {
 }
 
 void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj) {
-  for (size_t i = 0; i < mvCandidates.candidateVec->size(); ++i) {
-    obj[i] = new scouter::MVObjectCandidate((*mvCandidates.candidateVec)[i]);
+  for (int i = 0; i < mvCandidates.length; ++i) {
+    obj[i] = mvCandidates.mvCandidates[i];
   }
-  return;
 }
 
 struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length) {
-  std::vector<scouter::MVObjectCandidate>* o = new std::vector<scouter::MVObjectCandidate>();
+  scouter::MVObjectCandidate** os = new scouter::MVObjectCandidate*[length];
   for (int i = 0; i < length; ++i) {
-    o->push_back(*obj[i]);
+    os[i] = new scouter::MVObjectCandidate(*obj[i]);
   }
-  MVCandidates c = {o, length};
-  return c;
+  MVCandidates cs = {os, length};
+  return cs;
 }
 
 void MVCandidates_Delete(struct MVCandidates mvCandidates) {
-  delete mvCandidates.candidateVec;
+  delete mvCandidates.mvCandidates;
 }
 
 struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, float kThreshold) {
@@ -45,12 +44,11 @@ struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, f
     }
     candidatez.push_back(candidates);
   }
-  std::vector<scouter::MVObjectCandidate> views =
+  const std::vector<scouter::MVObjectCandidate>& views =
     scouter::mvom::get_matching(candidatez, kThreshold);
-  std::vector<scouter::MVObjectCandidate>* ret =
-    new std::vector<scouter::MVObjectCandidate>();
+  scouter::MVObjectCandidate** ret = new scouter::MVObjectCandidate*[views.size()];
   for (size_t i = 0; i < views.size(); ++i) {
-    ret->push_back(views[i]);
+    ret[i] = new scouter::MVObjectCandidate(views[i]);
   }
   MVCandidates mc = {ret, (int)views.size()};
   return mc;

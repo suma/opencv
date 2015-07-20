@@ -22,7 +22,12 @@ void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
     ret->insert(std::make_pair(frames[i].cameraID, *(frames[i].mat)));
   }
 
-  tracker->push(ret, *(mvCandidates.candidateVec), timestamp);
+  std::vector<scouter::MVObjectCandidate> mvCans;
+  for (int i = 0; i < mvCandidates.length; ++i) {
+    mvCans.push_back(*(mvCandidates.mvCandidates)[i]);
+  }
+
+  tracker->push(ret, mvCans, timestamp);
 }
 
 TrackingResult Tracker_Track(Tracker tracker, unsigned long long timestamp) {
