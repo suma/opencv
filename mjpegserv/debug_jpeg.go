@@ -8,12 +8,31 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"sync"
 )
 
 type DebugJPEGSink struct {
 	outputDir   string
 	jpegQuality int
-	detectCount map[string]int64
+	detectCount detectCounter
+}
+
+type detectCounter struct {
+	sync.RWMutex
+	count map[string]int
+}
+
+func (c *detectCounter) get(k string) (int, bool) {
+	c.RLock()
+	defer c.RUnlock()
+	prev, ok := c.count[k]
+	return prev, ok
+}
+
+func (c *detectCounter) put(k string, v int) {
+	c.Lock()
+	defer c.Unlock()
+	c.count[k] = v
 }
 
 func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
@@ -35,13 +54,13 @@ func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 		return err
 	}
 
-	if prevCount, ok := s.detectCount[nameStr]; ok {
-		if prevCount > countInt {
+	if prevCount, ok := s.detectCount.get(nameStr); ok {
+		if prevCount > int(countInt) {
 			ctx.Log().Debug("JPEG has already created")
 			return nil
 		}
 	}
-	s.detectCount[nameStr] = countInt
+	s.detectCount.put(nameStr, int(countInt))
 
 	img, err := t.Data.Get("img")
 	if err != nil {
@@ -84,6 +103,6 @@ func (s *DebugJPEGSink) CreateSink(ctx *core.Context, ioParams *bql.IOParams, pa
 
 	s.outputDir = outputDir
 	s.jpegQuality = int(q)
-	s.detectCount = map[string]int64{}
+	s.detectCount = detectCounter{count: map[string]int{}}
 	return s, nil
 }

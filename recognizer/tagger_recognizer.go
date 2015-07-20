@@ -6,6 +6,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"sync"
 	"time"
 )
 
@@ -46,18 +47,36 @@ func (c *RegionCropFuncCreator) TypeName() string {
 
 type predictTagsBatchUDSF struct {
 	predictTagsBatch      func([]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
-	frameIdFieldName      string
+	frameIDFieldName      string
 	regionsFieldName      string
 	croppedImageFieldName string
-	detectCount           map[string]int
+	detectCount           detectCounter
+}
+
+type detectCounter struct {
+	sync.RWMutex
+	count map[string]int
+}
+
+func (c *detectCounter) get(k string) (int, bool) {
+	c.RLock()
+	defer c.RUnlock()
+	prev, ok := c.count[k]
+	return prev, ok
+}
+
+func (c *detectCounter) put(k string, v int) {
+	c.Lock()
+	defer c.Unlock()
+	c.count[k] = v
 }
 
 func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	frameID, err := t.Data.Get(sf.frameIDFieldName)
 	if err != nil {
 		return err
 	}
-	frameIdStr, err := data.ToString(frameId)
+	frameIDStr, err := data.ToString(frameID)
 	if err != nil {
 		return err
 	}
@@ -85,13 +104,13 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 			len(regions), len(croppedImgs))
 	}
 
-	if prevCount, ok := sf.detectCount[frameIdStr]; ok {
+	if prevCount, ok := sf.detectCount.get(frameIDStr); ok {
 		if prevCount > len(regions) {
 			ctx.Log().Debug("prediction has already created")
 			return nil
 		}
 	}
-	sf.detectCount[frameIdStr] = len(regions)
+	sf.detectCount.put(frameIDStr, len(regions))
 
 	candidates := []bridge.Candidate{}
 	cropps := []bridge.MatVec3b{}
@@ -127,7 +146,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 		now := time.Now()
 		m := data.Map{
 			"region_with_tagger": data.Blob(r.Serialize()),
-			"frame_id":           frameId,
+			"frame_id":           frameID,
 		}
 		tu := &core.Tuple{
 			Data:          m,
@@ -145,7 +164,7 @@ func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 }
 
 func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
-	stream string, frameIdFieldName string, regionsFieldName string,
+	stream string, frameIDFieldName string, regionsFieldName string,
 	croppedImageFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "predict_tags_batch_stream",
@@ -160,10 +179,10 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 
 	return &predictTagsBatchUDSF{
 		predictTagsBatch:      s.tagger.PredictTagsBatch,
-		frameIdFieldName:      frameIdFieldName,
+		frameIDFieldName:      frameIDFieldName,
 		regionsFieldName:      regionsFieldName,
 		croppedImageFieldName: croppedImageFieldName,
-		detectCount:           map[string]int{},
+		detectCount:           detectCounter{count: map[string]int{}},
 	}, nil
 }
 
