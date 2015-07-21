@@ -47,6 +47,7 @@ int MMDetector_FilterByMask(MMDetector detector, Candidate candidate);
 void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate, int offsetX, int offsetY);
 
 MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length);
+MatVec3b Candidates_DrawTags(MatVec3b image, Candidate* candidates, int length);
 
 #ifdef __cplusplus
 }

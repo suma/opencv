@@ -3,6 +3,7 @@ package recog
 import (
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
+	"pfi/sensorbee/sensorbee/data"
 )
 
 type PredictTagsFuncCreator struct{}
@@ -57,4 +58,37 @@ func (c *CroppingAndPredictTagsFuncCreator) CreateFunction() interface{} {
 
 func (c *CroppingAndPredictTagsFuncCreator) TypeName() string {
 	return "cropping_predict_tags"
+}
+
+type DrawDeteciontResultFuncCreator struct{}
+
+func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) ([]byte, error) {
+	img := bridge.DeserializeMatVec3b(frame)
+	defer img.Delete()
+
+	canObjs := []bridge.Candidate{}
+	for _, c := range regions {
+		b, err := data.AsBlob(c)
+		if err != nil {
+			return nil, err
+		}
+		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
+	}
+	defer func() {
+		for _, c := range canObjs {
+			c.Delete()
+		}
+	}()
+
+	ret := bridge.DrawDetectionResultWithTags(img, canObjs)
+	defer ret.Delete()
+	return ret.Serialize(), nil
+}
+
+func (c *DrawDeteciontResultFuncCreator) CreateFunction() interface{} {
+	return drawDetectionResult
+}
+
+func (c *DrawDeteciontResultFuncCreator) TypeName() string {
+	return "draw_detection_result_with_tags"
 }

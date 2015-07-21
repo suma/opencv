@@ -1,5 +1,6 @@
 #include "detector_bridge.h"
 #include "util.hpp"
+#include <scouter-core/instances_visualizer.hpp>
 
 struct ByteArray Candidate_Serialize(Candidate c) {
   return serializeObject(*c);
@@ -96,6 +97,17 @@ MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length) {
   for (int i = 0; i < length; ++i) {
     const scouter::ObjectCandidate& o = *candidates[i];
     o.draw(*c, cv::Scalar(0, 0, 255), 2);
+  }
+  return c;
+}
+
+MatVec3b Candidates_DrawTags(MatVec3b image, Candidate* candidates, int length) {
+  cv::Mat_<cv::Vec3b>* c = new cv::Mat_<cv::Vec3b>();
+  image->copyTo(*c);
+  for (int i = 0; i < length; ++i) {
+    const scouter::ObjectCandidate& o = *candidates[i];
+    o.bbox.draw(*c, cv::Scalar(0, 0, 255), 1);
+    scouter::draw_tags(*c, o.tags, o.bbox.x1, o.bbox.y1, cv::Scalar(255, 0, 0));
   }
   return c;
 }

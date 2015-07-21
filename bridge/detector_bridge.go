@@ -125,11 +125,18 @@ func (d *MMDetector) EstimateHeight(candidate *Candidate, offsetX int, offsetY i
 	C.MMDetector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
+// draw result should be called by each candidate,
+// but think the cost of copying MatVec3b, called by []C.Candidate
 func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
-	// draw result should be called by each candidate,
-	// but think the cost of copying MatVec3b, called by []C.Candidate
 	l := len(candidates)
 	candidatePointer := convertCandidatesToPointer(candidates)
 	ret := C.Candidates_Draw(img.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
+	return MatVec3b{p: ret}
+}
+
+func DrawDetectionResultWithTags(img MatVec3b, candidates []Candidate) MatVec3b {
+	l := len(candidates)
+	candidatePointer := convertCandidatesToPointer(candidates)
+	ret := C.Candidates_DrawTags(img.p, (*C.Candidate)(&candidatePointer[0]), C.int(l))
 	return MatVec3b{p: ret}
 }

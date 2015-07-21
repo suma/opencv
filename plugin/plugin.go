@@ -69,6 +69,7 @@ func init() {
 		&recog.RegionCropFuncCreator{},
 		&recog.PredictTagsFuncCreator{},
 		&recog.CroppingAndPredictTagsFuncCreator{},
+		&recog.DrawDeteciontResultFuncCreator{},
 		&utils.TypeCheckedAggregateFuncCreator{},
 	}
 	for _, f := range udfuncs {
