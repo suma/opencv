@@ -15,6 +15,18 @@ MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate, Mat
   return new cv::Mat_<cv::Vec3b>(cropped);
 }
 
+Candidate ImageTaggerCaffe_PredictTags(ImageTaggerCaffe tagger, Candidate candidate,
+    MatVec3b croppedImg) {
+  std::vector<scouter::ObjectCandidate> candidateVec;
+  std::vector<cv::Mat_<cv::Vec3b> > croppedVec;
+  candidateVec.push_back(*candidate);
+  croppedVec.push_back(*croppedImg);
+
+  tagger->predict_tags_batch(candidateVec, croppedVec);
+  scouter::ObjectCandidate* ret = new scouter::ObjectCandidate(candidateVec[0]);
+  return ret;
+}
+
 struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
     Candidate* candidates, MatVec3b* croppedImages, int length) {
   std::vector<scouter::ObjectCandidate> candidateVec;
