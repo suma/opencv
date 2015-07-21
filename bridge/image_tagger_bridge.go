@@ -52,3 +52,8 @@ func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate, croppedImg [
 
 	return convertCandidatesToSlice(recog)
 }
+
+func (t *ImageTaggerCaffe) CroppingAndPredictTags(candidate Candidate, image MatVec3b) Candidate {
+	recognized := C.ImageTaggerCaffe_CropAndPredictTags(t.p, candidate.p, image.p)
+	return Candidate{p: recognized}
+}

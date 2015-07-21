@@ -68,6 +68,7 @@ func init() {
 		&detector.EstimateHeightMMFuncCreator{},
 		&recog.RegionCropFuncCreator{},
 		&recog.PredictTagsFuncCreator{},
+		&recog.CroppingAndPredictTagsFuncCreator{},
 		&utils.TypeCheckedAggregateFuncCreator{},
 	}
 	for _, f := range udfuncs {

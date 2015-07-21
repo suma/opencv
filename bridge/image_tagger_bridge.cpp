@@ -44,3 +44,9 @@ struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
   Candidates cs = {ret, l};
   return cs;
 }
+
+Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger, Candidate candidate,
+    MatVec3b image) {
+  cv::Mat_<cv::Vec3b>* cropped = ImageTaggerCaffe_Crop(tagger, candidate, image);
+  return ImageTaggerCaffe_PredictTags(tagger, candidate, cropped);
+}

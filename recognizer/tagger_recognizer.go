@@ -31,3 +31,30 @@ func (c *PredictTagsFuncCreator) CreateFunction() interface{} {
 func (c *PredictTagsFuncCreator) TypeName() string {
 	return "predict_tags"
 }
+
+type CroppingAndPredictTagsFuncCreator struct{}
+
+func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte, img []byte) ([]byte, error) {
+	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
+	if err != nil {
+		return nil, err
+	}
+
+	image := bridge.DeserializeMatVec3b(img)
+	defer image.Delete()
+	candidate := bridge.DeserializeCandidate(region)
+	defer candidate.Delete()
+
+	taggedRegion := s.tagger.CroppingAndPredictTags(candidate, image)
+	defer taggedRegion.Delete()
+
+	return taggedRegion.Serialize(), nil
+}
+
+func (c *CroppingAndPredictTagsFuncCreator) CreateFunction() interface{} {
+	return croppingAndPredictTags
+}
+
+func (c *CroppingAndPredictTagsFuncCreator) TypeName() string {
+	return "cropping_predict_tags"
+}
