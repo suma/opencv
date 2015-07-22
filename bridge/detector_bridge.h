@@ -34,6 +34,7 @@ void Candidates_Delete(struct Candidates candidates);
 Detector Detector_New(const char *config);
 void Detector_Delete(Detector detector);
 
+void Detector_UpdateCameraParameter(Detector detector, const char *config);
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY);
 int Detector_FilterByMask(Detector detector, Candidate candidate);
 void Detector_EstimateHeight(Detector detector, Candidate candidate, int offsetX, int offsetY);

@@ -2,7 +2,7 @@
 #include "util.hpp"
 
 FrameProcessor FrameProcessor_New(const char *config) {
-  scouter::FrameProcessor::Config fpc =
+  const scouter::FrameProcessor::Config& fpc =
       load_json<scouter::FrameProcessor::Config>(config);
   return new scouter::FrameProcessor(fpc);
 }
@@ -12,7 +12,7 @@ void FrameProcessor_Delete(FrameProcessor fp) {
 }
 
 void FrameProcessor_UpdateConfig(FrameProcessor fp, const char *config) {
-  scouter::FrameProcessor::Config fpc =
+  const scouter::FrameProcessor::Config& fpc =
       load_json<scouter::FrameProcessor::Config>(config);
   fp->update_config(fpc);
 }

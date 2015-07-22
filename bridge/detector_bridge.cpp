@@ -1,5 +1,6 @@
 #include "detector_bridge.h"
 #include "util.hpp"
+#include <scouter-core/projection.hpp>
 #include <scouter-core/instances_visualizer.hpp>
 
 struct ByteArray Candidate_Serialize(Candidate c) {
@@ -34,12 +35,17 @@ void Candidates_Delete(struct Candidates candidates) {
 }
 
 Detector Detector_New(const char *config) {
-  scouter::Detector::Config dc = load_json<scouter::Detector::Config>(config);
+  const scouter::Detector::Config& dc = load_json<scouter::Detector::Config>(config);
   return new scouter::Detector(dc);
 }
 
 void Detector_Delete(Detector detector) {
   delete detector;
+}
+
+void Detector_UpdateCameraParameter(Detector detector, const char *config) {
+  const scouter::CameraParameter& cp = load_json<scouter::CameraParameter>(config);
+  detector->update_camera_parameter(cp);
 }
 
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY) {
