@@ -26,6 +26,7 @@ typedef void* FrameProcessor;
 
 FrameProcessor FrameProcessor_New(const char *config);
 void FrameProcessor_Delete(FrameProcessor fp);
+void FrameProcessor_UpdateConfig(FrameProcessor fp, const char *config);
 struct ScouterFrame FrameProcessor_Projection(FrameProcessor pf, MatVec3b buf);
 
 #ifdef __cplusplus

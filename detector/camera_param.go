@@ -11,8 +11,8 @@ type CameraParamState struct {
 	fp bridge.FrameProcessor
 }
 
-func (s *CameraParamState) NewState(ctx *core.Context, with data.Map) (core.SharedState, error) {
-	p, err := with.Get("file")
+func (s *CameraParamState) NewState(ctx *core.Context, param data.Map) (core.SharedState, error) {
+	p, err := param.Get("file")
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,6 @@ func (s *CameraParamState) NewState(ctx *core.Context, with data.Map) (core.Shar
 		return nil, err
 	}
 
-	// read file
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -39,5 +38,26 @@ func (s *CameraParamState) TypeName() string {
 
 func (s *CameraParamState) Terminate(ctx *core.Context) error {
 	s.fp.Delete()
+	return nil
+}
+
+func (s *CameraParamState) Update(param data.Map) error {
+	p, err := param.Get("file")
+	if err != nil {
+		return err
+	}
+	path, err := data.AsString(p)
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	fpConfig := string(b)
+	s.fp.UpdateConfig(fpConfig)
+
 	return nil
 }
