@@ -70,6 +70,12 @@ func (d *Detector) Delete() {
 	d.p = nil
 }
 
+func (d *Detector) UpdateCameraParameter(config string) {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	C.Detector_UpdateCameraParameter(d.p, cConfig)
+}
+
 func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
 	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(candidates)
@@ -105,6 +111,12 @@ func NewMMDetector(config string) MMDetector {
 func (d *MMDetector) Delete() {
 	C.MMDetector_Delete(d.p)
 	d.p = nil
+}
+
+func (d *MMDetector) UpdateCameraParameter(config string) {
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	C.MMDetector_UpdateCameraParameter(d.p, cConfig)
 }
 
 func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {

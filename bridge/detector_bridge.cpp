@@ -71,12 +71,17 @@ void Detector_PutFeature(Detector detector, Candidate candidate, MatVec3b image)
 }
 
 MMDetector MMDetector_New(const char *config) {
-  scouter::MultiModelDetector::Config dc = load_json<scouter::MultiModelDetector::Config>(config);
+  const scouter::MultiModelDetector::Config& dc = load_json<scouter::MultiModelDetector::Config>(config);
   return new scouter::MultiModelDetector(dc);
 }
 
 void MMDetector_Delete(MMDetector detector) {
   delete detector;
+}
+
+void MMDetector_UpdateCameraParameter(MMDetector detector, const char *config) {
+  const scouter::CameraParameter& cp = load_json<scouter::CameraParameter>(config);
+  detector->update_camera_parameter(cp);
 }
 
 struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image, int offsetX, int offsetY) {

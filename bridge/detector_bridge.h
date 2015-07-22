@@ -43,6 +43,7 @@ void Detector_PutFeature(Detector detector, Candidate candidate, MatVec3b image)
 MMDetector MMDetector_New(const char *config);
 void MMDetector_Delete(MMDetector detector);
 
+void MMDetector_UpdateCameraParameter(MMDetector detector, const char *config);
 struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image, int offsetX, int offsetY);
 int MMDetector_FilterByMask(MMDetector detector, Candidate candidate);
 void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate, int offsetX, int offsetY);
