@@ -120,3 +120,51 @@ func TestNewAcfDetectionParamWithSeparateFile(t *testing.T) {
 		})
 	})
 }
+
+func TestDetectorUpdateCameraParamState(t *testing.T) {
+	ctx := &core.Context{}
+	Convey("Given an initialized state", t, func() {
+		params := data.Map{
+			"detection_file": data.String("detector_exclude_camera_param_test.json"),
+		}
+		state, err := createACFDetectionParamState(ctx, params)
+		So(err, ShouldBeNil)
+		ds, ok := state.(*ACFDetectionParamState)
+		So(ok, ShouldBeTrue)
+		defer ds.d.Delete()
+		Convey("When the state is updated with valid config json", func() {
+			params2 := data.Map{
+				"camera_parameter_file": data.String("camera_param_test.json"),
+			}
+			Convey("Then the state should update and occur no error", func() {
+				err := ds.Update(params2)
+				So(err, ShouldBeNil)
+			})
+		})
+		Convey("When the state is updated with invalid param", func() {
+			params2 := data.Map{}
+			Convey("Then an error should be occur", func() {
+				err := ds.Update(params2)
+				So(err, ShouldNotBeNil)
+			})
+		})
+		Convey("When the state is updated with null param", func() {
+			params2 := data.Map{
+				"file": data.Null{},
+			}
+			Convey("Then an error should be occur", func() {
+				err := ds.Update(params2)
+				So(err, ShouldNotBeNil)
+			})
+		})
+		Convey("When the state is updated with invalid file path", func() {
+			params2 := data.Map{
+				"file": data.String("not_exist.json"),
+			}
+			Convey("Then an error should be occur", func() {
+				err := ds.Update(params2)
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}

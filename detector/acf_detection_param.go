@@ -102,3 +102,24 @@ func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 	s.d.Delete()
 	return nil
 }
+
+func (s *ACFDetectionParamState) Update(params data.Map) error {
+	p, err := params.Get("camera_parameter_file")
+	if err != nil {
+		return err
+	}
+	path, err := data.AsString(p)
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	cpConfig := string(b)
+	s.d.UpdateCameraParameter(cpConfig)
+
+	return nil
+}
