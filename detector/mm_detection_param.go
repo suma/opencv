@@ -11,8 +11,8 @@ type MMDetectionParamState struct {
 	d bridge.MMDetector
 }
 
-func (s *MMDetectionParamState) NewState(ctx *core.Context, with data.Map) (core.SharedState, error) {
-	p, err := with.Get("file")
+func createMMDetectionParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
 	}
@@ -21,16 +21,20 @@ func (s *MMDetectionParamState) NewState(ctx *core.Context, with data.Map) (core
 		return nil, err
 	}
 
-	// read file
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	detectConfig := string(b)
+	s := &MMDetectionParamState{}
 	s.d = bridge.NewMMDetector(detectConfig)
 
 	return s, nil
+}
+
+func (s *MMDetectionParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+	return createMMDetectionParamState
 }
 
 func (s *MMDetectionParamState) TypeName() string {

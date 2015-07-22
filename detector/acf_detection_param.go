@@ -11,8 +11,8 @@ type ACFDetectionParamState struct {
 	d bridge.Detector
 }
 
-func (s *ACFDetectionParamState) NewState(ctx *core.Context, with data.Map) (core.SharedState, error) {
-	p, err := with.Get("file")
+func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
 	}
@@ -28,9 +28,14 @@ func (s *ACFDetectionParamState) NewState(ctx *core.Context, with data.Map) (cor
 	}
 
 	detectConfig := string(b)
+	s := &ACFDetectionParamState{}
 	s.d = bridge.NewDetector(detectConfig)
 
 	return s, nil
+}
+
+func (s *ACFDetectionParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+	return createACFDetectionParamState
 }
 
 func (s *ACFDetectionParamState) TypeName() string {

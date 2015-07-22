@@ -7,50 +7,39 @@ import (
 	"testing"
 )
 
-func TestValidNewCameraParamState(t *testing.T) {
+func TestNewCameraParamState(t *testing.T) {
 	ctx := &core.Context{}
-	Convey("Given a new state", t, func() {
-		state := CameraParamState{}
-		Convey("When the state get valid config json", func() {
-			param := data.Map{
-				"file": data.String("frame_processor_param_test.json"),
-			}
+	Convey("Given a parameter", t, func() {
+		params := data.Map{}
+		Convey("When the parameter has valid config json file path", func() {
+			params["file"] = data.String("frame_processor_param_test.json")
 			Convey("Then the state set with frame processor", func() {
-				_, err := state.NewState(ctx, param)
+				state, err := createCameraParamState(ctx, params)
 				So(err, ShouldBeNil)
-				So(state.fp, ShouldNotBeNil)
-				state.fp.Delete()
+				cs, ok := state.(*CameraParamState)
+				So(ok, ShouldBeTrue)
+				So(cs.fp, ShouldNotBeNil)
+				cs.fp.Delete()
 			})
 		})
-	})
-}
-
-func TestErrorNewCameraParamState(t *testing.T) {
-	ctx := &core.Context{}
-	Convey("Given a new state", t, func() {
-		state := CameraParamState{}
-		Convey("When the state get invalid param", func() {
-			param := data.Map{}
+		Convey("When the parameter has invalid param", func() {
+			params["filee"] = data.String("frame_processor_param_test.json")
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, param)
+				_, err := createCameraParamState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
-		Convey("When the state get null file path", func() {
-			param := data.Map{
-				"file": data.Null{},
-			}
+		Convey("When the parameter has null file path", func() {
+			params["file"] = data.Null{}
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, param)
+				_, err := createCameraParamState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
-		Convey("When the state get invalid file path", func() {
-			param := data.Map{
-				"file": data.String("not_exist.json"),
-			}
+		Convey("When the parameter has invalid file path", func() {
+			params["file"] = data.String("not_exist.json")
 			Convey("Then an error should be occur", func() {
-				_, err := state.NewState(ctx, param)
+				_, err := createCameraParamState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
@@ -60,44 +49,45 @@ func TestErrorNewCameraParamState(t *testing.T) {
 func TestUpdateCameraParamState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given an initialized state", t, func() {
-		state := CameraParamState{}
-		param := data.Map{
+		params := data.Map{
 			"file": data.String("frame_processor_param_test.json"),
 		}
-		_, err := state.NewState(ctx, param)
+		state, err := createCameraParamState(ctx, params)
 		So(err, ShouldBeNil)
-		defer state.fp.Delete()
+		cs, ok := state.(*CameraParamState)
+		So(ok, ShouldBeTrue)
+		defer cs.fp.Delete()
 		Convey("When the state is updated with valid config json", func() {
-			param2 := data.Map{
+			params2 := data.Map{
 				"file": data.String("frame_processor_param_test.json"),
 			}
 			Convey("Then the state should update and occur no error", func() {
-				err := state.Update(param2)
+				err := cs.Update(params2)
 				So(err, ShouldBeNil)
 			})
 		})
 		Convey("When the state is updated with invalid param", func() {
-			param2 := data.Map{}
+			params2 := data.Map{}
 			Convey("Then an error should be occur", func() {
-				err := state.Update(param2)
+				err := cs.Update(params2)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the state is updated with null param", func() {
-			param2 := data.Map{
+			params2 := data.Map{
 				"file": data.Null{},
 			}
 			Convey("Then an error should be occur", func() {
-				err := state.Update(param2)
+				err := cs.Update(params2)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the state is updated with invalid file path", func() {
-			param2 := data.Map{
+			params2 := data.Map{
 				"file": data.String("not_exist.json"),
 			}
 			Convey("Then an error should be occur", func() {
-				err := state.Update(param2)
+				err := cs.Update(params2)
 				So(err, ShouldNotBeNil)
 			})
 		})

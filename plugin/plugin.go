@@ -54,8 +54,8 @@ func init() {
 		&integrator.TrackerParamState{},
 		&integrator.InstanceManagerParamState{},
 	}
-	for _, state := range states {
-		udf.MustRegisterGlobalUDSCreator(state.TypeName(), udf.UDSCreatorFunc(state.NewState))
+	for _, s := range states {
+		udf.MustRegisterGlobalUDSCreator(s.TypeName(), udf.UDSCreatorFunc(s.CreateNewState()))
 	}
 
 	// UDFs

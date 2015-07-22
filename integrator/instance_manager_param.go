@@ -11,8 +11,8 @@ type InstanceManagerParamState struct {
 	m bridge.InstanceManager
 }
 
-func (s *InstanceManagerParamState) NewState(ctx *core.Context, param data.Map) (core.SharedState, error) {
-	p, err := param.Get("file")
+func createInstanceManagerParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
 	}
@@ -21,16 +21,20 @@ func (s *InstanceManagerParamState) NewState(ctx *core.Context, param data.Map) 
 		return nil, err
 	}
 
-	// read file
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	managerConfig := string(b)
+	s := &InstanceManagerParamState{}
 	s.m = bridge.NewInstanceManager(managerConfig)
 
 	return s, nil
+}
+
+func (s *InstanceManagerParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+	return createInstanceManagerParamState
 }
 
 func (s *InstanceManagerParamState) TypeName() string {

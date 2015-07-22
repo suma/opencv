@@ -11,8 +11,8 @@ type TrackerParamState struct {
 	t bridge.Tracker
 }
 
-func (s *TrackerParamState) NewState(ctx *core.Context, param data.Map) (core.SharedState, error) {
-	p, err := param.Get("file")
+func createTrackerParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
 	}
@@ -28,9 +28,14 @@ func (s *TrackerParamState) NewState(ctx *core.Context, param data.Map) (core.Sh
 	}
 
 	trackerConfig := string(b)
+	s := &TrackerParamState{}
 	s.t = bridge.NewTracker(trackerConfig)
 
 	return s, nil
+}
+
+func (s *TrackerParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+	return createTrackerParamState
 }
 
 func (s *TrackerParamState) TypeName() string {

@@ -11,7 +11,7 @@ type ImageTaggerCaffeParamState struct {
 	tagger bridge.ImageTaggerCaffe
 }
 
-func (s *ImageTaggerCaffeParamState) NewState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createImageTaggerCaffeParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
 	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
@@ -28,9 +28,14 @@ func (s *ImageTaggerCaffeParamState) NewState(ctx *core.Context, params data.Map
 	}
 
 	taggerConfig := string(b)
+	s := &ImageTaggerCaffeParamState{}
 	s.tagger = bridge.NewImageTaggerCaffe(taggerConfig)
 
 	return s, nil
+}
+
+func (s *ImageTaggerCaffeParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+	return createImageTaggerCaffeParamState
 }
 
 func (s *ImageTaggerCaffeParamState) TypeName() string {
