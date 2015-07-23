@@ -46,7 +46,7 @@ func TestNewACFDetectionParamState(t *testing.T) {
 	})
 }
 
-func TestNewAcfDetectionParamWithSeparateFile(t *testing.T) {
+func TestNewACFDetectionParamWithSeparateFile(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given a parameter", t, func() {
 		params := data.Map{}
@@ -121,7 +121,7 @@ func TestNewAcfDetectionParamWithSeparateFile(t *testing.T) {
 	})
 }
 
-func TestDetectorUpdateCameraParamState(t *testing.T) {
+func TestACFDetectorUpdateCameraParamState(t *testing.T) {
 	ctx := &core.Context{}
 	Convey("Given an initialized state", t, func() {
 		params := data.Map{

@@ -14,6 +14,9 @@ type ACFDetectionParamState struct {
 	d bridge.Detector
 }
 
+// createACFDetectionParamState creates the core.SharedState for
+// multi model detector, which has detector instance.
+//
 // WITH parameter:
 //   "file": all detection parameters, include "detection_file" and
 //           "camera_parameter_file" (optional)
