@@ -7,6 +7,7 @@ package bridge
 */
 import "C"
 import (
+	"sync"
 	"unsafe"
 )
 
@@ -56,7 +57,8 @@ func (c Candidate) Delete() {
 }
 
 type Detector struct {
-	p C.Detector
+	mu sync.RWMutex
+	p  C.Detector
 }
 
 func NewDetector(config string) Detector {
@@ -71,12 +73,18 @@ func (d *Detector) Delete() {
 }
 
 func (d *Detector) UpdateCameraParameter(config string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	C.Detector_UpdateCameraParameter(d.p, cConfig)
 }
 
 func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(candidates)
 	cs := make([]C.Candidate, int(candidates.length))
@@ -86,20 +94,30 @@ func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate
 }
 
 func (d *Detector) FilterByMask(candidate Candidate) bool {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	masked := C.Detector_FilterByMask(d.p, candidate.p)
 	return int(masked) == 0
 }
 
 func (d *Detector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	C.Detector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
 func (d *Detector) PutFeature(candidate *Candidate, img MatVec3b) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	C.Detector_PutFeature(d.p, candidate.p, img.p)
 }
 
 type MMDetector struct {
-	p C.MMDetector
+	mu sync.RWMutex
+	p  C.MMDetector
 }
 
 func NewMMDetector(config string) MMDetector {
@@ -114,12 +132,18 @@ func (d *MMDetector) Delete() {
 }
 
 func (d *MMDetector) UpdateCameraParameter(config string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	C.MMDetector_UpdateCameraParameter(d.p, cConfig)
 }
 
 func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	candidates := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(candidates)
 	cs := make([]C.Candidate, int(candidates.length))
@@ -129,11 +153,17 @@ func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidat
 }
 
 func (d *MMDetector) FilterByMask(candidate Candidate) bool {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	masked := C.MMDetector_FilterByMask(d.p, candidate.p)
 	return int(masked) == 0
 }
 
 func (d *MMDetector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	C.MMDetector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
