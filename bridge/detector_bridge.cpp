@@ -112,6 +112,13 @@ MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length) {
   return c;
 }
 
+// this method does NOT preserve reference of tranceport.
+void Candidate_DrawTags(MatVec3b image, Candidate candidate) {
+  candidate->bbox.draw(*image, cv::Scalar(0, 0, 255), 1);
+  scouter::draw_tags(*image, candidate->tags, candidate->bbox.x1, candidate->bbox.y1,
+    cv::Scalar(255, 0, 0));
+}
+
 MatVec3b Candidates_DrawTags(MatVec3b image, Candidate* candidates, int length) {
   cv::Mat_<cv::Vec3b>* c = new cv::Mat_<cv::Vec3b>();
   image->copyTo(*c);
