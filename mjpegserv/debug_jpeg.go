@@ -19,17 +19,22 @@ type DebugJPEGSink struct {
 
 type detectCounter struct {
 	sync.RWMutex
-	count map[string]int
+	count map[string]lockCount
 }
 
-func (c *detectCounter) get(k string) (int, bool) {
+type lockCount struct {
+	sync.Mutex
+	count int
+}
+
+func (c *detectCounter) get(k string) (lockCount, bool) {
 	c.RLock()
 	defer c.RUnlock()
 	prev, ok := c.count[k]
 	return prev, ok
 }
 
-func (c *detectCounter) put(k string, v int) {
+func (c *detectCounter) put(k string, v lockCount) {
 	c.Lock()
 	defer c.Unlock()
 	c.count[k] = v
@@ -55,12 +60,13 @@ func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 	}
 
 	if prevCount, ok := s.detectCount.get(nameStr); ok {
-		if prevCount > int(countInt) {
+		if prevCount.count > int(countInt) {
 			ctx.Log().Debug("JPEG has already created")
 			return nil
 		}
 	}
-	s.detectCount.put(nameStr, int(countInt))
+	lc := lockCount{count: int(countInt)}
+	s.detectCount.put(nameStr, lc)
 
 	img, err := t.Data.Get("img")
 	if err != nil {
@@ -74,6 +80,8 @@ func (s *DebugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 	defer imgp.Delete()
 
 	fileName := fmt.Sprintf("%v/%v.jpg", s.outputDir, nameStr)
+	lc.Lock()
+	defer lc.Unlock()
 	ioutil.WriteFile(fileName, imgp.ToJpegData(s.jpegQuality), os.ModePerm)
 	return nil
 }
@@ -103,6 +111,6 @@ func (s *DebugJPEGSink) CreateSink(ctx *core.Context, ioParams *bql.IOParams, pa
 
 	s.outputDir = outputDir
 	s.jpegQuality = int(q)
-	s.detectCount = detectCounter{count: map[string]int{}}
+	s.detectCount = detectCounter{count: map[string]lockCount{}}
 	return s, nil
 }
