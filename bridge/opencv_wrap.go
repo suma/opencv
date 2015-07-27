@@ -82,6 +82,10 @@ func (v *VideoCapture) OpenDevice(device int) bool {
 	return C.VideoCapture_OpenDevice(v.p, C.int(device)) != 0
 }
 
+func (v *VideoCapture) Release() {
+	C.VideoCapture_Release(v.p)
+}
+
 func (v *VideoCapture) Set(prop int, param int) {
 	C.VideoCapture_Set(v.p, C.int(prop), C.int(param))
 }

@@ -42,9 +42,10 @@ func TestGetURISourceCreator(t *testing.T) {
 	Convey("Given a CaptureFromURI creator", t, func() {
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
-				"uri":        data.String("/data/file.avi"),
-				"frame_skip": data.Int(5),
-				"camera_id":  data.Int(1),
+				"uri":              data.String("/data/file.avi"),
+				"frame_skip":       data.Int(5),
+				"camera_id":        data.Int(1),
+				"next_frame_error": data.False,
 			}
 			Convey("Then creator should initialize capture source", func() {
 				s, err := createCaptureFromURI(ctx, ioParams, params)
@@ -54,13 +55,15 @@ func TestGetURISourceCreator(t *testing.T) {
 				So(capture.uri, ShouldEqual, "/data/file.avi")
 				So(capture.frameSkip, ShouldEqual, 5)
 				So(capture.cameraID, ShouldEqual, 1)
+				So(capture.endErrFlag, ShouldBeFalse)
 			})
 		})
 
 		Convey("When create source with empty uri", func() {
 			params := data.Map{
-				"frame_skip": data.Int(5),
-				"camera_id":  data.Int(1),
+				"frame_skip":       data.Int(5),
+				"camera_id":        data.Int(1),
+				"next_frame_error": data.False,
 			}
 			Convey("Then creator should occur an error", func() {
 				s, err := createCaptureFromURI(ctx, ioParams, params)
@@ -81,6 +84,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				So(capture.uri, ShouldEqual, "/data/file.avi")
 				So(capture.frameSkip, ShouldEqual, 0)
 				So(capture.cameraID, ShouldEqual, 0)
+				So(capture.endErrFlag, ShouldBeTrue)
 			})
 		})
 
@@ -100,8 +104,9 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.String("/data/file.avi"),
 			}
 			testMap := data.Map{
-				"frame_skip": data.String("@"),
-				"camera_id":  data.String("全角"),
+				"frame_skip":       data.String("@"),
+				"camera_id":        data.String("全角"),
+				"next_frame_error": data.String("True"),
 			}
 			for k, v := range testMap {
 				msg := fmt.Sprintf("with %v error", k)

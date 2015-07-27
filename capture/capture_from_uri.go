@@ -21,9 +21,13 @@ func (c *CaptureFromURICreator) TypeName() string {
 // URI can be set HTTP address or file path.
 //
 // Usage of WITH parameters:
-//  uri:        [required] a capture data's URI (e.g. /data/test.avi)
-//  frame_skip: the number of frame skip, if set empty or "0" then read all frames
-//  camera_id:  the unique ID of this source if set empty then the ID will be 0
+//  uri:              [required] a capture data's URI (e.g. /data/test.avi)
+//  frame_skip:       the number of frame skip, if set empty or "0"
+//                    then read all frames
+//  camera_id:        the unique ID of this source if set empty then the ID will be 0
+//  next_frame_error: when this source cannot read a new frame, occur error or not
+//                    decided by the flag. if the flag set `true` then return error.
+//                    default parameter is true.
 func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
 
@@ -31,8 +35,7 @@ func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IO
 	if err != nil {
 		return nil, err
 	}
-	//return core.NewRewindableSource(cs), nil
-	return cs, nil // TODO GenerateStream cannot be called concurrently
+	return core.NewRewindableSource(cs), nil
 }
 
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
@@ -65,37 +68,52 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
+	endErrFlag, err := params.Get("next_frame_error")
+	if err != nil {
+		endErrFlag = data.True
+	}
+	endErr, err := data.AsBool(endErrFlag)
+	if err != nil {
+		return nil, err
+	}
+
 	cs := &captureFromURI{}
-	cs.finish = false
-	cs.paused = 0
+	atomic.StoreInt32(&(cs.stop), int32(1))
 	cs.uri = uriStr
 	cs.frameSkip = frameSkip
 	cs.cameraID = cameraID
+	cs.endErrFlag = endErr
 	return cs, nil
 }
 
 type captureFromURI struct {
-	vcap   bridge.VideoCapture
-	finish bool
-	// paused is used as atomic bool
-	// paused set 0 then means false, set other then means true
-	paused int32
+	vcap bridge.VideoCapture
+	// stop is used as atomic bool
+	// stop set 0 then means false, set other then means true
+	stop int32
 
-	uri       string
-	frameSkip int64
-	cameraID  int64
+	uri        string
+	frameSkip  int64
+	cameraID   int64
+	endErrFlag bool
 }
 
 // GenerateStream streams video capture datum. OpenCV video capture read
 // frames from URI, user can control frame streaming frequency use
 // FrameSkip.
 //
-// !ATTENTION!
 // When a capture source is a file-style (e.g. AVI file) and complete to read
-// all frames, an error will be occurred because video capture cannot read
-// a new frame. User can count total frame to confirm complete of read file.
-// The number of count is logged.
+// all frames, video capture cannot read a new frame. User can determine to
+// occur an error or not to set "next_frame_error". User can also count total
+// frame to confirm complete of read file. The number of count is logged.
 func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
+	if atomic.LoadInt32(&(c.stop)) == 0 {
+		atomic.StoreInt32(&(c.stop), int32(1))
+		ctx.Log().Infof("interrupt reading video stream or file and reset: %v",
+			c.uri)
+		c.vcap.Release()
+		c.vcap.Delete()
+	}
 
 	c.vcap = bridge.NewVideoCapture()
 	if ok := c.vcap.Open(c.uri); !ok {
@@ -104,18 +122,19 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 
 	buf := bridge.NewMatVec3b()
 	defer buf.Delete()
+
 	cnt := 0
-	c.finish = false
 	ctx.Log().Infof("start reading video stream of file: %v", c.uri)
-	for !c.finish {
-		if atomic.LoadInt32(&(c.paused)) != 0 {
-			continue
-		}
+	atomic.StoreInt32(&(c.stop), int32(0))
+	defer atomic.StoreInt32(&(c.stop), int32(1))
+	for atomic.LoadInt32(&(c.stop)) == 0 {
 		cnt++
 		if ok := c.vcap.Read(buf); !ok {
 			ctx.Log().Infof("total read frames count is %d", cnt-1)
-			atomic.StoreInt32(&(c.paused), int32(1))
-			continue
+			if c.endErrFlag {
+				return fmt.Errorf("cannot reed a new frame")
+			}
+			break
 		}
 		if c.frameSkip > 0 {
 			c.vcap.Grab(int(c.frameSkip))
@@ -138,7 +157,7 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 }
 
 func (c *captureFromURI) Stop(ctx *core.Context) error {
-	c.finish = true
+	atomic.StoreInt32(&(c.stop), int32(1))
 	c.vcap.Delete()
 	return nil
 }

@@ -73,6 +73,10 @@ int VideoCapture_OpenDevice(VideoCapture v, int device) {
   return v->open(device);
 }
 
+void VideoCapture_Release(VideoCapture v) {
+  v->release();
+}
+
 void VideoCapture_Set(VideoCapture v, int prop, int param) {
   v->set(prop, param);
 }
