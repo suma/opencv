@@ -40,7 +40,6 @@ func TestGetURISourceCreator(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromURI creator", t, func() {
-		sc := CaptureFromURICreator{}
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
 				"uri":        data.String("/data/file.avi"),
@@ -48,7 +47,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"camera_id":  data.Int(1),
 			}
 			Convey("Then creator should initialize capture source", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromURI)
 				So(ok, ShouldBeTrue)
@@ -64,7 +63,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"camera_id":  data.Int(1),
 			}
 			Convey("Then creator should occur an error", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldBeNil)
 			})
@@ -75,7 +74,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.String("/data/file.avi"),
 			}
 			Convey("Then capture should set default values", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromURI)
 				So(ok, ShouldBeTrue)
@@ -90,7 +89,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.Null{},
 			}
 			Convey("Then create should occur an error", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldBeNil)
 			})
@@ -108,7 +107,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				msg := fmt.Sprintf("with %v error", k)
 				Convey("Then creator should occur a parse error on option parameters"+msg, func() {
 					params[k] = v
-					s, err := sc.CreateSource(ctx, ioParams, params)
+					s, err := createCaptureFromURI(ctx, ioParams, params)
 					So(err, ShouldNotBeNil)
 					So(s, ShouldBeNil)
 				})

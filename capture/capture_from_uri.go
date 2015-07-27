@@ -6,6 +6,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"sync/atomic"
 	"time"
 )
 
@@ -25,6 +26,18 @@ func (c *CaptureFromURICreator) TypeName() string {
 //  camera_id:  the unique ID of this source if set empty then the ID will be 0
 func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
+
+	cs, err := createCaptureFromURI(ctx, ioParams, params)
+	if err != nil {
+		return nil, err
+	}
+	//return core.NewRewindableSource(cs), nil
+	return cs, nil // TODO GenerateStream cannot be called concurrently
+}
+
+func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
+	core.Source, error) {
+
 	uri, err := params.Get("uri")
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
@@ -53,6 +66,8 @@ func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IO
 	}
 
 	cs := &captureFromURI{}
+	cs.finish = false
+	cs.paused = 0
 	cs.uri = uriStr
 	cs.frameSkip = frameSkip
 	cs.cameraID = cameraID
@@ -62,6 +77,9 @@ func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IO
 type captureFromURI struct {
 	vcap   bridge.VideoCapture
 	finish bool
+	// paused is used as atomic bool
+	// paused set 0 then means false, set other then means true
+	paused int32
 
 	uri       string
 	frameSkip int64
@@ -78,6 +96,7 @@ type captureFromURI struct {
 // a new frame. User can count total frame to confirm complete of read file.
 // The number of count is logged.
 func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
+
 	c.vcap = bridge.NewVideoCapture()
 	if ok := c.vcap.Open(c.uri); !ok {
 		return fmt.Errorf("error opening video stream or file: %v", c.uri)
@@ -87,12 +106,16 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 	defer buf.Delete()
 	cnt := 0
 	c.finish = false
-	ctx.Log().Debugf("start reading video stream of file: %v", c.uri)
+	ctx.Log().Infof("start reading video stream of file: %v", c.uri)
 	for !c.finish {
+		if atomic.LoadInt32(&(c.paused)) != 0 {
+			continue
+		}
 		cnt++
 		if ok := c.vcap.Read(buf); !ok {
-			ctx.Log().Debugf("total read frames count is %d", cnt-1)
-			return fmt.Errorf("cannot read a new frame: %v", c.uri)
+			ctx.Log().Infof("total read frames count is %d", cnt-1)
+			atomic.StoreInt32(&(c.paused), int32(1))
+			continue
 		}
 		if c.frameSkip > 0 {
 			c.vcap.Grab(int(c.frameSkip))
