@@ -18,22 +18,11 @@ import (
 //      _ "pfi/sensorbee/scouter/plugin"
 //  )
 //
-// Usage:
-// Source
-//  TYPE capture_from_uri
-//    source component, generate frame data from URI
-//    (e.g. network camera, video file)
-//  TYPE capture_from_device
-//    source component, generate frame data from device
-//
-// Sink (TODO)
-// State (TODO)
-// UDF (TODO)
 func init() {
 	// sources
 	sources := []PluginSourceCreator{
-		&capture.CaptureFromURI{},
-		&capture.CaptureFromDevice{},
+		&capture.CaptureFromURICreator{},
+		&capture.CaptureFromDeviceCreator{},
 	}
 	for _, source := range sources {
 		bql.MustRegisterGlobalSourceCreator(source.TypeName(), source)

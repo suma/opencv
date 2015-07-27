@@ -10,14 +10,19 @@ import (
 )
 
 func TestGenerateStreamDeviceError(t *testing.T) {
+	ctx := &core.Context{}
+	sc := CaptureFromDeviceCreator{}
+	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromDevice source with invalid device ID", t, func() {
-		capture := CaptureFromDevice{
-			DeviceID: 999999,
+		params := data.Map{
+			"device_id": data.Int(999999), // invalid device ID
 		}
+		capture, err := sc.CreateSource(ctx, ioParams, params)
+		So(err, ShouldBeNil)
+		So(capture, ShouldNotBeNil)
 		Convey("When generate stream", func() {
-			ctx := core.Context{}
 			Convey("Then error has occurred", func() {
-				err := capture.GenerateStream(&ctx, &dummyWriter{})
+				err := capture.GenerateStream(ctx, &dummyWriter{})
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "error")
 			})
@@ -26,82 +31,92 @@ func TestGenerateStreamDeviceError(t *testing.T) {
 }
 
 func TestGetDeviceSourceCreator(t *testing.T) {
-	Convey("Given a CaptureFromDevice source with", t, func() {
-		capture := CaptureFromDevice{}
-		ioParams := bql.IOParams{}
-		Convey("When get source creator", func() {
-			creator := capture.CreateSource
-			ctx := core.Context{}
-			Convey("Then creator should set capture struct members", func() {
-				params := data.Map{
-					"device_id": data.Int(0),
-					"width":     data.Int(500),
-					"height":    data.Int(600),
-					"fps":       data.Int(25),
-					"camera_id": data.Int(101),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+	ctx := &core.Context{}
+	ioParams := &bql.IOParams{}
+	Convey("Given a CaptureFromDevice creator", t, func() {
+		sc := CaptureFromDeviceCreator{}
+		Convey("When create source with full parameters", func() {
+			params := data.Map{
+				"device_id": data.Int(0),
+				"width":     data.Int(500),
+				"height":    data.Int(600),
+				"fps":       data.Int(25),
+				"camera_id": data.Int(101),
+			}
+			Convey("Then creator should initialize capture source", func() {
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldBeNil)
-				So(capture.DeviceID, ShouldEqual, 0)
-				So(capture.Width, ShouldEqual, 500)
-				So(capture.Height, ShouldEqual, 600)
-				So(capture.FPS, ShouldEqual, 25)
-				So(capture.CameraID, ShouldEqual, 101)
+				capture, ok := s.(*captureFromDevice)
+				So(ok, ShouldBeTrue)
+				So(capture.deviceID, ShouldEqual, 0)
+				So(capture.width, ShouldEqual, 500)
+				So(capture.height, ShouldEqual, 600)
+				So(capture.fps, ShouldEqual, 25)
+				So(capture.cameraID, ShouldEqual, 101)
 			})
+		})
 
+		Convey("When create source with empty device ID", func() {
+			params := data.Map{
+				"width":     data.Int(500),
+				"height":    data.Int(600),
+				"fps":       data.Int(25),
+				"camera_id": data.Int(101),
+			}
 			Convey("Then creator should occur an error", func() {
-				params := data.Map{
-					"width":     data.Int(500),
-					"height":    data.Int(600),
-					"fps":       data.Int(25),
-					"camera_id": data.Int(101),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
+				So(s, ShouldBeNil)
 			})
+		})
 
-			Convey("Then creator should set default values", func() {
-				params := data.Map{
-					"device_id": data.Int(0),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+		Convey("When create source with only device ID", func() {
+			params := data.Map{
+				"device_id": data.Int(0),
+			}
+			Convey("Then capture should set default values", func() {
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldBeNil)
-				So(capture.DeviceID, ShouldEqual, 0)
-				So(capture.Width, ShouldEqual, 0)
-				So(capture.Height, ShouldEqual, 0)
-				So(capture.FPS, ShouldEqual, 0)
-				So(capture.CameraID, ShouldEqual, 0)
+				capture, ok := s.(*captureFromDevice)
+				So(ok, ShouldBeTrue)
+				So(capture.deviceID, ShouldEqual, 0)
+				So(capture.width, ShouldEqual, 0)
+				So(capture.height, ShouldEqual, 0)
+				So(capture.fps, ShouldEqual, 0)
+				So(capture.cameraID, ShouldEqual, 0)
 			})
+		})
 
+		Convey("When create source with invalid device ID", func() {
+			params := data.Map{
+				"device_id": data.String("a"),
+			}
 			Convey("Then creator should occur parse errors", func() {
-				params := data.Map{
-					"device_id": data.String("a"),
-				}
-				_, err := creator(&ctx, &ioParams, params)
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
+				So(s, ShouldBeNil)
 			})
+		})
 
-			Convey("Then creator should occur parse error on option parameters", func() {
-				params := data.Map{
-					"device_id": data.Int(0),
-				}
-				testMap := data.Map{
-					"width":     data.String("a"),
-					"height":    data.String("b"),
-					"fps":       data.String("@"),
-					"camera_id": data.String("#"),
-				}
-				for k, v := range testMap {
-					Convey(fmt.Sprintf("with %v error", k), func() {
-						params[k] = v
-						_, err := creator(&ctx, &ioParams, params)
-						So(err, ShouldNotBeNil)
-					})
-				}
-			})
+		Convey("When create source with invalid option parameters", func() {
+			params := data.Map{
+				"device_id": data.Int(0),
+			}
+			testMap := data.Map{
+				"width":     data.String("a"),
+				"height":    data.String("b"),
+				"fps":       data.String("@"),
+				"camera_id": data.String("#"),
+			}
+			for k, v := range testMap {
+				msg := fmt.Sprintf("with %v error", k)
+				Convey("Then creator should occur a parse error on option parameters"+msg, func() {
+					params[k] = v
+					s, err := sc.CreateSource(ctx, ioParams, params)
+					So(err, ShouldNotBeNil)
+					So(s, ShouldBeNil)
+				})
+			}
 		})
 	})
 }

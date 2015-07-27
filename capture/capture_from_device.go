@@ -10,117 +10,23 @@ import (
 	"time"
 )
 
-// CaptureFromDevice is a frame generator using OpenCV video capture.
+// CaptureFromDeviceCreator is a creator of a capture from device.
+type CaptureFromDeviceCreator struct{}
+
+func (c *CaptureFromDeviceCreator) TypeName() string {
+	return "capture_from_device"
+}
+
+// CreateSource creates a frame generator using OpenCV video capture.
+//
 // Usage of WITH parameters:
-//  DeviceID: [required] the ID of associated device
-//  Width: frame width, if set empty or "0" then will be ignore
-//  Height: frame height, if set empty or "0" then will be ignore
-//  FPS: frame per second, if set empty or "0" then will be ignore
-//  CameraID: the unique ID of this source if set empty then the ID will be 0
-type CaptureFromDevice struct {
-	vcap   bridge.VideoCapture
-	finish bool
-
-	DeviceID int64
-	Width    int64
-	Height   int64
-	FPS      int64
-	CameraID int64
-}
-
-// GenerateStream streams video capture datum. OpenCV parameters
-// (e.g width, height...) are set in struct members.
-func (c *CaptureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
-	c.vcap = bridge.NewVideoCapture()
-	if ok := c.vcap.OpenDevice(int(c.DeviceID)); !ok {
-		return fmt.Errorf("error opening device: %v", c.DeviceID)
-	}
-
-	// OpenCV video capture configuration
-	if c.Width > 0 {
-		c.vcap.Set(bridge.CvCapPropFrameWidth, int(c.Width))
-	}
-	if c.Height > 0 {
-		c.vcap.Set(bridge.CvCapPropFrameHeight, int(c.Height))
-	}
-	if c.FPS > 0 {
-		c.vcap.Set(bridge.CvCapPropFps, int(c.FPS))
-	}
-
-	// read camera frames
-	mu := sync.RWMutex{}
-	rootBuf := bridge.NewMatVec3b()
-	defer rootBuf.Delete()
-	var rootBufErr error
-	errChan := make(chan error)
-	go func(rootBuf bridge.MatVec3b) {
-		for {
-			c.grab(rootBuf, &mu, errChan)
-			select {
-			case err := <-errChan:
-				if err != nil {
-					rootBufErr = err
-					break
-				}
-			}
-		}
-	}(rootBuf)
-
-	// streaming, capture from rootBuf
-	buf := bridge.NewMatVec3b()
-	defer buf.Delete()
-	c.finish = false
-	for !c.finish {
-		if rootBufErr != nil {
-			return rootBufErr
-		}
-		mu.RLock()
-		rootBuf.CopyTo(buf)
-		mu.RUnlock()
-		if buf.Empty() {
-			continue
-		}
-
-		var m = data.Map{
-			"capture":  data.Blob(buf.Serialize()),
-			"cameraID": data.Int(c.CameraID),
-		}
-		now := time.Now()
-		t := core.Tuple{
-			Data:          m,
-			Timestamp:     now,
-			ProcTimestamp: now,
-			Trace:         make([]core.TraceEvent, 0),
-		}
-		w.Write(ctx, &t)
-	}
-	return nil
-}
-
-func (c *CaptureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex, errChan chan error) {
-	if !c.vcap.IsOpened() {
-		errChan <- fmt.Errorf("video stream or file closed, device no: %d)", c.DeviceID)
-		return
-	}
-	tmpBuf := bridge.NewMatVec3b()
-	defer tmpBuf.Delete()
-	if ok := c.vcap.Read(tmpBuf); !ok {
-		errChan <- fmt.Errorf("cannot read a new file (device no: %d)", c.DeviceID)
-		return
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	tmpBuf.CopyTo(buf)
-}
-
-func (c *CaptureFromDevice) Stop(ctx *core.Context) error {
-	c.finish = true
-	c.vcap.Delete()
-	return nil
-}
-
-func (c *CaptureFromDevice) CreateSource(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Source, error) {
+//  device_id: [required] the ID of associated device
+//  width:     frame width, if set empty or "0" then will be ignore
+//  height:    frame height, if set empty or "0" then will be ignore
+//  fps:       frame per second, if set empty or "0" then will be ignore
+//  camera_id: the unique ID of this source if set empty then the ID will be 0
+func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
+	params data.Map) (core.Source, error) {
 	did, err := params.Get("device_id")
 	if err != nil {
 		return nil, err
@@ -166,14 +72,114 @@ func (c *CaptureFromDevice) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	c.DeviceID = deviceID
-	c.Width = width
-	c.Height = height
-	c.FPS = fps
-	c.CameraID = cameraID
-	return c, nil
+	cs := &captureFromDevice{}
+	cs.deviceID = deviceID
+	cs.width = width
+	cs.height = height
+	cs.fps = fps
+	cs.cameraID = cameraID
+	return cs, nil
 }
 
-func (c *CaptureFromDevice) TypeName() string {
-	return "capture_from_device"
+type captureFromDevice struct {
+	vcap   bridge.VideoCapture
+	finish bool
+
+	deviceID int64
+	width    int64
+	height   int64
+	fps      int64
+	cameraID int64
+}
+
+// GenerateStream streams video capture datum. OpenCV parameters
+// (e.g width, height...) are set when the source is initialized.
+func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
+	c.vcap = bridge.NewVideoCapture()
+	if ok := c.vcap.OpenDevice(int(c.deviceID)); !ok {
+		return fmt.Errorf("error opening device: %v", c.deviceID)
+	}
+
+	// OpenCV video capture configuration
+	if c.width > 0 {
+		c.vcap.Set(bridge.CvCapPropFrameWidth, int(c.width))
+	}
+	if c.height > 0 {
+		c.vcap.Set(bridge.CvCapPropFrameHeight, int(c.height))
+	}
+	if c.fps > 0 {
+		c.vcap.Set(bridge.CvCapPropFps, int(c.fps))
+	}
+
+	// read camera frames
+	mu := sync.RWMutex{}
+	rootBuf := bridge.NewMatVec3b()
+	defer rootBuf.Delete()
+	var rootBufErr error
+	errChan := make(chan error)
+	go func(rootBuf bridge.MatVec3b) {
+		for {
+			c.grab(rootBuf, &mu, errChan)
+			select {
+			case err := <-errChan:
+				if err != nil {
+					rootBufErr = err
+					break
+				}
+			}
+		}
+	}(rootBuf)
+
+	// streaming, capture from rootBuf
+	buf := bridge.NewMatVec3b()
+	defer buf.Delete()
+	c.finish = false
+	for !c.finish {
+		if rootBufErr != nil {
+			return rootBufErr
+		}
+		mu.RLock()
+		rootBuf.CopyTo(buf)
+		mu.RUnlock()
+		if buf.Empty() {
+			continue
+		}
+
+		var m = data.Map{
+			"capture":  data.Blob(buf.Serialize()),
+			"cameraID": data.Int(c.cameraID),
+		}
+		now := time.Now()
+		t := core.Tuple{
+			Data:          m,
+			Timestamp:     now,
+			ProcTimestamp: now,
+			Trace:         make([]core.TraceEvent, 0),
+		}
+		w.Write(ctx, &t)
+	}
+	return nil
+}
+
+func (c *captureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex, errChan chan error) {
+	if !c.vcap.IsOpened() {
+		errChan <- fmt.Errorf("video stream or file closed, device no: %d)", c.deviceID)
+		return
+	}
+	tmpBuf := bridge.NewMatVec3b()
+	defer tmpBuf.Delete()
+	if ok := c.vcap.Read(tmpBuf); !ok {
+		errChan <- fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
+		return
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	tmpBuf.CopyTo(buf)
+}
+
+func (c *captureFromDevice) Stop(ctx *core.Context) error {
+	c.finish = true
+	c.vcap.Delete()
+	return nil
 }

@@ -10,14 +10,19 @@ import (
 )
 
 func TestGenerateStreamURIError(t *testing.T) {
+	ctx := &core.Context{}
+	sc := CaptureFromURICreator{}
+	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromURI source with invalid URI", t, func() {
-		capture := CaptureFromURI{
-			URI: "error uri",
+		params := data.Map{
+			"uri": data.String("error uri"),
 		}
+		capture, err := sc.CreateSource(ctx, ioParams, params)
+		So(err, ShouldBeNil)
+		So(capture, ShouldNotBeNil)
 		Convey("When generate stream", func() {
-			ctx := core.Context{}
 			Convey("Then error has occurred", func() {
-				err := capture.GenerateStream(&ctx, &dummyWriter{})
+				err := capture.GenerateStream(ctx, &dummyWriter{})
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldStartWith, "error")
 			})
@@ -32,64 +37,82 @@ func (w *dummyWriter) Write(ctx *core.Context, t *core.Tuple) error {
 }
 
 func TestGetURISourceCreator(t *testing.T) {
-	Convey("Given a CaptureFromURI source with", t, func() {
-		capture := CaptureFromURI{}
-		ioParams := bql.IOParams{}
-		Convey("When get source creator", func() {
-			creator := capture.CreateSource
-			ctx := core.Context{}
-			Convey("Then creator should set capture struct members", func() {
-				params := data.Map{
-					"uri":        data.String("/data/file.avi"),
-					"frame_skip": data.Int(5),
-					"camera_id":  data.Int(1),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+	ctx := &core.Context{}
+	ioParams := &bql.IOParams{}
+	Convey("Given a CaptureFromURI creator", t, func() {
+		sc := CaptureFromURICreator{}
+		Convey("When create source with full parameters", func() {
+			params := data.Map{
+				"uri":        data.String("/data/file.avi"),
+				"frame_skip": data.Int(5),
+				"camera_id":  data.Int(1),
+			}
+			Convey("Then creator should initialize capture source", func() {
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldBeNil)
-				So(capture.URI, ShouldEqual, "/data/file.avi")
-				So(capture.FrameSkip, ShouldEqual, 5)
-				So(capture.CameraID, ShouldEqual, 1)
+				capture, ok := s.(*captureFromURI)
+				So(ok, ShouldBeTrue)
+				So(capture.uri, ShouldEqual, "/data/file.avi")
+				So(capture.frameSkip, ShouldEqual, 5)
+				So(capture.cameraID, ShouldEqual, 1)
 			})
+		})
 
+		Convey("When create source with empty uri", func() {
+			params := data.Map{
+				"frame_skip": data.Int(5),
+				"camera_id":  data.Int(1),
+			}
 			Convey("Then creator should occur an error", func() {
-				params := data.Map{
-					"frame_skip": data.Int(5),
-					"camera_id":  data.Int(1),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
+				So(s, ShouldBeNil)
 			})
+		})
 
-			Convey("Then creator should set default values", func() {
-				params := data.Map{
-					"uri": data.String("/data/file.avi"),
-				}
-
-				_, err := creator(&ctx, &ioParams, params)
+		Convey("When create source with only uri", func() {
+			params := data.Map{
+				"uri": data.String("/data/file.avi"),
+			}
+			Convey("Then capture should set default values", func() {
+				s, err := sc.CreateSource(ctx, ioParams, params)
 				So(err, ShouldBeNil)
-				So(capture.URI, ShouldEqual, "/data/file.avi")
-				So(capture.FrameSkip, ShouldEqual, 0)
-				So(capture.CameraID, ShouldEqual, 0)
+				capture, ok := s.(*captureFromURI)
+				So(ok, ShouldBeTrue)
+				So(capture.uri, ShouldEqual, "/data/file.avi")
+				So(capture.frameSkip, ShouldEqual, 0)
+				So(capture.cameraID, ShouldEqual, 0)
 			})
+		})
 
-			Convey("Then creator should occur parse error on option parameters", func() {
-				params := data.Map{
-					"uri": data.String("/data/file.avi"),
-				}
-				testMap := data.Map{
-					"frame_skip": data.String("@"),
-					"camera_id":  data.String("全角"),
-				}
-				for k, v := range testMap {
-					Convey(fmt.Sprintf("with %v error", k), func() {
-						params[k] = v
-						_, err := creator(&ctx, &ioParams, params)
-						So(err, ShouldNotBeNil)
-					})
-				}
+		Convey("When create source with invalid uri", func() {
+			params := data.Map{
+				"uri": data.Null{},
+			}
+			Convey("Then create should occur an error", func() {
+				s, err := sc.CreateSource(ctx, ioParams, params)
+				So(err, ShouldNotBeNil)
+				So(s, ShouldBeNil)
 			})
+		})
+
+		Convey("When creatcreate source with invalid option parameters", func() {
+			params := data.Map{
+				"uri": data.String("/data/file.avi"),
+			}
+			testMap := data.Map{
+				"frame_skip": data.String("@"),
+				"camera_id":  data.String("全角"),
+			}
+			for k, v := range testMap {
+				msg := fmt.Sprintf("with %v error", k)
+				Convey("Then creator should occur a parse error on option parameters"+msg, func() {
+					params[k] = v
+					s, err := sc.CreateSource(ctx, ioParams, params)
+					So(err, ShouldNotBeNil)
+					So(s, ShouldBeNil)
+				})
+			}
 		})
 	})
 }
