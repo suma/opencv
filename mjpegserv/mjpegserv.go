@@ -12,6 +12,37 @@ import (
 	"sync"
 )
 
+type MJPEGServCreator struct{}
+
+func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
+	params data.Map) (core.Sink, error) {
+
+	servName, err := params.Get("server_name")
+	if err != nil {
+		return nil, fmt.Errorf("mjpeg server requires the server name")
+	}
+	servNameStr, err := data.AsString(servName)
+	if err != nil {
+		return nil, fmt.Errorf("mjpeg server' name needs to define as string type")
+	}
+
+	port, err := params.Get("port")
+	if err != nil {
+		port = data.Int(10090)
+	}
+	portNum, err := data.AsInt(port)
+	if err != nil {
+		return nil, err
+	}
+
+	ms := &mjpegServ{}
+	ms.serverName = servNameStr
+	ms.port = int(portNum)
+	ms.inChan = make(chan input)
+	go ms.start()
+	return ms, nil
+}
+
 type inputData struct {
 	name      string
 	imageData []byte
@@ -22,13 +53,14 @@ type input struct {
 	inputData inputData
 }
 
-type MJPEGServ struct {
-	port   int
-	pub    *publisher
-	inChan chan input
+type mjpegServ struct {
+	serverName string
+	port       int
+	pub        *publisher
+	inChan     chan input
 }
 
-func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
+func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {
 		return err
@@ -54,7 +86,7 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 		imageData: imgp.ToJpegData(50),
 	}
 	in := input{
-		key:       "", // TODO
+		key:       m.serverName,
 		inputData: inData,
 	}
 
@@ -62,23 +94,9 @@ func (m *MJPEGServ) Write(ctx *core.Context, t *core.Tuple) error {
 	return nil
 }
 
-func (m *MJPEGServ) Close(ctx *core.Context) error {
+func (m *mjpegServ) Close(ctx *core.Context) error {
+	// closing web server is better
 	return nil
-}
-
-func (m *MJPEGServ) CreateSink(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Sink, error) {
-	port, err := params.Get("port")
-	if err != nil {
-		port = data.Int(10090)
-	}
-	portNum, err := data.AsInt(port)
-	if err != nil {
-		return nil, err
-	}
-	m.port = int(portNum)
-	m.inChan = make(chan input)
-	go m.start()
-	return m, nil
 }
 
 type subscriber struct {
@@ -156,7 +174,7 @@ func (p *publisher) close(s *subscriber) {
 	delete(p.subscribers, s.id)
 }
 
-func (m *MJPEGServ) start() {
+func (m *mjpegServ) start() {
 	pub := newPublisher()
 
 	fin := make(chan bool)

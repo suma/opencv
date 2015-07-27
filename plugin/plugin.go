@@ -40,8 +40,7 @@ func init() {
 	}
 
 	// sinks
-	mjpegSink := &mjpegserv.MJPEGServ{}
-	bql.MustRegisterGlobalSinkCreator("mjpeg_server", mjpegSink)
+	bql.MustRegisterGlobalSinkCreator("mjpeg_server", &mjpegserv.MJPEGServCreator{})
 	jpegDebugger := &mjpegserv.DebugJPEGSink{}
 	bql.MustRegisterGlobalSinkCreator("jpeg_debug", jpegDebugger)
 
