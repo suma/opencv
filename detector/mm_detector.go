@@ -1,7 +1,6 @@
 package detector
 
 import (
-	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
@@ -163,16 +162,4 @@ func (c *EstimateHeightMMFuncCreator) CreateFunction() interface{} {
 
 func (c *EstimateHeightMMFuncCreator) TypeName() string {
 	return "multi_model_estimate_height"
-}
-
-func lookupMMDetectParamState(ctx *core.Context, detectParam string) (*MMDetectionParamState, error) {
-	st, err := ctx.SharedStates.Get(detectParam)
-	if err != nil {
-		return nil, err
-	}
-
-	if s, ok := st.(*MMDetectionParamState); ok {
-		return s, nil
-	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to mm_detection_param.state", detectParam)
 }
