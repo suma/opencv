@@ -10,12 +10,12 @@ import (
 
 type acfDetectUDSF struct {
 	acfDetect          func(bridge.MatVec3b, int, int) []bridge.Candidate
-	frameIdFieldName   string
+	frameIDFieldName   string
 	frameDataFieldName string
 }
 
 func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	frameId, err := t.Data.Get(sf.frameIDFieldName)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 }
 
 func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
-	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
+	stream string, frameIDFieldName string, frameDataFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "acf_detector_stream",
 	}); err != nil {
@@ -89,7 +89,7 @@ func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 
 	return &acfDetectUDSF{
 		acfDetect:          s.d.ACFDetect,
-		frameIdFieldName:   frameIdFieldName,
+		frameIDFieldName:   frameIDFieldName,
 		frameDataFieldName: frameDataFieldName,
 	}, nil
 }
