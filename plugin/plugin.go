@@ -67,6 +67,7 @@ func init() {
 		&recog.RegionCropFuncCreator{},
 		&recog.PredictTagsFuncCreator{},
 		&recog.CroppingAndPredictTagsFuncCreator{},
+		&recog.CroppingAndPredictTagsBatchFuncCreator{},
 		&recog.DrawDeteciontResultFuncCreator{},
 		&utils.TypeCheckedAggregateFuncCreator{},
 	}

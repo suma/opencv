@@ -35,7 +35,8 @@ func (c *PredictTagsFuncCreator) TypeName() string {
 
 type CroppingAndPredictTagsFuncCreator struct{}
 
-func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte, img []byte) ([]byte, error) {
+func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte,
+	img []byte) ([]byte, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (c *CroppingAndPredictTagsFuncCreator) CreateFunction() interface{} {
 }
 
 func (c *CroppingAndPredictTagsFuncCreator) TypeName() string {
-	return "cropping_predict_tags"
+	return "cropping_and_predict_tags"
 }
 
 type DrawDeteciontResultFuncCreator struct{}

@@ -203,14 +203,59 @@ func (c *PredictTagsBatchStreamFuncCreator) TypeName() string {
 	return "predict_tags_batch_stream"
 }
 
-func lookupImageTaggerCaffeParamState(ctx *core.Context, taggerParam string) (*ImageTaggerCaffeParamState, error) {
-	st, err := ctx.SharedStates.Get(taggerParam)
+type CroppingAndPredictTagsBatchFuncCreator struct{}
+
+func (c *CroppingAndPredictTagsBatchFuncCreator) CreateFunction() interface{} {
+	return croppingAndPredictTagsBatch
+}
+
+func (c *CroppingAndPredictTagsBatchFuncCreator) TypeName() string {
+	return "cropping_and_predict_tags_batch"
+}
+
+func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
+	regions data.Array, img []byte) (data.Array, error) {
+	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
 	}
 
-	if s, ok := st.(*ImageTaggerCaffeParamState); ok {
-		return s, nil
+	image := bridge.DeserializeMatVec3b(img)
+	defer image.Delete()
+
+	cans := []bridge.Candidate{}
+	cropped := []bridge.MatVec3b{}
+	for _, r := range regions {
+		regionByte, err := data.AsBlob(r)
+		if err != nil {
+			return nil, err
+		}
+		regionPtr := bridge.DeserializeCandidate(regionByte)
+		cans = append(cans, regionPtr)
+
+		c := s.tagger.Crop(regionPtr, image)
+		cropped = append(cropped, c)
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to image_tagger_caffe_param.state", taggerParam)
+
+	defer func() {
+		for _, c := range cans {
+			c.Delete()
+		}
+		for _, c := range cropped {
+			c.Delete()
+		}
+	}()
+
+	recognized := s.tagger.PredictTagsBatch(cans, cropped)
+	defer func() {
+		for _, r := range recognized {
+			r.Delete()
+		}
+	}()
+
+	recognizedCans := data.Array{}
+	for _, r := range recognized {
+		recognizedCans = append(recognizedCans, data.Blob(r.Serialize()))
+	}
+	return recognizedCans, nil
 }
