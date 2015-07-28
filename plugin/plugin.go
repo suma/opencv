@@ -54,9 +54,15 @@ func init() {
 	// UDFs
 	udfuncs := []PluginUDFCreator{
 		&detector.FrameApplierFuncCreator{},
+		&detector.ACFDetectBatchFuncCreator{},
+		&detector.FilterByMaskBatchFuncCreator{},
+		&detector.EstimateHeightBatchFuncCreator{},
 		&detector.FilterByMaskFuncCreator{},
 		&detector.EstimateHeightFuncCreator{},
 		&detector.DrawDetectionResultFuncCreator{},
+		&detector.MMDetectBatchFuncCreator{},
+		&detector.FilterByMaskMMBatchFuncCreator{},
+		&detector.EstimateHeightMMBatchFuncCreator{},
 		&detector.FilterByMaskMMFuncCreator{},
 		&detector.EstimateHeightMMFuncCreator{},
 		&recog.RegionCropFuncCreator{},
