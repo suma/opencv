@@ -31,12 +31,11 @@ func init() {
 	// sinks
 	sinks := []PluginSinkCreator{
 		&mjpegserv.MJPEGServCreator{},
+		&mjpegserv.DebugJPEGWriterCreator{},
 	}
 	for _, sink := range sinks {
 		bql.MustRegisterGlobalSinkCreator(sink.TypeName(), sink)
 	}
-	jpegDebugger := &mjpegserv.DebugJPEGSink{}
-	bql.MustRegisterGlobalSinkCreator("jpeg_debug", jpegDebugger)
 
 	// states
 	states := []PluginStateCreator{
@@ -54,9 +53,15 @@ func init() {
 	// UDFs
 	udfuncs := []PluginUDFCreator{
 		&detector.FrameApplierFuncCreator{},
+		&detector.ACFDetectBatchFuncCreator{},
+		&detector.FilterByMaskBatchFuncCreator{},
+		&detector.EstimateHeightBatchFuncCreator{},
 		&detector.FilterByMaskFuncCreator{},
 		&detector.EstimateHeightFuncCreator{},
 		&detector.DrawDetectionResultFuncCreator{},
+		&detector.MMDetectBatchFuncCreator{},
+		&detector.FilterByMaskMMBatchFuncCreator{},
+		&detector.EstimateHeightMMBatchFuncCreator{},
 		&detector.FilterByMaskMMFuncCreator{},
 		&detector.EstimateHeightMMFuncCreator{},
 		&recog.RegionCropFuncCreator{},

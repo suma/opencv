@@ -1,7 +1,6 @@
 package detector
 
 import (
-	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
@@ -11,12 +10,12 @@ import (
 
 type acfDetectUDSF struct {
 	acfDetect          func(bridge.MatVec3b, int, int) []bridge.Candidate
-	frameIdFieldName   string
+	frameIDFieldName   string
 	frameDataFieldName string
 }
 
 func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	frameId, err := t.Data.Get(sf.frameIdFieldName)
+	frameId, err := t.Data.Get(sf.frameIDFieldName)
 	if err != nil {
 		return err
 	}
@@ -34,7 +33,7 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer
 	if err != nil {
 		return err
 	}
-	offsetX, offsetY, err := loopupOffsets(frameMeta)
+	offsetX, offsetY, err := lookupOffsets(frameMeta)
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,7 @@ func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 }
 
 func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
-	stream string, frameIdFieldName string, frameDataFieldName string) (udf.UDSF, error) {
+	stream string, frameIDFieldName string, frameDataFieldName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "acf_detector_stream",
 	}); err != nil {
@@ -90,7 +89,7 @@ func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 
 	return &acfDetectUDSF{
 		acfDetect:          s.d.ACFDetect,
-		frameIdFieldName:   frameIdFieldName,
+		frameIDFieldName:   frameIDFieldName,
 		frameDataFieldName: frameDataFieldName,
 	}, nil
 }
@@ -141,7 +140,7 @@ func estimateHeight(ctx *core.Context, detectParam string, frame data.Map, regio
 		return nil, err
 	}
 
-	offsetX, offsetY, err := loopupOffsets(frame)
+	offsetX, offsetY, err := lookupOffsets(frame)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +166,9 @@ func (c *EstimateHeightFuncCreator) TypeName() string {
 
 type DrawDetectionResultFuncCreator struct{}
 
-func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
+func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array) (
+	data.Value, error) {
+
 	b, err := data.AsBlob(frame)
 	if err != nil {
 		return nil, err
@@ -200,51 +201,4 @@ func (c *DrawDetectionResultFuncCreator) CreateFunction() interface{} {
 
 func (c *DrawDetectionResultFuncCreator) TypeName() string {
 	return "draw_detection_result"
-}
-
-func lookupACFDetectParamState(ctx *core.Context, detectParam string) (*ACFDetectionParamState, error) {
-	st, err := ctx.SharedStates.Get(detectParam)
-	if err != nil {
-		return nil, err
-	}
-
-	if s, ok := st.(*ACFDetectionParamState); ok {
-		return s, nil
-	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to acf_detection_param.state", detectParam)
-}
-
-func lookupFrameData(frame data.Map) ([]byte, error) {
-	img, err := frame.Get("projected_img")
-	if err != nil {
-		return []byte{}, err
-	}
-	image, err := data.AsBlob(img)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	return image, nil
-}
-
-func loopupOffsets(frame data.Map) (int, int, error) {
-	ox, err := frame.Get("offset_x")
-	if err != nil {
-		return 0, 0, err
-	}
-	offsetX, err := data.AsInt(ox)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	oy, err := frame.Get("offset_y")
-	if err != nil {
-		return 0, 0, err
-	}
-	offsetY, err := data.AsInt(oy)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return int(offsetX), int(offsetY), nil
 }

@@ -151,7 +151,10 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			ProcTimestamp: now,
 			Trace:         []core.TraceEvent{},
 		}
-		w.Write(ctx, &t)
+		err := w.Write(ctx, &t)
+		if err == core.ErrSourceRewound || err == core.ErrSourceStopped {
+			return err
+		}
 	}
 	return nil
 }

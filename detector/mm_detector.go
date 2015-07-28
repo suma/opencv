@@ -1,7 +1,6 @@
 package detector
 
 import (
-	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
@@ -34,7 +33,7 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 	if err != nil {
 		return err
 	}
-	offsetX, offsetY, err := loopupOffsets(frameMeta)
+	offsetX, offsetY, err := lookupOffsets(frameMeta)
 	if err != nil {
 		return err
 	}
@@ -141,7 +140,7 @@ func estimateHeightMM(ctx *core.Context, detectParam string, frame data.Map, reg
 		return nil, err
 	}
 
-	offsetX, offsetY, err := loopupOffsets(frame)
+	offsetX, offsetY, err := lookupOffsets(frame)
 	if err != nil {
 		return nil, err
 	}
@@ -163,16 +162,4 @@ func (c *EstimateHeightMMFuncCreator) CreateFunction() interface{} {
 
 func (c *EstimateHeightMMFuncCreator) TypeName() string {
 	return "multi_model_estimate_height"
-}
-
-func lookupMMDetectParamState(ctx *core.Context, detectParam string) (*MMDetectionParamState, error) {
-	st, err := ctx.SharedStates.Get(detectParam)
-	if err != nil {
-		return nil, err
-	}
-
-	if s, ok := st.(*MMDetectionParamState); ok {
-		return s, nil
-	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to mm_detection_param.state", detectParam)
 }
