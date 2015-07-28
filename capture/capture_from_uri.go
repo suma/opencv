@@ -149,7 +149,7 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: now,
-			Trace:         make([]core.TraceEvent, 0),
+			Trace:         []core.TraceEvent{},
 		}
 		w.Write(ctx, &t)
 	}

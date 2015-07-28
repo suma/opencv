@@ -47,17 +47,24 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 			c.Delete()
 		}
 	}()
+
+	traceCopyFlag := len(t.Trace) > 0
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{
 			"region":   data.Blob(c.Serialize()),
 			"frame_id": frameId,
 		}
+		traces := []core.TraceEvent{}
+		if traceCopyFlag { // reduce copy cost when trace mode is off
+			traces = make([]core.TraceEvent, len(t.Trace), (cap(t.Trace)+1)*2)
+			copy(traces, t.Trace)
+		}
 		tu := &core.Tuple{
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: t.ProcTimestamp,
-			Trace:         make([]core.TraceEvent, 0),
+			Trace:         traces,
 		}
 		w.Write(ctx, tu)
 	}

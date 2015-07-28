@@ -70,16 +70,23 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 				s.Delete()
 			}
 		}()
+
+		traceCopyFlag := len(t.Trace) > 0
 		for _, s := range currentStates {
 			now := time.Now()
 			m := data.Map{
 				"instance_state": data.Blob(s.Serialize()),
 			}
+			traces := []core.TraceEvent{}
+			if traceCopyFlag { // reduce copy cost when trace mode is off
+				traces = make([]core.TraceEvent, len(t.Trace), (cap(t.Trace)+1)*2)
+				copy(traces, t.Trace)
+			}
 			tu := &core.Tuple{
 				Data:          m,
 				Timestamp:     now,
 				ProcTimestamp: t.ProcTimestamp,
-				Trace:         make([]core.TraceEvent, 0),
+				Trace:         traces,
 			}
 			w.Write(ctx, tu)
 		}

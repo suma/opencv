@@ -142,17 +142,24 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 			r.Delete()
 		}
 	}()
+
+	traceCopyFlag := len(t.Trace) > 0
 	for _, r := range recognized {
 		now := time.Now()
 		m := data.Map{
 			"region_with_tagger": data.Blob(r.Serialize()),
 			"frame_id":           frameID,
 		}
+		traces := []core.TraceEvent{}
+		if traceCopyFlag { // reduce copy cost when trace mode is off
+			traces = make([]core.TraceEvent, len(t.Trace), (cap(t.Trace)+1)*2)
+			copy(traces, t.Trace)
+		}
 		tu := &core.Tuple{
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: t.ProcTimestamp,
-			Trace:         make([]core.TraceEvent, 0),
+			Trace:         traces,
 		}
 		w.Write(ctx, tu)
 	}

@@ -49,17 +49,24 @@ func (sf *movingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 			c.Delete()
 		}
 	}()
+
+	traceCopyFlag := len(t.Trace) > 0
 	for _, c := range mvCandidates {
 		now := time.Now()
 		m := data.Map{
 			"integration_id":         integrationID,
 			"moving_matched_regions": data.Blob(c.Serialize()),
 		}
+		traces := []core.TraceEvent{}
+		if traceCopyFlag { // reduce copy cost when trace mode is off
+			traces = make([]core.TraceEvent, len(t.Trace), (cap(t.Trace)+1)*2)
+			copy(traces, t.Trace)
+		}
 		tu := &core.Tuple{
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: t.ProcTimestamp,
-			Trace:         make([]core.TraceEvent, 0),
+			Trace:         traces,
 		}
 		w.Write(ctx, tu)
 	}

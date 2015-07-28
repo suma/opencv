@@ -154,7 +154,7 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 			Data:          m,
 			Timestamp:     now,
 			ProcTimestamp: now,
-			Trace:         make([]core.TraceEvent, 0),
+			Trace:         []core.TraceEvent{},
 		}
 		w.Write(ctx, &t)
 	}
