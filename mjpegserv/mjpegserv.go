@@ -12,7 +12,7 @@ import (
 	"sync"
 )
 
-// MJPEGServCreator is a create of MJPEG server.
+// MJPEGServCreator is a creator of MJPEG server.
 type MJPEGServCreator struct{}
 
 // CreateSink creates a MJPEG server sink, user can access AVI file or images
@@ -23,7 +23,8 @@ type MJPEGServCreator struct{}
 //  port:        a port number, default port is 10090
 //
 // Example:
-//  `CREATE SINK hoge_result TYPE mjpeg_server WITH server_name='foo', port=8080`
+//  when a creation query is
+//    `CREATE SINK hoge_result TYPE mjpeg_server WITH server_name='foo', port=8080`
 //  then the sink addressed http://localhost:8080/video/foo/
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
