@@ -12,8 +12,19 @@ import (
 	"sync"
 )
 
+// MJPEGServCreator is a create of MJPEG server.
 type MJPEGServCreator struct{}
 
+// CreateSink creates a MJPEG server sink, user can access AVI file or images
+// through HTTP access.
+//
+// Usage of WITH parameters:
+//  server_name: [required] a server name
+//  port:        a port number, default port is 10090
+//
+// Example:
+//  `CREATE SINK hoge_result TYPE mjpeg_server WITH server_name='foo', port=8080`
+//  then the sink addressed http://localhost:8080/video/foo/
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
@@ -23,12 +34,14 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	}
 	servNameStr, err := data.AsString(servName)
 	if err != nil {
-		return nil, fmt.Errorf("mjpeg server' name needs to define as string type")
+		return nil, fmt.Errorf("mjpeg server name needs to define as string type")
 	}
 
 	port, err := params.Get("port")
 	if err != nil {
-		port = data.Int(10090)
+		defaultPort := 10090
+		ctx.Log().Infof("mjpeg server is starting with %d port", defaultPort)
+		port = data.Int(defaultPort)
 	}
 	portNum, err := data.AsInt(port)
 	if err != nil {
@@ -41,6 +54,10 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	ms.inChan = make(chan input)
 	go ms.start()
 	return ms, nil
+}
+
+func (m *MJPEGServCreator) TypeName() string {
+	return "mjpeg_server"
 }
 
 type inputData struct {
@@ -231,7 +248,8 @@ func (m *mpegServContext) videoHandler(rw web.ResponseWriter, req *web.Request) 
 	log.Println("Started to subscribe ", name)
 
 	bufrw.WriteString("HTTP/1.1 200 OK\r\n")
-	if _, err := bufrw.WriteString("Content-Type: multipart/x-mixed-replace; boundary=\"myboundary\"\r\n\r\n--myboundary"); err != nil {
+	msg := "Content-Type: multipart/x-mixed-replace; boundary=\"myboundary\"\r\n\r\n--myboundary"
+	if _, err := bufrw.WriteString(msg); err != nil {
 		log.Println("Failed to write header")
 		return
 	}

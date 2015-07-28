@@ -1,6 +1,7 @@
 package mjpegserv
 
 import (
+	"github.com/Sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"pfi/sensorbee/sensorbee/bql"
@@ -10,7 +11,11 @@ import (
 )
 
 func TestMJPEGServWrite(t *testing.T) {
-	ctx := &core.Context{}
+	logger := logrus.New()
+	cc := &core.ContextConfig{
+		Logger: logger,
+	}
+	ctx := core.NewContext(cc)
 	img, err := ioutil.ReadFile("test_cvmat")
 	if err != nil {
 		t.Fatalf("cannot load test image file: %v", err)
@@ -110,7 +115,11 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 }
 
 func TestMJPEGServCreateDefaultSink(t *testing.T) {
-	ctx := &core.Context{}
+	logger := logrus.New()
+	cc := &core.ContextConfig{
+		Logger: logger,
+	}
+	ctx := core.NewContext(cc)
 	ioParams := &bql.IOParams{}
 	Convey("Given a mjpeg server sink creator", t, func() {
 		mc := MJPEGServCreator{}

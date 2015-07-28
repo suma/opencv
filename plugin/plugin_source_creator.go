@@ -11,7 +11,7 @@ type PluginSourceCreator interface {
 	// CreateSource returns user plug-in source type. Returns error when
 	// parameter is invalid.
 	CreateSource(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Source, error)
-	// TypeName return name of registration.
+	// TypeName returns name of registration.
 	// Example:
 	//  a type name is "capture", then
 	//    CREATE SOURCE [source name] TYPE capture WITH ...

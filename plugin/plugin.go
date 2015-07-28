@@ -29,7 +29,12 @@ func init() {
 	}
 
 	// sinks
-	bql.MustRegisterGlobalSinkCreator("mjpeg_server", &mjpegserv.MJPEGServCreator{})
+	sinks := []PluginSinkCreator{
+		&mjpegserv.MJPEGServCreator{},
+	}
+	for _, sink := range sinks {
+		bql.MustRegisterGlobalSinkCreator(sink.TypeName(), sink)
+	}
 	jpegDebugger := &mjpegserv.DebugJPEGSink{}
 	bql.MustRegisterGlobalSinkCreator("jpeg_debug", jpegDebugger)
 
