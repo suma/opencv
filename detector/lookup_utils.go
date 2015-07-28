@@ -46,7 +46,7 @@ func lookupFrameData(frame data.Map) ([]byte, error) {
 	return image, nil
 }
 
-func loopupOffsets(frame data.Map) (int, int, error) {
+func lookupOffsets(frame data.Map) (int, int, error) {
 	ox, err := frame.Get("offset_x")
 	if err != nil {
 		return 0, 0, err

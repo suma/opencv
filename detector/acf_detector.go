@@ -33,7 +33,7 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer
 	if err != nil {
 		return err
 	}
-	offsetX, offsetY, err := loopupOffsets(frameMeta)
+	offsetX, offsetY, err := lookupOffsets(frameMeta)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func estimateHeight(ctx *core.Context, detectParam string, frame data.Map, regio
 		return nil, err
 	}
 
-	offsetX, offsetY, err := loopupOffsets(frame)
+	offsetX, offsetY, err := lookupOffsets(frame)
 	if err != nil {
 		return nil, err
 	}
