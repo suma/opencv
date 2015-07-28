@@ -16,9 +16,9 @@ type ACFDetectBatchFuncCreator struct{}
 //    'detect_param' is a parameter name of "acf_detection_parameter" state
 //    frame is a captured frame map (`data.Map`), the function required
 //      data.Map{
-//          "frame_meta": [image binary] (`data.Blob`)
-//          "offset_x"  : [frame offset x] (`data.Int`)
-//          "offset_y"  : [frame offset y] (`data.Int`)
+//          "projected_img": [image binary] (`data.Blob`)
+//          "offset_x"     : [frame offset x] (`data.Int`)
+//          "offset_y"     : [frame offset y] (`data.Int`)
 //      }
 func (c *ACFDetectBatchFuncCreator) CreateFunction() interface{} {
 	return acfDetectBatch
@@ -79,10 +79,13 @@ func filterByMaskBatch(ctx *core.Context, detectParam string, regions data.Array
 			return nil, err
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
-		defer regionPtr.Delete()
-		if !s.d.FilterByMask(regionPtr) {
-			filteredCans = append(filteredCans, r)
+		filter := func() {
+			defer regionPtr.Delete()
+			if !s.d.FilterByMask(regionPtr) {
+				filteredCans = append(filteredCans, r)
+			}
 		}
+		filter()
 	}
 
 	return filteredCans, nil
@@ -126,9 +129,12 @@ func estimateHeightBatch(ctx *core.Context, detectParam string, frame data.Map,
 			return nil, err
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
-		defer regionPtr.Delete()
-		s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
-		estimatedCans = append(estimatedCans, data.Blob(regionPtr.Serialize()))
+		estimate := func() {
+			defer regionPtr.Delete()
+			s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
+			estimatedCans = append(estimatedCans, data.Blob(regionPtr.Serialize()))
+		}
+		estimate()
 	}
 
 	return estimatedCans, nil

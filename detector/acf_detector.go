@@ -166,7 +166,9 @@ func (c *EstimateHeightFuncCreator) TypeName() string {
 
 type DrawDetectionResultFuncCreator struct{}
 
-func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array) (data.Value, error) {
+func drawDetectionResult(ctx *core.Context, frame data.Blob, regions data.Array) (
+	data.Value, error) {
+
 	b, err := data.AsBlob(frame)
 	if err != nil {
 		return nil, err
