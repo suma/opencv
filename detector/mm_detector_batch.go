@@ -18,7 +18,7 @@ type MMDetectBatchFuncCreator struct{}
 //      data.Map{
 //          "projected_img": [image binary] (`data.Blob`)
 //          "offset_x"     : [frame offset x] (`data.Int`)
-//          "offset_y   "  : [frame offset y] (`data.Int`)
+//          "offset_y"     : [frame offset y] (`data.Int`)
 //      }
 func (c *MMDetectBatchFuncCreator) CreateFunction() interface{} {
 	return mmDetectBatch
