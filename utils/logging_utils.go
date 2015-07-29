@@ -10,5 +10,5 @@ import (
 func LogElapseTime(ctx *core.Context, place string, start time.Time) {
 	end := time.Now()
 	elapse := float64(end.Sub(start).Nanoseconds()) / 1e6
-	ctx.Log().Infof("[%v] elapse time[ms]: %.3f", place, elapse)
+	ctx.Log().Debugf("[%v] elapse time[ms]: %.3f", place, elapse)
 }
