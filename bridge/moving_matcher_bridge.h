@@ -27,7 +27,6 @@ struct ByteArray MVCandidate_Serialize(MVCandidate c);
 MVCandidate MVCandidate_Deserialize(struct ByteArray src);
 void MVCandidate_Delete(MVCandidate c);
 
-void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj);
 struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length);
 void MVCandidates_Delete(struct MVCandidates mcCandidates);
 struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, float kThreshold);

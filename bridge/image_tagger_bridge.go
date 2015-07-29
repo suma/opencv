@@ -35,22 +35,24 @@ func (t *ImageTaggerCaffe) Crop(candidate Candidate, image MatVec3b) MatVec3b {
 	return MatVec3b{p: cropped}
 }
 
-func (t *ImageTaggerCaffe) PredictTags(candidate Candidate, croppedImg MatVec3b) Candidate {
+func (t *ImageTaggerCaffe) PredictTags(candidate Candidate,
+	croppedImg MatVec3b) Candidate {
+
 	recognized := C.ImageTaggerCaffe_PredictTags(t.p, candidate.p, croppedImg.p)
 	return Candidate{p: recognized}
 }
 
-func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate, croppedImg []MatVec3b) []Candidate {
+func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate,
+	croppedImg []MatVec3b) []Candidate {
+
 	l := len(candidates)
 	candidatePointer := convertCandidatesToPointer(candidates)
 	imgPointer := convertMatVec3bsToPointer(croppedImg)
 	recognized := C.ImageTaggerCaffe_PredictTagsBatch(t.p,
 		(*C.Candidate)(&candidatePointer[0]), (*C.MatVec3b)(&imgPointer[0]), C.int(l))
 	defer C.Candidates_Delete(recognized)
-	recog := make([]C.Candidate, int(recognized.length))
-	C.ResolveCandidates(recognized, (*C.Candidate)(&recog[0]))
 
-	return convertCandidatesToSlice(recog)
+	return convertCandidatesToSlice(recognized)
 }
 
 func (t *ImageTaggerCaffe) CroppingAndPredictTags(candidate Candidate, image MatVec3b) Candidate {

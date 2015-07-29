@@ -13,15 +13,8 @@ void InstanceState_Delete(InstanceState s) {
   delete s;
 }
 
-void ResolveInstanceStates(struct InstanceStates instanceStates, InstanceState* obj) {
-  for (size_t i = 0; i < instanceStates.instanceStateVec->size(); ++i) {
-    obj[i] = new scouter::InstanceState((*instanceStates.instanceStateVec)[i]);
-  }
-  return;
-}
-
 void InstanceStates_Delete(struct InstanceStates instanceStates) {
-  delete instanceStates.instanceStateVec;
+  delete instanceStates.instanceStates;
 }
 
 InstanceManager InstanceManager_New(const char *config) {
@@ -38,8 +31,12 @@ void InstanceManager_Update(InstanceManager instanceManager, TrackingResult tr) 
 }
 
 struct InstanceStates InstanceManager_GetCurrentStates(InstanceManager instanceManager) {
-  std::vector<scouter::InstanceState> currentStates = instanceManager->get_current_states();
-  std::vector<scouter::InstanceState>* states = new std::vector<scouter::InstanceState>(currentStates);
-  InstanceStates ret = {states->size(), states};
+  const std::vector<scouter::InstanceState>& currentStates =
+    instanceManager->get_current_states();
+  scouter::InstanceState** states = new scouter::InstanceState*[currentStates.size()];
+  for (size_t i = 0; i < currentStates.size(); ++i) {
+    states[i] = new scouter::InstanceState(currentStates[i]);
+  }
+  InstanceStates ret = {states, currentStates.size()};
   return ret;
 }

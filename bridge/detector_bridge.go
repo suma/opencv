@@ -7,6 +7,7 @@ package bridge
 */
 import "C"
 import (
+	"reflect"
 	"sync"
 	"unsafe"
 )
@@ -43,9 +44,17 @@ func convertCandidatesToPointer(candidates []Candidate) []C.Candidate {
 	return candidatePointers
 }
 
-func convertCandidatesToSlice(candidates []C.Candidate) []Candidate {
-	cs := make([]Candidate, len(candidates))
-	for i, c := range candidates {
+func convertCandidatesToSlice(candidates C.struct_Candidates) []Candidate {
+	var cArray *C.Candidate = candidates.candidates
+	length := int(candidates.length)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cArray)),
+		Len:  length,
+		Cap:  length,
+	}
+	goSlice := *(*[]C.Candidate)(unsafe.Pointer(&hdr))
+	cs := make([]Candidate, length)
+	for i, c := range goSlice {
 		cs[i] = Candidate{p: c}
 	}
 	return cs
@@ -87,10 +96,8 @@ func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate
 
 	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(candidates)
-	cs := make([]C.Candidate, int(candidates.length))
-	C.ResolveCandidates(candidates, (*C.Candidate)(&cs[0]))
 
-	return convertCandidatesToSlice(cs)
+	return convertCandidatesToSlice(candidates)
 }
 
 func (d *Detector) FilterByMask(candidate Candidate) bool {
@@ -146,10 +153,8 @@ func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidat
 
 	candidates := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
 	defer C.Candidates_Delete(candidates)
-	cs := make([]C.Candidate, int(candidates.length))
-	C.ResolveCandidates(candidates, (*C.Candidate)(&cs[0]))
 
-	return convertCandidatesToSlice(cs)
+	return convertCandidatesToSlice(candidates)
 }
 
 func (d *MMDetector) FilterByMask(candidate Candidate) bool {

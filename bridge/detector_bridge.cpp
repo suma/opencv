@@ -15,12 +15,6 @@ void Candidate_Delete(Candidate c) {
   delete c;
 }
 
-void ResolveCandidates(struct Candidates candidates, Candidate* obj) {
-  for (int i = 0; i < candidates.length; ++i) {
-    obj[i] = candidates.candidates[i];
-  }
-}
-
 struct Candidates InvertCandidates(Candidate* obj, int length) {
   scouter::ObjectCandidate** os = new scouter::ObjectCandidate*[length];
   for (int i = 0; i < length; ++i) {

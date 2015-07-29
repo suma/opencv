@@ -5,6 +5,10 @@ package bridge
 #include "moving_matcher_bridge.h"
 */
 import "C"
+import (
+	"reflect"
+	"unsafe"
+)
 
 type RegionsWithCameraID struct {
 	CameraID   int
@@ -52,13 +56,18 @@ func GetMatching(kThreashold float32, regions []RegionsWithCameraID) []MVCandida
 		C.int(len(regions)), C.float(kThreashold)) // -> vector<vector<ObjectCandidate>>
 	defer C.MVCandidates_Delete(mvCandidatePointers)
 
-	l := int(mvCandidatePointers.length)
-	mvCandidates := make([]C.MVCandidate, l)
-	C.ResolveMVCandidates(mvCandidatePointers, (*C.MVCandidate)(&mvCandidates[0])) // -> []C.MVCandidate
+	var cArray *C.MVCandidate = mvCandidatePointers.mvCandidates
+	length := int(mvCandidatePointers.length)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cArray)),
+		Len:  length,
+		Cap:  length,
+	}
+	goSlice := *(*[]C.MVCandidate)(unsafe.Pointer(&hdr))
 
-	ret := make([]MVCandidate, l)
-	for i := 0; i < l; i++ {
-		ret[i] = MVCandidate{p: mvCandidates[i]}
+	ret := make([]MVCandidate, length)
+	for i, c := range goSlice {
+		ret[i] = MVCandidate{p: c}
 	}
 	return ret
 }

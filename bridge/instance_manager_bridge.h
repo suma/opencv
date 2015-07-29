@@ -12,24 +12,19 @@ extern "C" {
 #ifdef __cplusplus
 typedef scouter::InstanceManager* InstanceManager;
 typedef scouter::InstanceState* InstanceState;
-typedef struct InstanceStates {
-  int length;
-  std::vector<scouter::InstanceState>* instanceStateVec;
-} InstanceStates;
 #else
 typedef void* InstanceManager;
 typedef void* InstanceState;
-typedef struct InstanceStates {
-  int length;
-  void* instanceStateVec;
-} InstanceStates;
 #endif
+typedef struct InstanceStates {
+  InstanceState* instanceStates;
+  int length;
+} InstanceStates;
 
 struct ByteArray InstanceState_Serialize(InstanceState s);
 InstanceState InstanceState_Deserialize(struct ByteArray src);
 void InstanceState_Delete(InstanceState s);
 
-void ResolveInstanceStates(struct InstanceStates instanceStates, InstanceState* obj);
 void InstanceStates_Delete(struct InstanceStates instanceStates);
 
 InstanceManager InstanceManager_New(const char *config);

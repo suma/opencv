@@ -27,7 +27,6 @@ struct ByteArray Candidate_Serialize(Candidate c);
 Candidate Candidate_Deserialize(struct ByteArray src);
 void Candidate_Delete(Candidate c);
 
-void ResolveCandidates(struct Candidates candidates, Candidate* obj);
 struct Candidates InvertCandidates(Candidate* obj, int length);
 void Candidates_Delete(struct Candidates candidates);
 

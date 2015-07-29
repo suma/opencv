@@ -7,6 +7,7 @@ package bridge
 */
 import "C"
 import (
+	"reflect"
 	"unsafe"
 )
 
@@ -52,13 +53,19 @@ func (m *InstanceManager) Updaate(tr TrackingResult) {
 func (m *InstanceManager) GetCurrentStates() []InstanceState {
 	currentStates := C.InstanceManager_GetCurrentStates(m.p)
 	defer C.InstanceStates_Delete(currentStates)
-	l := int(currentStates.length)
-	statesPtr := make([]C.InstanceState, l)
-	C.ResolveInstanceStates(currentStates, (*C.InstanceState)(&statesPtr[0]))
 
-	states := make([]InstanceState, l)
-	for i := 0; i < l; i++ {
-		states[i] = InstanceState{p: statesPtr[i]}
+	var cArray *C.InstanceState = currentStates.instanceStates
+	length := int(currentStates.length)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cArray)),
+		Len:  length,
+		Cap:  length,
+	}
+	goSlice := *(*[]C.InstanceState)(unsafe.Pointer(&hdr))
+
+	states := make([]InstanceState, length)
+	for i, s := range goSlice {
+		states[i] = InstanceState{p: s}
 	}
 	return states
 }

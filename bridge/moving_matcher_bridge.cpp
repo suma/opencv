@@ -14,12 +14,6 @@ void MVCandidate_Delete(MVCandidate c) {
   delete c;
 }
 
-void ResolveMVCandidates(struct MVCandidates mvCandidates, MVCandidate* obj) {
-  for (int i = 0; i < mvCandidates.length; ++i) {
-    obj[i] = mvCandidates.mvCandidates[i];
-  }
-}
-
 struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length) {
   scouter::MVObjectCandidate** os = new scouter::MVObjectCandidate*[length];
   for (int i = 0; i < length; ++i) {
