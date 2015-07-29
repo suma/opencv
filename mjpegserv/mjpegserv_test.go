@@ -25,8 +25,7 @@ func TestMJPEGServWrite(t *testing.T) {
 		mc := MJPEGServCreator{}
 		ioParams := &bql.IOParams{}
 		params := data.Map{
-			"server_name": data.String("dummy_test"),
-			"port":        data.Int(8099),
+			"port": data.Int(8099),
 		}
 		sink, err := mc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
@@ -34,7 +33,7 @@ func TestMJPEGServWrite(t *testing.T) {
 		defer sink.Close(ctx)
 		Convey("When passes a tuple", func() {
 			m := data.Map{
-				"name": data.String("dummy_data"),
+				"name": data.String("dummy_img_manem"),
 				"img":  data.Blob(img),
 			}
 			tu := &core.Tuple{
@@ -54,8 +53,7 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 		mc := MJPEGServCreator{}
 		ioParams := &bql.IOParams{}
 		params := data.Map{
-			"server_name": data.String("dummy_test"),
-			"port":        data.Int(8098),
+			"port": data.Int(8098),
 		}
 		sink, err := mc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
@@ -124,55 +122,35 @@ func TestMJPEGServCreateDefaultSink(t *testing.T) {
 	Convey("Given a mjpeg server sink creator", t, func() {
 		mc := MJPEGServCreator{}
 		params := data.Map{}
-		Convey("When parameters do not have server name", func() {
+		Convey("When parameters do not have port", func() {
+			Convey("Then sink should have default port number", func() {
+				sink, err := mc.CreateSink(ctx, ioParams, params)
+				So(err, ShouldBeNil)
+				So(sink, ShouldNotBeNil)
+				defer sink.Close(ctx)
+				m, ok := sink.(*mjpegServ)
+				So(ok, ShouldBeTrue)
+				So(m.port, ShouldEqual, 10090)
+			})
+		})
+		Convey("When parameters have invalid port", func() {
+			params["port"] = data.String("8097")
 			Convey("Then sink should not be initialized and occur an error", func() {
 				sink, err := mc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
 				So(sink, ShouldBeNil)
 			})
 		})
-		Convey("When parameters have null server name", func() {
-			params["server_name"] = data.Null{}
-			Convey("Then sink should not be initialized and occur an error", func() {
+		Convey("When parameters have customized port", func() {
+			params["port"] = data.Int(8097)
+			Convey("Then sink should have the port number", func() {
 				sink, err := mc.CreateSink(ctx, ioParams, params)
-				So(err, ShouldNotBeNil)
-				So(sink, ShouldBeNil)
-			})
-		})
-		Convey("When parameters have valid server name", func() {
-			params["server_name"] = data.String("dummy_test")
-			Convey("And when parameters do not have port", func() {
-				Convey("Then sink should have default port number", func() {
-					sink, err := mc.CreateSink(ctx, ioParams, params)
-					So(err, ShouldBeNil)
-					So(sink, ShouldNotBeNil)
-					defer sink.Close(ctx)
-					m, ok := sink.(*mjpegServ)
-					So(ok, ShouldBeTrue)
-					So(m.serverName, ShouldEqual, "dummy_test")
-					So(m.port, ShouldEqual, 10090)
-				})
-			})
-			Convey("And when parameters have invalid port", func() {
-				params["port"] = data.String("8097")
-				Convey("Then sink should not be initialized and occur an error", func() {
-					sink, err := mc.CreateSink(ctx, ioParams, params)
-					So(err, ShouldNotBeNil)
-					So(sink, ShouldBeNil)
-				})
-			})
-			Convey("And when parameters have customized port", func() {
-				params["port"] = data.Int(8097)
-				Convey("Then sink should have the port number", func() {
-					sink, err := mc.CreateSink(ctx, ioParams, params)
-					So(err, ShouldBeNil)
-					So(sink, ShouldNotBeNil)
-					defer sink.Close(ctx)
-					m, ok := sink.(*mjpegServ)
-					So(ok, ShouldBeTrue)
-					So(m.serverName, ShouldEqual, "dummy_test")
-					So(m.port, ShouldEqual, 8097)
-				})
+				So(err, ShouldBeNil)
+				So(sink, ShouldNotBeNil)
+				defer sink.Close(ctx)
+				m, ok := sink.(*mjpegServ)
+				So(ok, ShouldBeTrue)
+				So(m.port, ShouldEqual, 8097)
 			})
 		})
 	})

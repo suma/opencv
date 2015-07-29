@@ -29,15 +29,6 @@ type MJPEGServCreator struct{}
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
-	servName, err := params.Get("server_name")
-	if err != nil {
-		return nil, fmt.Errorf("mjpeg server requires the server name")
-	}
-	servNameStr, err := data.AsString(servName)
-	if err != nil {
-		return nil, fmt.Errorf("mjpeg server name needs to define as string type")
-	}
-
 	port, err := params.Get("port")
 	if err != nil {
 		defaultPort := 10090
@@ -50,9 +41,10 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	}
 
 	ms := &mjpegServ{}
-	ms.serverName = servNameStr
+	ms.finish = false
 	ms.port = int(portNum)
-	ms.inChan = make(chan input)
+	ms.pub = newPublisher()
+	ms.inChan = make(chan inputData)
 	go ms.start()
 	return ms, nil
 }
@@ -66,16 +58,11 @@ type inputData struct {
 	imageData []byte
 }
 
-type input struct {
-	key       string
-	inputData inputData
-}
-
 type mjpegServ struct {
-	serverName string
-	port       int
-	pub        *publisher
-	inChan     chan input
+	finish bool
+	port   int
+	pub    *publisher
+	inChan chan inputData
 }
 
 func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
@@ -99,21 +86,18 @@ func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 	imgp := bridge.DeserializeMatVec3b(imgByte)
 	defer imgp.Delete()
 
-	inData := inputData{
+	data := inputData{
 		name:      nameStr,
 		imageData: imgp.ToJpegData(50),
 	}
-	in := input{
-		key:       m.serverName,
-		inputData: inData,
-	}
 
-	m.inChan <- in
+	m.inChan <- data
 	return nil
 }
 
 func (m *mjpegServ) Close(ctx *core.Context) error {
 	// closing web server is better
+	m.finish = true
 	return nil
 }
 
@@ -193,26 +177,26 @@ func (p *publisher) close(s *subscriber) {
 }
 
 func (m *mjpegServ) start() {
-	pub := newPublisher()
-
 	fin := make(chan bool)
 	go func() {
-		for {
+		for !m.finish {
 			select {
 			case in := <-m.inChan:
-				go pub.updateFrame(in.inputData.name, in.inputData.imageData)
+				go m.pub.updateFrame(in.name, in.imageData)
 			default:
 			}
 		}
 	}()
 
 	go func() {
-		router := web.New(mpegServContext{
-			pub: pub,
-		})
-		router.Get(`/video/:name`, (*mpegServContext).videoHandler) // TODO regex validation
-		router.Get(`/snapshot/:key`, (*mpegServContext).snapshotHandler)
-		router.Get(`/list`, (*mpegServContext).listHandler)
+		ctx := mpegServContext{
+			pub: m.pub,
+		}
+		router := web.New(ctx)
+		// TODO regex validation
+		router.Get(`/video/:name`, ctx.videoHandler)
+		router.Get(`/snapshot/:key`, ctx.snapshotHandler)
+		router.Get(`/list`, ctx.listHandler)
 		if err := http.ListenAndServe(fmt.Sprint(":", m.port), router); err != nil {
 			log.Println("cannot start the server: ", err)
 		}
@@ -249,7 +233,8 @@ func (m *mpegServContext) videoHandler(rw web.ResponseWriter, req *web.Request) 
 	log.Println("Started to subscribe ", name)
 
 	bufrw.WriteString("HTTP/1.1 200 OK\r\n")
-	msg := "Content-Type: multipart/x-mixed-replace; boundary=\"myboundary\"\r\n\r\n--myboundary"
+	msg := "Content-Type: multipart/x-mixed-replace; "
+	msg += "boundary=\"myboundary\"\r\n\r\n--myboundary"
 	if _, err := bufrw.WriteString(msg); err != nil {
 		log.Println("Failed to write header")
 		return
@@ -257,7 +242,8 @@ func (m *mpegServContext) videoHandler(rw web.ResponseWriter, req *web.Request) 
 	bufrw.Flush()
 
 	for f := range s.channel() {
-		head := fmt.Sprintf("\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n", len(f))
+		head := fmt.Sprintf(
+			"\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n", len(f))
 		bufrw.WriteString(head)
 		bufrw.Write(f)
 		_, err = bufrw.WriteString("\r\n--myboundary")
@@ -290,7 +276,8 @@ func (m *mpegServContext) listHandler(rw web.ResponseWriter, req *web.Request) {
 	nameList := m.pub.getNameList()
 
 	rw.Header().Set("Content-Type", "text/html")
+	formatTag := "<a href='/video/%s'><img src='/video/%s' title='%s'></a>\n"
 	for _, name := range nameList {
-		rw.Write([]byte(fmt.Sprintf("<a href='/video/%s'><img src='/video/%s' title='%s'></a>\n", name, name, name)))
+		rw.Write([]byte(fmt.Sprintf(formatTag, name, name, name)))
 	}
 }
