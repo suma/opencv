@@ -3,6 +3,7 @@ package recog
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -215,7 +216,7 @@ func (c *CroppingAndPredictTagsBatchFuncCreator) TypeName() string {
 
 func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 	regions data.Array, img []byte) (data.Array, error) {
-	start := time.Now()
+	defer utils.LogElapseTime(ctx, "croppingAndPredictTagsBatch", time.Now())
 
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
@@ -248,10 +249,6 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 		}
 	}()
 
-	cropEnd := time.Now()
-	elapseCropping := float64(cropEnd.Sub(start).Nanoseconds()) / 1e6
-	ctx.Log().Debugf("cropping time: %.3f[ms]", elapseCropping)
-
 	recognized := s.tagger.PredictTagsBatch(cans, cropped)
 
 	defer func() {
@@ -264,10 +261,6 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 	for _, r := range recognized {
 		recognizedCans = append(recognizedCans, data.Blob(r.Serialize()))
 	}
-
-	recogEnd := time.Now()
-	elapseRecog := float64(recogEnd.Sub(cropEnd).Nanoseconds()) / 1e6
-	ctx.Log().Debugf("recognize time: %.3f[ms]", elapseRecog)
 
 	return recognizedCans, nil
 }
