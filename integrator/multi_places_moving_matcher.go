@@ -167,9 +167,11 @@ type MultiPlacesMovingMatcherUDSFCreator struct{}
 //
 //  data.Map{
 //    "integrationIDFieldName": [ID],
-//    "aggRegionsFildName"    : data.Map{
-//      "cameraIDFieldName": [camera ID],
-//      "regionsFieldName" : [regions] (data.Array),
+//    "aggRegionsFildName"    : data.Array{
+//      []data.Map{
+//        "cameraIDFieldName": [camera ID],
+//        "regionsFieldName" : [regions] (data.Array),
+//      }
 //    }
 //  }
 func (c *MultiPlacesMovingMatcherUDSFCreator) CreateStreamFunction() interface{} {
