@@ -48,7 +48,8 @@ func init() {
 		&integrator.InstanceManagerParamState{},
 	}
 	for _, s := range states {
-		udf.MustRegisterGlobalUDSCreator(s.TypeName(), udf.UDSCreatorFunc(s.CreateNewState()))
+		udf.MustRegisterGlobalUDSCreator(s.TypeName(),
+			udf.UDSCreatorFunc(s.CreateNewState()))
 	}
 
 	// UDFs
@@ -73,7 +74,8 @@ func init() {
 		&utils.TypeCheckedAggregateFuncCreator{},
 	}
 	for _, f := range udfuncs {
-		udf.MustRegisterGlobalUDF(f.TypeName(), udf.MustConvertGeneric(f.CreateFunction()))
+		udf.MustRegisterGlobalUDF(f.TypeName(),
+			udf.MustConvertGeneric(f.CreateFunction()))
 	}
 
 	// UDSFs
@@ -81,10 +83,11 @@ func init() {
 		&detector.DetectRegionStreamFuncCreator{},
 		&detector.MMDetectRegionStreamFuncCreator{},
 		&recog.PredictTagsBatchStreamFuncCreator{},
-		&integrator.MovingMatcherStreamFuncCreator{},
+		&integrator.MultiPlacesMovingMatcherUDSFCreator{},
 		&integrator.FramesTrackerStreamFuncCreator{},
 	}
 	for _, f := range udsfuncs {
-		udf.MustRegisterGlobalUDSFCreator(f.TypeName(), udf.MustConvertToUDSFCreator(f.CreateStreamFunction()))
+		udf.MustRegisterGlobalUDSFCreator(f.TypeName(),
+			udf.MustConvertToUDSFCreator(f.CreateStreamFunction()))
 	}
 }

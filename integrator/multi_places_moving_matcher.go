@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
-type movingMatcherUDSF struct {
-	mvMatcher              func(float32, []bridge.RegionsWithCameraID) []bridge.MVCandidate
+type multiPlacesMovingMatcherUDSF struct {
+	mvMatcher func(float32,
+		[]bridge.RegionsWithCameraID) []bridge.MVCandidate
+
 	integrationIDFieldName string
 	aggRegionsFieldName    string
 	cameraIDFieldName      string
@@ -17,7 +19,9 @@ type movingMatcherUDSF struct {
 	kThreashold            float32
 }
 
-func (sf *movingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
+func (sf *multiPlacesMovingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple,
+	w core.Writer) error {
+
 	integrationID, err := t.Data.Get(sf.integrationIDFieldName)
 	if err != nil {
 		return err
@@ -73,11 +77,11 @@ func (sf *movingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 	return nil
 }
 
-func (sf *movingMatcherUDSF) Terminate(ctx *core.Context) error {
+func (sf *multiPlacesMovingMatcherUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func (sf *movingMatcherUDSF) convertToSliceRegions(aggRegions data.Array) (
+func (sf *multiPlacesMovingMatcherUDSF) convertToSliceRegions(aggRegions data.Array) (
 	[]bridge.RegionsWithCameraID, error) {
 	aggRegionsWithID := []bridge.RegionsWithCameraID{}
 	for _, regions := range aggRegions {
@@ -94,7 +98,9 @@ func (sf *movingMatcherUDSF) convertToSliceRegions(aggRegions data.Array) (
 	return aggRegionsWithID, nil
 }
 
-func (sf *movingMatcherUDSF) lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
+func (sf *multiPlacesMovingMatcherUDSF) lookupRegions(regions data.Map) (
+	bridge.RegionsWithCameraID, error) {
+
 	empty := bridge.RegionsWithCameraID{}
 	id, err := regions.Get(sf.cameraIDFieldName)
 	if err != nil {
@@ -130,16 +136,18 @@ func (sf *movingMatcherUDSF) lookupRegions(regions data.Map) (bridge.RegionsWith
 	}, nil
 }
 
-func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer, stream string,
-	integrationIDFieldName string, aggRegionsFieldName string,
-	cameraIDFieldName string, regionsFieldName string, kThreashlold float32) (udf.UDSF, error) {
+func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
+	stream string, integrationIDFieldName string, aggRegionsFieldName string,
+	cameraIDFieldName string, regionsFieldName string, kThreashlold float32) (
+
+	udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "moving_matcher",
 	}); err != nil {
 		return nil, err
 	}
 
-	return &movingMatcherUDSF{
+	return &multiPlacesMovingMatcherUDSF{
 		mvMatcher:              bridge.GetMatching,
 		integrationIDFieldName: integrationIDFieldName,
 		aggRegionsFieldName:    aggRegionsFieldName,
@@ -149,12 +157,25 @@ func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer, stream st
 	}, nil
 }
 
-type MovingMatcherStreamFuncCreator struct{}
+// MultiPlacesMovingMatcherUDSFCreator is a creator of multi places moving
+// matcher UDSF.
+type MultiPlacesMovingMatcherUDSFCreator struct{}
 
-func (c *MovingMatcherStreamFuncCreator) CreateStreamFunction() interface{} {
+// CreateStreamFunction creates moving matcher stream function for multi places.
+// Input stream's tuples are required to have following `data.Map`, the key
+// names are addressed with UDSF's arguments.
+//
+//  data.Map{
+//    "integrationIDFieldName": [ID],
+//    "aggRegionsFildName"    : data.Map{
+//      "cameraIDFieldName": [camera ID],
+//      "regionsFieldName" : [regions] (data.Array),
+//    }
+//  }
+func (c *MultiPlacesMovingMatcherUDSFCreator) CreateStreamFunction() interface{} {
 	return createMovingMatcherUDSF
 }
 
-func (c *MovingMatcherStreamFuncCreator) TypeName() string {
-	return "greedily_moving_matching"
+func (c *MultiPlacesMovingMatcherUDSFCreator) TypeName() string {
+	return "multi_place_moving_matcher"
 }
