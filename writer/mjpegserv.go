@@ -24,7 +24,7 @@ type MJPEGServCreator struct{}
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK hoge_result TYPE mjpeg_server WITH server_name='foo', port=8080`
+//    `CREATE SINK mjpeg_moniter TYPE mjpeg_server WITH server_name='foo', port=8080`
 //  then the sink addressed http://localhost:8080/video/foo/
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
@@ -65,6 +65,24 @@ type mjpegServ struct {
 	inChan chan inputData
 }
 
+// Write loads images to a server which have started when sink creation.
+// Input tuple is required to have follow `data.Map`
+//
+//  data.Map{
+//    "name": [access category name] (will be casted `data.ToString`),
+//    "img" : [image binary data] (`data.Blob`)
+//  }
+//
+// Example of insertion query:
+//  ```
+//  INSERT INTO mjpeg_monitor SELECT ISTREAM
+//    detection_ressult_frame AS img,
+//    `camera1_detection` AS name
+//    FROM detected_frame @RANGE 1 TUPLES];
+//  ```
+// then URI will be
+//  http://localhot:8080/video/camera1_detection
+//  http://localhot:8080/snapshot/camera1_detection
 func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {

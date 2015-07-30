@@ -60,7 +60,7 @@ type jpegWriterSink struct {
 	jpegQuality int
 }
 
-// Write output JPEG files to the directory which is set `WITH` "output"
+// Write outputs JPEG files to the directory which is set `WITH` "output"
 // parameter. Input tuple is required to have follow `data.Map`
 //
 //  data.Map{
