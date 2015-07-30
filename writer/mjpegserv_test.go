@@ -131,6 +131,7 @@ func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 				m, ok := sink.(*mjpegServ)
 				So(ok, ShouldBeTrue)
 				So(m.port, ShouldEqual, 10090)
+				So(m.quality, ShouldEqual, 50)
 			})
 		})
 		Convey("When parameters have invalid port", func() {
@@ -141,8 +142,17 @@ func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 				So(sink, ShouldBeNil)
 			})
 		})
-		Convey("When parameters have customized port", func() {
+		Convey("When parameters have invalid quality", func() {
+			params["quality"] = data.String("50")
+			Convey("Then sink should not be initialized and occur an error", func() {
+				sink, err := mc.CreateSink(ctx, ioParams, params)
+				So(err, ShouldNotBeNil)
+				So(sink, ShouldBeNil)
+			})
+		})
+		Convey("When parameters have customized port and quality", func() {
 			params["port"] = data.Int(8097)
+			params["quality"] = data.Int(75)
 			Convey("Then sink should have the port number", func() {
 				sink, err := mc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
@@ -151,6 +161,7 @@ func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 				m, ok := sink.(*mjpegServ)
 				So(ok, ShouldBeTrue)
 				So(m.port, ShouldEqual, 8097)
+				So(m.quality, ShouldEqual, 75)
 			})
 		})
 	})

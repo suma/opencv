@@ -19,12 +19,12 @@ type MJPEGServCreator struct{}
 // through HTTP access.
 //
 // Usage of WITH parameters:
-//  server_name: [required] a server name
-//  port:        a port number, default port is 10090
+//  port   : a port number, default port is 10090
+//  quality: the quality of converting JPEG file, if empty then set 50
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK mjpeg_moniter TYPE mjpeg_server WITH server_name='foo', port=8080`
+//    `CREATE SINK mjpeg_moniter TYPE mjpeg_server WITH port=8080`
 //  then the sink addressed http://localhost:8080/video/foo/
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
@@ -40,9 +40,19 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 		return nil, err
 	}
 
+	quality, err := params.Get("quality")
+	if err != nil {
+		quality = data.Int(50)
+	}
+	q, err := data.AsInt(quality)
+	if err != nil {
+		return nil, err
+	}
+
 	ms := &mjpegServ{}
 	ms.finish = false
 	ms.port = int(portNum)
+	ms.quality = int(q)
 	ms.pub = newPublisher()
 	ms.inChan = make(chan inputData)
 	go ms.start()
@@ -59,10 +69,11 @@ type inputData struct {
 }
 
 type mjpegServ struct {
-	finish bool
-	port   int
-	pub    *publisher
-	inChan chan inputData
+	finish  bool
+	port    int
+	quality int
+	pub     *publisher
+	inChan  chan inputData
 }
 
 // Write loads images to a server which have started when sink creation.
@@ -106,7 +117,7 @@ func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 
 	data := inputData{
 		name:      nameStr,
-		imageData: imgp.ToJpegData(50),
+		imageData: imgp.ToJpegData(m.quality),
 	}
 
 	m.inChan <- data
