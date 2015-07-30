@@ -112,7 +112,7 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 	})
 }
 
-func TestMJPEGServCreateDefaultSink(t *testing.T) {
+func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 	logger := logrus.New()
 	cc := &core.ContextConfig{
 		Logger: logger,
