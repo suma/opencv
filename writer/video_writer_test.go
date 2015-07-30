@@ -79,6 +79,13 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 					So(vs.vw, ShouldNotBeNil)
 					_, err = os.Stat("dummy.avi")
 					So(os.IsNotExist(err), ShouldBeFalse)
+					Convey("And when create another sink", func() {
+						sink2, err := vc.CreateSink(ctx, ioParams, params)
+						Convey("Then should occur an error", func() {
+							So(err, ShouldNotBeNil)
+							So(sink2, ShouldBeNil)
+						})
+					})
 				})
 		})
 	})

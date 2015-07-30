@@ -2,6 +2,7 @@ package writer
 
 import (
 	"fmt"
+	"os"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
@@ -20,6 +21,13 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	name, err := data.ToString(fn)
 	if err != nil {
 		return nil, err
+	}
+	name += ".avi"
+
+	_, err = os.Stat(name)
+	if !os.IsNotExist(err) {
+		return nil, fmt.Errorf("%v has already been exist, cannot create video writer",
+			name)
 	}
 
 	fps, err := params.Get("fps")
