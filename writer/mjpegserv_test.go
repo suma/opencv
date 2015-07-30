@@ -1,4 +1,4 @@
-package mjpegserv
+package writer
 
 import (
 	"github.com/Sirupsen/logrus"

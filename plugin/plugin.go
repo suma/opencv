@@ -4,9 +4,9 @@ import (
 	"pfi/sensorbee/scouter/capture"
 	"pfi/sensorbee/scouter/detector"
 	"pfi/sensorbee/scouter/integrator"
-	"pfi/sensorbee/scouter/mjpegserv"
 	"pfi/sensorbee/scouter/recognizer"
 	"pfi/sensorbee/scouter/utils"
+	"pfi/sensorbee/scouter/writer"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/bql/udf"
 )
@@ -30,8 +30,8 @@ func init() {
 
 	// sinks
 	sinks := []PluginSinkCreator{
-		&mjpegserv.MJPEGServCreator{},
-		&mjpegserv.DebugJPEGWriterCreator{},
+		&writer.MJPEGServCreator{},
+		&writer.DebugJPEGWriterCreator{},
 	}
 	for _, sink := range sinks {
 		bql.MustRegisterGlobalSinkCreator(sink.TypeName(), sink)
