@@ -10,8 +10,8 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-// DebugJPEGWriterCreator is a creator of JPEG Writer.
-type DebugJPEGWriterCreator struct{}
+// JPEGWriterCreator is a creator of JPEG Writer.
+type JPEGWriterCreator struct{}
 
 // CreateSink creates a JPEG output sink, which output converted JPEG from
 // `cv::Mat_<cv::Vec3b>`.
@@ -24,7 +24,7 @@ type DebugJPEGWriterCreator struct{}
 //  when a creation query is
 //    `CREATE SINK jpeg_files TYPE jpeg_writer WITH output='temp', quality=50`
 //  then JPEG files are output to "temp" directory.
-func (c *DebugJPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
+func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
 	output, err := params.Get("output")
@@ -45,17 +45,17 @@ func (c *DebugJPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOP
 		return nil, err
 	}
 
-	s := &debugJPEGSink{}
+	s := &jpegWriterSink{}
 	s.outputDir = outputDir
 	s.jpegQuality = int(q)
 	return s, nil
 }
 
-func (c *DebugJPEGWriterCreator) TypeName() string {
+func (c *JPEGWriterCreator) TypeName() string {
 	return "jpeg_writer"
 }
 
-type debugJPEGSink struct {
+type jpegWriterSink struct {
 	outputDir   string
 	jpegQuality int
 }
@@ -75,7 +75,7 @@ type debugJPEGSink struct {
 //    'camera1' AS name
 //    FROM capturing_frame [RANGE 1 TUPLES];
 //  ```
-func (s *debugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
+func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {
 		return err
@@ -101,6 +101,6 @@ func (s *debugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 	return nil
 }
 
-func (s *debugJPEGSink) Close(ctx *core.Context) error {
+func (s *jpegWriterSink) Close(ctx *core.Context) error {
 	return nil
 }

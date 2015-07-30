@@ -31,7 +31,7 @@ func init() {
 	// sinks
 	sinks := []PluginSinkCreator{
 		&writer.MJPEGServCreator{},
-		&writer.DebugJPEGWriterCreator{},
+		&writer.JPEGWriterCreator{},
 	}
 	for _, sink := range sinks {
 		bql.MustRegisterGlobalSinkCreator(sink.TypeName(), sink)
