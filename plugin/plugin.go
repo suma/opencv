@@ -71,6 +71,7 @@ func init() {
 		&recog.CroppingAndPredictTagsFuncCreator{},
 		&recog.CroppingAndPredictTagsBatchFuncCreator{},
 		&recog.DrawDeteciontResultFuncCreator{},
+		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
 		&utils.TypeCheckedAggregateFuncCreator{},
 	}
 	for _, f := range udfuncs {
