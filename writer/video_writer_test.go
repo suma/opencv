@@ -50,9 +50,9 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 		Convey("When parameter have invalid vlaues", func() {
 			params["file_name"] = data.String("dummy")
 			testMap := data.Map{
-				"fps":    data.String("5"),
-				"width":  data.Null{},
-				"height": data.Timestamp{},
+				"fps":    data.Null{},
+				"width":  data.String("a"),
+				"height": data.String("$"),
 			}
 			for k, v := range testMap {
 				msg := fmt.Sprintf("%v error", k)
