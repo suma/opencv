@@ -22,7 +22,7 @@ type DebugJPEGWriterCreator struct{}
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK jpeg_files TYPE jpeg_debug WITH output='temp', quality=50`
+//    `CREATE SINK jpeg_files TYPE jpeg_writer WITH output='temp', quality=50`
 //  then JPEG files are output to "temp" directory.
 func (c *DebugJPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
@@ -52,7 +52,7 @@ func (c *DebugJPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOP
 }
 
 func (c *DebugJPEGWriterCreator) TypeName() string {
-	return "jpeg_debug"
+	return "jpeg_writer"
 }
 
 type debugJPEGSink struct {
@@ -67,6 +67,14 @@ type debugJPEGSink struct {
 //    "name": [output file name] (`data.String`),
 //    "img" : [image binary data] (`data.Blob`),
 //  }
+//
+// Example of insertion query:
+//  ```
+//  INSERT INTO jpeg_files SELECT ISTREAM
+//    frame_data AS img,
+//    'camera1' AS name
+//    FROM capturing_frame [RANGE 1 TUPLES];
+//  ```
 func (s *debugJPEGSink) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {
