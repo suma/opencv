@@ -110,12 +110,13 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 			}
 			for k, v := range testMap {
 				msg := fmt.Sprintf("with %v error", k)
-				Convey("Then creator should occur a parse error on option parameters"+msg, func() {
-					params[k] = v
-					s, err := sc.CreateSource(ctx, ioParams, params)
-					So(err, ShouldNotBeNil)
-					So(s, ShouldBeNil)
-				})
+				Convey("Then creator should occur a parse error on option parameters "+msg,
+					func() {
+						params[k] = v
+						s, err := sc.CreateSource(ctx, ioParams, params)
+						So(err, ShouldNotBeNil)
+						So(s, ShouldBeNil)
+					})
 			}
 		})
 	})
