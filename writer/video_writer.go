@@ -3,6 +3,7 @@ package writer
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
@@ -38,10 +39,15 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	}
 	name += ".avi"
 
-	_, err = os.Stat(name)
-	if !os.IsNotExist(err) {
-		return nil, fmt.Errorf("%v has already been exist, cannot create video writer",
-			name)
+	if absPath, err := filepath.Abs(name); err != nil {
+		return nil, fmt.Errorf("invalid file path: %v", err.Error())
+	} else {
+		dirPath := filepath.Dir(absPath)
+		_, err = os.Stat(dirPath)
+		if os.IsNotExist(err) {
+			fmt.Println("mkdir")
+			os.MkdirAll(dirPath, 0755)
+		}
 	}
 
 	fps, err := params.Get("fps")

@@ -79,13 +79,18 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 					So(vs.vw, ShouldNotBeNil)
 					_, err = os.Stat("dummy.avi")
 					So(os.IsNotExist(err), ShouldBeFalse)
-					Convey("And when create another sink", func() {
-						sink2, err := vc.CreateSink(ctx, ioParams, params)
-						Convey("Then should occur an error", func() {
-							So(err, ShouldNotBeNil)
-							So(sink2, ShouldBeNil)
+					Convey("And when create another sink with the same file name",
+						func() {
+							sink2, err := vc.CreateSink(ctx, ioParams, params)
+							Convey("Then should not occur an error", func() {
+								So(err, ShouldBeNil)
+								So(sink2, ShouldNotBeNil)
+								defer sink.Close(ctx)
+								vs2, ok := sink2.(*videoWriterSink)
+								So(ok, ShouldBeTrue)
+								So(vs2.vw, ShouldNotBeNil)
+							})
 						})
-					})
 				})
 		})
 	})
