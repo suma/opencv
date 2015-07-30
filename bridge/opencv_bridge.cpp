@@ -103,6 +103,14 @@ void VideoWriter_Delete(VideoWriter vw) {
   delete vw;
 }
 
+void VideoWriter_Open(VideoWriter vw, const char* name, double fps, int width,
+    int height) {
+  std::string path = "";
+  path += name;
+  path += ".avi";
+  vw->open(path, CV_FOURCC('M', 'J', 'P', 'G'), fps, cv::Size(width, height), true);
+}
+
 int VideoWriter_IsOpened(VideoWriter vw) {
   return vw->isOpened();
 }

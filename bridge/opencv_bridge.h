@@ -38,6 +38,8 @@ void VideoCapture_Grab(VideoCapture v, int skip);
 
 VideoWriter VideoWriter_New();
 void VideoWriter_Delete(VideoWriter vw);
+void VideoWriter_Open(VideoWriter vw, const char* name, double fps, int width,
+  int height);
 int VideoWriter_IsOpened(VideoWriter vw);
 void VideoWriter_Write(VideoWriter vw, MatVec3b img);
 

@@ -118,6 +118,12 @@ func (vw *VideoWriter) Delete() {
 	vw.p = nil
 }
 
+func (vw *VideoWriter) Open(name string, fps float64, width int, height int) {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	C.VideoWriter_Open(vw.p, cName, C.double(fps), C.int(width), C.int(height))
+}
+
 func (vw *VideoWriter) IsOpened() bool {
 	isOpend := C.VideoWriter_IsOpened(vw.p)
 	return isOpend != 0
