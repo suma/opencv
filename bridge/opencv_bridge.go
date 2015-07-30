@@ -9,6 +9,7 @@ package bridge
 */
 import "C"
 import (
+	"sync"
 	"unsafe"
 )
 
@@ -101,4 +102,29 @@ func (v *VideoCapture) Read(m MatVec3b) bool {
 
 func (v *VideoCapture) Grab(skip int) {
 	C.VideoCapture_Grab(v.p, C.int(skip))
+}
+
+type VideoWriter struct {
+	mu sync.RWMutex
+	p  C.VideoWriter
+}
+
+func NewVideoWriter() VideoWriter {
+	return VideoWriter{p: C.VideoWriter_New()}
+}
+
+func (vw *VideoWriter) Delete() {
+	C.VideoWriter_Delete(vw.p)
+	vw.p = nil
+}
+
+func (vw *VideoWriter) IsOpened() bool {
+	isOpend := C.VideoWriter_IsOpened(vw.p)
+	return isOpend != 0
+}
+
+func (vw *VideoWriter) Write(img MatVec3b) {
+	vw.mu.Lock()
+	defer vw.mu.Unlock()
+	C.VideoWriter_Write(vw.p, img.p)
 }

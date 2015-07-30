@@ -94,3 +94,19 @@ void VideoCapture_Grab(VideoCapture v, int skip) {
     v->grab();
   }
 }
+
+VideoWriter VideoWriter_New() {
+  return new cv::VideoWriter();
+}
+
+void VideoWriter_Delete(VideoWriter vw) {
+  delete vw;
+}
+
+int VideoWriter_IsOpened(VideoWriter vw) {
+  return vw->isOpened();
+}
+
+void VideoWriter_Write(VideoWriter vw, MatVec3b img) {
+  *vw << *img;
+}
