@@ -45,7 +45,6 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		dirPath := filepath.Dir(absPath)
 		_, err = os.Stat(dirPath)
 		if os.IsNotExist(err) {
-			fmt.Println("mkdir")
 			os.MkdirAll(dirPath, 0755)
 		}
 	}

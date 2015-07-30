@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
@@ -34,6 +35,15 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	outputDir, err := data.AsString(output)
 	if err != nil {
 		return nil, err
+	}
+
+	if absPath, err := filepath.Abs(outputDir); err != nil {
+		return nil, fmt.Errorf("invalid file path: %v", err.Error())
+	} else {
+		_, err = os.Stat(absPath)
+		if os.IsNotExist(err) {
+			os.MkdirAll(absPath, 0755)
+		}
 	}
 
 	quality, err := params.Get("quality")
