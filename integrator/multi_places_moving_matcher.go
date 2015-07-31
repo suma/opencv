@@ -162,15 +162,15 @@ func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 type MultiPlacesMovingMatcherUDSFCreator struct{}
 
 // CreateStreamFunction creates moving matcher stream function for multi places.
-// Input stream's tuples are required to have following `data.Map`, the key
-// names are addressed with UDSF's arguments.
+// Input tuples are required to have following `data.Map` structure, each key
+// name is addressed with UDSF's arguments.
 //
 //  data.Map{
 //    "integrationIDFieldName": [ID],
 //    "aggRegionsFildName"    : data.Array{
 //      []data.Map{
 //        "cameraIDFieldName": [camera ID],
-//        "regionsFieldName" : [regions] (data.Array),
+//        "regionsFieldName" : [regions] ([]data.Blob),
 //      }
 //    }
 //  }

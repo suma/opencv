@@ -171,8 +171,26 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerPa
 	}, nil
 }
 
+// FramesTrackerStreamFuncCreator is a creator of frame tracking UDSF.
 type FramesTrackerStreamFuncCreator struct{}
 
+// CreateStreamFunction creates instance state from tracked detections.
+// This function need moving matched detection datum per captured frame.
+// If captured frames include multiple places, then frames and detections could
+// be distinguished with camera ID.
+//
+// Input tuples are required to have following `data.Map` structure, each key
+// name is addressed with UDSF's arguments.
+//
+//  data.Map{
+//    "framedFieldName": data.Array{
+//      []data.Map{
+//        "cameraIDFieldName": [camera ID],
+//        "imageFiledname"   : [image data] (data.Blob),
+//      }
+//    },
+//    "mvRegionsFieldName": [moving matched detection result] ([]data.Blob)
+//  }
 func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createFramesTrackerUDSF
 }
