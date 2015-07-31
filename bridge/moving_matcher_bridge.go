@@ -35,12 +35,15 @@ func (c MVCandidate) Delete() {
 	c.p = nil
 }
 
-func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_RegionsWithCameraID {
+func convertCandidatezToPointer(
+	regions []RegionsWithCameraID) []C.struct_RegionsWithCameraID {
 	regionsPointers := []C.struct_RegionsWithCameraID{}
 	for _, r := range regions {
-		candidatePointers := convertCandidatesToPointer(r.Candidates) // -> []C.Candidate
+		// []Candidate -> []C.Candidate
+		candidatePointers := convertCandidatesToPointer(r.Candidates)
+		// -> C.struct_Candidates
 		candidates := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
-			C.int(len(candidatePointers))) // -> C.struct_Candidates
+			C.int(len(candidatePointers)))
 		f := C.struct_RegionsWithCameraID{
 			candidates: candidates,
 			cameraID:   C.int(r.CameraID),
@@ -51,9 +54,12 @@ func convertCandidatezToPointer(regions []RegionsWithCameraID) []C.struct_Region
 }
 
 func GetMatching(kThreashold float32, regions []RegionsWithCameraID) []MVCandidate {
-	regionsPointers := convertCandidatezToPointer(regions) // -> []C.struct_RegionsWithCameraID
-	mvCandidatePointers := C.MVOM_GetMatching((*C.struct_RegionsWithCameraID)(&regionsPointers[0]),
-		C.int(len(regions)), C.float(kThreashold)) // -> vector<vector<ObjectCandidate>>
+	//  -> []C.struct_RegionsWithCameraID
+	regionsPointers := convertCandidatezToPointer(regions)
+	// -> *C.MVCandidate
+	mvCandidatePointers := C.MVOM_GetMatching(
+		(*C.struct_RegionsWithCameraID)(&regionsPointers[0]),
+		C.int(len(regions)), C.float(kThreashold))
 	defer C.MVCandidates_Delete(mvCandidatePointers)
 
 	var cArray *C.MVCandidate = mvCandidatePointers.mvCandidates

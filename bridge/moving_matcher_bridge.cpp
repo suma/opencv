@@ -17,7 +17,7 @@ void MVCandidate_Delete(MVCandidate c) {
 struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length) {
   scouter::MVObjectCandidate** os = new scouter::MVObjectCandidate*[length];
   for (int i = 0; i < length; ++i) {
-    os[i] = new scouter::MVObjectCandidate(*obj[i]);
+    os[i] = obj[i];
   }
   MVCandidates cs = {os, length};
   return cs;
@@ -31,9 +31,10 @@ struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, f
   std::vector<std::vector<scouter::ObjectCandidate> > candidatez;
   for (int i = 0; i < length; ++i) {
     std::vector<scouter::ObjectCandidate> candidates;
-    for (int j = 0; j < regions[i].candidates.length; ++j) {
-      scouter::ObjectCandidate& o = (*(regions[i].candidates.candidates))[j];
-      o.camera_id = regions[i].cameraID;
+    const RegionsWithCameraID& r = regions[i];
+    for (int j = 0; j < r.candidates.length; ++j) {
+      scouter::ObjectCandidate& o = *(r.candidates.candidates[j]);
+      o.camera_id = r.cameraID;
       candidates.push_back(o);
     }
     candidatez.push_back(candidates);
