@@ -10,16 +10,23 @@ import (
 )
 
 type framesTrackerUDSF struct {
-	tracker            bridge.Tracker
-	instanceManager    bridge.InstanceManager
-	framesFieldName    string
-	cameraIDFieldName  string
-	imageFieldName     string
-	mvRegionsFieldName string
+	tracker                   bridge.Tracker
+	instanceManager           bridge.InstanceManager
+	instanceStatesIDFieldName string
+	framesFieldName           string
+	cameraIDFieldName         string
+	imageFieldName            string
+	mvRegionsFieldName        string
 }
 
 func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 	w core.Writer) error {
+
+	isID, err := t.Data.Get(sf.instanceStatesIDFieldName)
+	if err != nil {
+		return err
+	}
+
 	frames, err := t.Data.Get(sf.framesFieldName)
 	if err != nil {
 		return err
@@ -76,6 +83,8 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		for _, s := range currentStates {
 			now := time.Now()
 			m := data.Map{
+				"states_id":      isID,
+				"states_count":   data.Int(len(currentStates)),
 				"instance_state": data.Blob(s.Serialize()),
 			}
 			traces := []core.TraceEvent{}
@@ -148,8 +157,9 @@ func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 
 func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	trackerParam string, instanceManagerParam string, stream string,
-	framesFieldName string, cameraIDFieldName string, imageFieldname string,
-	mvRegionsFieldName string) (udf.UDSF, error) {
+	instanceStatesIDFieldName string, framesFieldName string,
+	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string) (
+	udf.UDSF, error) {
 
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "frame_tracker_stream",
@@ -169,12 +179,13 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	}
 
 	return &framesTrackerUDSF{
-		tracker:            trackerState.t,
-		instanceManager:    instanceManagerState.m,
-		framesFieldName:    framesFieldName,
-		cameraIDFieldName:  cameraIDFieldName,
-		imageFieldName:     imageFieldname,
-		mvRegionsFieldName: mvRegionsFieldName,
+		tracker:                   trackerState.t,
+		instanceManager:           instanceManagerState.m,
+		instanceStatesIDFieldName: instanceStatesIDFieldName,
+		framesFieldName:           framesFieldName,
+		cameraIDFieldName:         cameraIDFieldName,
+		imageFieldName:            imageFieldname,
+		mvRegionsFieldName:        mvRegionsFieldName,
 	}, nil
 }
 
@@ -190,7 +201,8 @@ type FramesTrackerStreamFuncCreator struct{}
 // name is addressed with UDSF's arguments.
 //
 //  data.Map{
-//    "framedFieldName": data.Array{
+//    "instanceStatesIDFieldName": [ID],
+//    "framesFieldName"          : data.Array{
 //      []data.Map{
 //        "cameraIDFieldName": [camera ID],
 //        "imageFiledname"   : [image data] (data.Blob),

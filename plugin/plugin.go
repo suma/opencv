@@ -71,6 +71,7 @@ func init() {
 		&recog.CroppingAndPredictTagsBatchFuncCreator{},
 		&recog.DrawDeteciontResultFuncCreator{},
 		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
+		&integrator.InstanceStateConverterUDFCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),

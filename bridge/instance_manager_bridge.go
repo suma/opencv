@@ -32,7 +32,7 @@ func (s InstanceState) Delete() {
 }
 
 func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
-	timestamp int64) string {
+	timestamp uint64) string {
 
 	issPtr := []C.InstanceState{}
 	for _, is := range iss {
@@ -43,7 +43,7 @@ func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
 	defer C.InstanceStates_Delete(cIssPtr)
 
 	cJSON := C.InstanceState_ToJSON(cIssPtr, C.int(floorID),
-		C.longlong(timestamp))
+		C.ulonglong(timestamp))
 	return C.GoStringN(cJSON.str, cJSON.length)
 }
 
