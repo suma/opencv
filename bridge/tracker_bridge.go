@@ -29,9 +29,11 @@ type TrackingResult struct {
 	p C.TrackingResult
 }
 
-func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate, timestamp uint64) {
+func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
+	timestamp uint64) {
+
 	length := len(frames)
-	framesPtr := make([]C.struct_MatWithCameraID, length)
+	framesPtr := []C.struct_MatWithCameraID{}
 	for k, v := range frames {
 		matWithID := C.struct_MatWithCameraID{
 			cameraID: C.int(k),
@@ -41,11 +43,12 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate, timesta
 	}
 
 	mvRegionsLen := len(mvRegions)
-	mvRegionsPtr := make([]C.MVCandidate, mvRegionsLen)
+	mvRegionsPtr := []C.MVCandidate{}
 	for _, r := range mvRegions {
 		mvRegionsPtr = append(mvRegionsPtr, r.p)
 	}
-	mvCandidates := C.InvertMVCandidates((*C.MVCandidate)(&mvRegionsPtr[0]), C.int(mvRegionsLen))
+	mvCandidates := C.InvertMVCandidates(
+		(*C.MVCandidate)(&mvRegionsPtr[0]), C.int(mvRegionsLen))
 
 	C.Tracker_Push(t.p, (*C.MatWithCameraID)(&framesPtr[0]), C.int(length),
 		mvCandidates, C.ulonglong(timestamp))

@@ -18,7 +18,8 @@ type framesTrackerUDSF struct {
 	mvRegionsFieldName string
 }
 
-func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
+func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
+	w core.Writer) error {
 	frames, err := t.Data.Get(sf.framesFieldName)
 	if err != nil {
 		return err
@@ -94,7 +95,9 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Wr
 	return nil
 }
 
-func (sf *framesTrackerUDSF) convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) {
+func (sf *framesTrackerUDSF) convertToMatVecMap(frameArray data.Array) (
+	map[int]bridge.MatVec3b, error) {
+
 	matMap := map[int]bridge.MatVec3b{}
 	for _, f := range frameArray {
 		fMap, err := data.AsMap(f)
@@ -125,7 +128,9 @@ func (sf *framesTrackerUDSF) convertToMatVecMap(frameArray data.Array) (map[int]
 	return matMap, nil
 }
 
-func convertToMVCandidateSlice(mvRegionsArray data.Array) ([]bridge.MVCandidate, error) {
+func convertToMVCandidateSlice(mvRegionsArray data.Array) (
+	[]bridge.MVCandidate, error) {
+
 	mvCans := []bridge.MVCandidate{}
 	for _, r := range mvRegionsArray {
 		b, err := data.AsBlob(r)
@@ -141,10 +146,11 @@ func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerParam string,
-	instanceManagerParam string, stream string, framesFieldName string,
-	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string) (
-	udf.UDSF, error) {
+func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
+	trackerParam string, instanceManagerParam string, stream string,
+	framesFieldName string, cameraIDFieldName string, imageFieldname string,
+	mvRegionsFieldName string) (udf.UDSF, error) {
+
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "frame_tracker_stream",
 	}); err != nil {
@@ -156,7 +162,8 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer, trackerPa
 		return nil, err
 	}
 
-	instanceManagerState, err := lookupInstanceManagerParamState(ctx, instanceManagerParam)
+	instanceManagerState, err := lookupInstanceManagerParamState(
+		ctx, instanceManagerParam)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +203,7 @@ func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
 }
 
 func (c *FramesTrackerStreamFuncCreator) TypeName() string {
-	return "tracking"
+	return "multi_region_tracking"
 }
 
 func lookupTrackerParamState(ctx *core.Context, trackerParam string) (*TrackerParamState, error) {

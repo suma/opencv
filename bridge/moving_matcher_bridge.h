@@ -29,7 +29,8 @@ void MVCandidate_Delete(MVCandidate c);
 
 struct MVCandidates InvertMVCandidates(MVCandidate* obj, int length);
 void MVCandidates_Delete(struct MVCandidates mcCandidates);
-struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, float kThreshold);
+struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length,
+  float kThreshold);
 
 #ifdef __cplusplus
 }

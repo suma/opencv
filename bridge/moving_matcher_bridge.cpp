@@ -27,7 +27,8 @@ void MVCandidates_Delete(struct MVCandidates mvCandidates) {
   delete mvCandidates.mvCandidates;
 }
 
-struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length, float kThreshold) {
+struct MVCandidates MVOM_GetMatching(RegionsWithCameraID* regions, int length,
+    float kThreshold) {
   std::vector<std::vector<scouter::ObjectCandidate> > candidatez;
   for (int i = 0; i < length; ++i) {
     std::vector<scouter::ObjectCandidate> candidates;
