@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+typedef struct String {
+  const char* str;
+  int length;
+} String;
 struct ByteArray{
   char *data;
   int length;

@@ -58,7 +58,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
-	timestamp := time.Duration(t.Timestamp.UnixNano()) / time.Millisecond
+	timestamp := time.Duration(t.ProcTimestamp.UnixNano()) / time.Millisecond
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {

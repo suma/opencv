@@ -25,13 +25,17 @@ struct ByteArray InstanceState_Serialize(InstanceState s);
 InstanceState InstanceState_Deserialize(struct ByteArray src);
 void InstanceState_Delete(InstanceState s);
 
+struct InstanceStates InvertInstanceStates(InstanceState* obj, int length);
 void InstanceStates_Delete(struct InstanceStates instanceStates);
+String InstanceState_ToJSON(struct InstanceStates instanceStates, int floorID,
+  long long timestamp);
 
 InstanceManager InstanceManager_New(const char *config);
 void InstanceManager_Delete(InstanceManager instanceManager);
 
 void InstanceManager_Update(InstanceManager instanceManager, TrackingResult tr);
-struct InstanceStates InstanceManager_GetCurrentStates(InstanceManager instanceManager);
+struct InstanceStates InstanceManager_GetCurrentStates(
+  InstanceManager instanceManager);
 
 #ifdef __cplusplus
 }
