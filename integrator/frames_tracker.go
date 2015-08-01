@@ -84,6 +84,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 
 	if sf.tracker.Ready() {
 		tr := sf.tracker.Track(uint64(timestamp))
+		defer tr.Delete()
 		sf.instanceManager.Update(tr)
 
 		currentStates := sf.instanceManager.GetCurrentStates()
@@ -96,7 +97,6 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 				s.Delete()
 			}
 		}()
-		ctx.Log().Infof("tracking is completed:%d", len(currentStates))
 
 		traceCopyFlag := len(t.Trace) > 0
 		for _, s := range currentStates {

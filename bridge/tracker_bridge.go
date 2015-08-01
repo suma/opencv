@@ -31,6 +31,11 @@ type TrackingResult struct {
 	p C.TrackingResult
 }
 
+func (t *TrackingResult) Delete() {
+	C.TrackingResult_Delete(t.p)
+	t.p = nil
+}
+
 func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 	timestamp uint64) {
 	t.mu.Lock()
