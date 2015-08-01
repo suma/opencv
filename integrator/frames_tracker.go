@@ -10,8 +10,8 @@ import (
 )
 
 type framesTrackerUDSF struct {
-	tracker                   bridge.Tracker
-	instanceManager           bridge.InstanceManager
+	tracker                   *bridge.Tracker
+	instanceManager           *bridge.InstanceManager
 	instanceStatesIDFieldName string
 	framesFieldName           string
 	cameraIDFieldName         string
@@ -79,7 +79,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
-	timestamp := time.Duration(frameTime.UnixNano()) / time.Millisecond
+	timestamp := time.Duration(frameTime.UnixNano()) / time.Microsecond
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
@@ -88,7 +88,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 
 		currentStates := sf.instanceManager.GetCurrentStates()
 		if len(currentStates) <= 0 {
-			ctx.Log().Info("tracking current status is empty")
+			ctx.Log().Debug("tracking current status is empty")
 			return nil
 		}
 		defer func() {
@@ -105,7 +105,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 				"states_id":      isID,
 				"states_count":   data.Int(len(currentStates)),
 				"instance_state": data.Blob(s.Serialize()),
-				"timestamp":      data.Timestamp(frameTime),
+				"timestamp":      ts,
 			}
 			traces := []core.TraceEvent{}
 			if traceCopyFlag { // reduce copy cost when trace mode is off
@@ -200,8 +200,8 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	}
 
 	return &framesTrackerUDSF{
-		tracker:                   trackerState.t,
-		instanceManager:           instanceManagerState.m,
+		tracker:                   &trackerState.t,
+		instanceManager:           &instanceManagerState.m,
 		instanceStatesIDFieldName: instanceStatesIDFieldName,
 		framesFieldName:           framesFieldName,
 		cameraIDFieldName:         cameraIDFieldName,
