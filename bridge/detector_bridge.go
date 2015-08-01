@@ -181,10 +181,6 @@ func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
 	return MatVec3b{p: ret}
 }
 
-func (m *MatVec3b) DrawDetectionResultWithTags(candidate Candidate) {
-	C.Candidate_DrawTags(m.p, candidate.p)
-}
-
 func DrawDetectionResultWithTags(img MatVec3b, candidates []Candidate) MatVec3b {
 	l := len(candidates)
 	candidatePointer := convertCandidatesToPointer(candidates)

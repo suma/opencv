@@ -42,8 +42,10 @@ void Detector_UpdateCameraParameter(Detector detector, const char *config) {
   detector->update_camera_parameter(cp);
 }
 
-struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image, int offsetX, int offsetY) {
-  const std::vector<scouter::ObjectCandidate>& candidates = detector->acf_detect(*image, offsetX, offsetY);
+struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image,
+    int offsetX, int offsetY) {
+  const std::vector<scouter::ObjectCandidate>& candidates =
+    detector->acf_detect(*image, offsetX, offsetY);
   scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
     ret[i] = new scouter::ObjectCandidate(candidates[i]);
@@ -56,7 +58,8 @@ int Detector_FilterByMask(Detector detector, Candidate candidate) {
   return detector->filter_by_mask(*candidate) ? 0 : 1;
 }
 
-void Detector_EstimateHeight(Detector detector, Candidate candidate, int offsetX, int offsetY) {
+void Detector_EstimateHeight(Detector detector, Candidate candidate,
+    int offsetX, int offsetY) {
   detector->estimate_height(*candidate, offsetX, offsetY);
 }
 
@@ -65,7 +68,8 @@ void Detector_PutFeature(Detector detector, Candidate candidate, MatVec3b image)
 }
 
 MMDetector MMDetector_New(const char *config) {
-  const scouter::MultiModelDetector::Config& dc = load_json<scouter::MultiModelDetector::Config>(config);
+  const scouter::MultiModelDetector::Config& dc =
+    load_json<scouter::MultiModelDetector::Config>(config);
   return new scouter::MultiModelDetector(dc);
 }
 
@@ -78,8 +82,10 @@ void MMDetector_UpdateCameraParameter(MMDetector detector, const char *config) {
   detector->update_camera_parameter(cp);
 }
 
-struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image, int offsetX, int offsetY) {
-  const std::vector<scouter::ObjectCandidate>& candidates = detector->mm_detect(*image, offsetX, offsetY);
+struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image,
+    int offsetX, int offsetY) {
+  const std::vector<scouter::ObjectCandidate>& candidates =
+    detector->mm_detect(*image, offsetX, offsetY);
   scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
     ret[i] = new scouter::ObjectCandidate(candidates[i]);
@@ -92,7 +98,8 @@ int MMDetector_FilterByMask(MMDetector detector, Candidate candidate) {
   return detector->filter_by_mask(*candidate) ? 0 : 1;
 }
 
-void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate, int offsetX, int offsetY) {
+void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate,
+    int offsetX, int offsetY) {
   detector->estimate_height(*candidate, offsetX, offsetY);
 }
 
@@ -104,13 +111,6 @@ MatVec3b Candidates_Draw(MatVec3b image, Candidate* candidates, int length) {
     o.draw(*c, cv::Scalar(0, 0, 255), 2);
   }
   return c;
-}
-
-// this method does NOT preserve reference of tranceport.
-void Candidate_DrawTags(MatVec3b image, Candidate candidate) {
-  candidate->bbox.draw(*image, cv::Scalar(0, 0, 255), 1);
-  scouter::draw_tags(*image, candidate->tags, candidate->bbox.x1, candidate->bbox.y1,
-    cv::Scalar(255, 0, 0));
 }
 
 MatVec3b Candidates_DrawTags(MatVec3b image, Candidate* candidates, int length) {
