@@ -27,7 +27,7 @@ void InstanceStates_Delete(struct InstanceStates instanceStates) {
 }
 
 String InstanceState_ToJSON(struct InstanceStates instanceStates, int floorID,
-    long long timestamp) {
+    unsigned long long timestamp) {
   using pfi::text::json::json;
   using pfi::text::json::json_object;
   using pfi::text::json::json_array;

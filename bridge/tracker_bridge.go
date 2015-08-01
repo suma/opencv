@@ -7,11 +7,13 @@ package bridge
 */
 import "C"
 import (
+	"sync"
 	"unsafe"
 )
 
 type Tracker struct {
-	p C.Tracker
+	mu sync.RWMutex
+	p  C.Tracker
 }
 
 func NewTracker(config string) Tracker {
@@ -31,6 +33,8 @@ type TrackingResult struct {
 
 func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 	timestamp uint64) {
+	t.mu.Lock()
+	t.mu.Unlock()
 
 	length := len(frames)
 	framesPtr := []C.struct_MatWithCameraID{}
@@ -55,11 +59,17 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 }
 
 func (t *Tracker) Track(timestamp uint64) TrackingResult {
+	t.mu.Lock()
+	t.mu.Unlock()
+
 	tr := C.Tracker_Track(t.p, C.ulonglong(timestamp))
 	return TrackingResult{p: tr}
 }
 
 func (t *Tracker) Ready() bool {
+	t.mu.RLock()
+	t.mu.RUnlock()
+
 	ready := C.Tracker_Ready(t.p)
 	if int(ready) == 1 {
 		return true

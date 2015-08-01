@@ -70,14 +70,19 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 
 	if sf.tracker.Ready() {
 		tr := sf.tracker.Track(uint64(timestamp))
-		sf.instanceManager.Updaate(tr)
+		sf.instanceManager.Update(tr)
 
 		currentStates := sf.instanceManager.GetCurrentStates()
+		if len(currentStates) <= 0 {
+			ctx.Log().Info("tracking current status is empty")
+			return nil
+		}
 		defer func() {
 			for _, s := range currentStates {
 				s.Delete()
 			}
 		}()
+		ctx.Log().Infof("tracking is completed:%d", len(currentStates))
 
 		traceCopyFlag := len(t.Trace) > 0
 		for _, s := range currentStates {
@@ -218,7 +223,8 @@ func (c *FramesTrackerStreamFuncCreator) TypeName() string {
 	return "multi_region_tracking"
 }
 
-func lookupTrackerParamState(ctx *core.Context, trackerParam string) (*TrackerParamState, error) {
+func lookupTrackerParamState(ctx *core.Context, trackerParam string) (
+	*TrackerParamState, error) {
 	st, err := ctx.SharedStates.Get(trackerParam)
 	if err != nil {
 		return nil, err
@@ -227,7 +233,8 @@ func lookupTrackerParamState(ctx *core.Context, trackerParam string) (*TrackerPa
 	if s, ok := st.(*TrackerParamState); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to tracker_param.state", trackerParam)
+	return nil, fmt.Errorf(
+		"state '%v' cannot be converted to tracker_param.state", trackerParam)
 }
 
 func lookupInstanceManagerParamState(ctx *core.Context, instanceManagerParam string) (
@@ -240,6 +247,7 @@ func lookupInstanceManagerParamState(ctx *core.Context, instanceManagerParam str
 	if s, ok := st.(*InstanceManagerParamState); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to instance_manager_param.state",
+	return nil, fmt.Errorf(
+		"state '%v' cannot be converted to instance_manager_param.state",
 		instanceManagerParam)
 }

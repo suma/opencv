@@ -8,6 +8,7 @@ package bridge
 import "C"
 import (
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -48,7 +49,8 @@ func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
 }
 
 type InstanceManager struct {
-	p C.InstanceManager
+	mu sync.RWMutex
+	p  C.InstanceManager
 }
 
 func NewInstanceManager(config string) InstanceManager {
@@ -62,11 +64,17 @@ func (m *InstanceManager) Delete() {
 	m.p = nil
 }
 
-func (m *InstanceManager) Updaate(tr TrackingResult) {
+func (m *InstanceManager) Update(tr TrackingResult) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	C.InstanceManager_Update(m.p, tr.p)
 }
 
 func (m *InstanceManager) GetCurrentStates() []InstanceState {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	currentStates := C.InstanceManager_GetCurrentStates(m.p)
 	defer C.InstanceStates_Delete(currentStates)
 

@@ -28,7 +28,7 @@ void InstanceState_Delete(InstanceState s);
 struct InstanceStates InvertInstanceStates(InstanceState* obj, int length);
 void InstanceStates_Delete(struct InstanceStates instanceStates);
 String InstanceState_ToJSON(struct InstanceStates instanceStates, int floorID,
-  long long timestamp);
+  unsigned long long timestamp);
 
 InstanceManager InstanceManager_New(const char *config);
 void InstanceManager_Delete(InstanceManager instanceManager);
