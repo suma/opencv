@@ -145,11 +145,12 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 			continue
 		}
 
-		var m = data.Map{
-			"capture":  data.Blob(buf.Serialize()),
-			"cameraID": data.Int(c.cameraID),
-		}
 		now := time.Now()
+		var m = data.Map{
+			"capture":   data.Blob(buf.Serialize()),
+			"cameraID":  data.Int(c.cameraID),
+			"timestamp": data.Timestamp(now),
+		}
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,

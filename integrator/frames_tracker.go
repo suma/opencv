@@ -17,16 +17,29 @@ type framesTrackerUDSF struct {
 	cameraIDFieldName         string
 	imageFieldName            string
 	mvRegionsFieldName        string
+	timestampFieldName        string
 }
 
 func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 	w core.Writer) error {
 
+	// instance id
 	isID, err := t.Data.Get(sf.instanceStatesIDFieldName)
 	if err != nil {
 		return err
 	}
 
+	// timestamp
+	ts, err := t.Data.Get(sf.timestampFieldName)
+	if err != nil {
+		return err
+	}
+	frameTime, err := data.AsTimestamp(ts)
+	if err != nil {
+		return err
+	}
+
+	// multi place frames
 	frames, err := t.Data.Get(sf.framesFieldName)
 	if err != nil {
 		return err
@@ -46,6 +59,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
+	// moving detection result
 	mvRegions, err := t.Data.Get(sf.mvRegionsFieldName)
 	if err != nil {
 		return err
@@ -65,7 +79,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
-	timestamp := time.Duration(t.ProcTimestamp.UnixNano()) / time.Millisecond
+	timestamp := time.Duration(frameTime.UnixNano()) / time.Millisecond
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
@@ -91,6 +105,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 				"states_id":      isID,
 				"states_count":   data.Int(len(currentStates)),
 				"instance_state": data.Blob(s.Serialize()),
+				"timestamp":      data.Timestamp(frameTime),
 			}
 			traces := []core.TraceEvent{}
 			if traceCopyFlag { // reduce copy cost when trace mode is off
@@ -163,7 +178,8 @@ func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	trackerParam string, instanceManagerParam string, stream string,
 	instanceStatesIDFieldName string, framesFieldName string,
-	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string) (
+	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string,
+	timestampFieldName string) (
 	udf.UDSF, error) {
 
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
@@ -191,6 +207,7 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 		cameraIDFieldName:         cameraIDFieldName,
 		imageFieldName:            imageFieldname,
 		mvRegionsFieldName:        mvRegionsFieldName,
+		timestampFieldName:        timestampFieldName,
 	}, nil
 }
 
@@ -213,7 +230,8 @@ type FramesTrackerStreamFuncCreator struct{}
 //        "imageFiledname"   : [image data] (data.Blob),
 //      }
 //    },
-//    "mvRegionsFieldName": [moving matched detection result] ([]data.Blob)
+//    "mvRegionsFieldName": [moving matched detection result] ([]data.Blob),
+//    "timestampFieldName": [frame captured time] (data.Timestamp)
 //  }
 func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createFramesTrackerUDSF

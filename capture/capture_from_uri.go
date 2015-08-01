@@ -99,13 +99,16 @@ type captureFromURI struct {
 }
 
 // GenerateStream streams video capture datum. OpenCV video capture read
-// frames from URI, user can control frame streaming frequency use
+// frames from URI, user can control frame streaming frequency using
 // FrameSkip.
 //
-// When a capture source is a file-style (e.g. AVI file) and complete to read
-// all frames, video capture cannot read a new frame. User can determine to
-// occur an error or not to set "next_frame_error". User can also count total
-// frame to confirm complete of read file. The number of count is logged.
+// When a capture source is a file-style (e.g. AVI file), a "timestamp" value is
+// NOT correspond with the file created time. The "timestamp" value is the time
+// of this source capturing a new frame.
+// And when complete to read the file's all frames, video capture cannot read a
+// new frame. If the key "next_frame_error" set `false` then a no new frame
+// error will not be occurred, User can also count the number of total frame to
+// confirm complete of read file. The number of count is logged.
 func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
 	if atomic.LoadInt32(&(c.stop)) == 0 {
 		atomic.StoreInt32(&(c.stop), int32(1))
@@ -140,11 +143,12 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			c.vcap.Grab(int(c.frameSkip))
 		}
 
+		now := time.Now()
 		var m = data.Map{
 			"capture":   data.Blob(buf.Serialize()),
 			"camera_id": data.Int(c.cameraID),
+			"timestamp": data.Timestamp(now),
 		}
-		now := time.Now()
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,
