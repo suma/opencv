@@ -45,6 +45,7 @@ func init() {
 		&recog.ImageTaggerCaffeParamState{},
 		&integrator.TrackerParamState{},
 		&integrator.InstanceManagerParamState{},
+		&integrator.InstancesVisualizerParamState{},
 	}
 	for _, s := range states {
 		udf.MustRegisterGlobalUDSCreator(s.TypeName(),
@@ -72,6 +73,7 @@ func init() {
 		&recog.DrawDeteciontResultFuncCreator{},
 		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
 		&integrator.InstanceStateConverterUDFCreator{},
+		&integrator.InstancesVisualizerFuncCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),
