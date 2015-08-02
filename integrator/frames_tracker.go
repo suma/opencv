@@ -11,7 +11,6 @@ import (
 
 type framesTrackerUDSF struct {
 	tracker                   *bridge.Tracker
-	instanceManager           *bridge.InstanceManager
 	instanceStatesIDFieldName string
 	framesFieldName           string
 	cameraIDFieldName         string
@@ -83,29 +82,20 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
-		tr := sf.tracker.Track()
-		defer tr.Delete()
-		sf.instanceManager.Update(tr)
-
-		currentStates := sf.instanceManager.GetCurrentStates()
-		if len(currentStates) <= 0 {
-			ctx.Log().Debug("tracking current status is empty")
-			return nil
-		}
-		defer func() {
-			for _, s := range currentStates {
-				s.Delete()
-			}
-		}()
+		trs := sf.tracker.Track()
 
 		traceCopyFlag := len(t.Trace) > 0
-		for _, s := range currentStates {
+		for _, trackee := range trs {
+			defer trackee.MVCandidate.Delete()
+
 			now := time.Now()
 			m := data.Map{
-				"states_id":      isID,
-				"states_count":   data.Int(len(currentStates)),
-				"instance_state": data.Blob(s.Serialize()),
-				"timestamp":      ts,
+				"states_id":       isID,
+				"trackee_count":   data.Int(len(trs)),
+				"color_id":        data.Int(trackee.ColorID),
+				"moving_detected": data.Blob(trackee.MVCandidate.Serialize()),
+				"interpolated":    data.Bool(trackee.Interpolated),
+				"timestamp":       data.Int(trackee.Timestamp),
 			}
 			traces := []core.TraceEvent{}
 			if traceCopyFlag { // reduce copy cost when trace mode is off
@@ -176,7 +166,7 @@ func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 }
 
 func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
-	trackerParam string, instanceManagerParam string, stream string,
+	trackerParam string, stream string,
 	instanceStatesIDFieldName string, framesFieldName string,
 	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string,
 	timestampFieldName string) (
@@ -193,15 +183,8 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 		return nil, err
 	}
 
-	instanceManagerState, err := lookupInstanceManagerParamState(
-		ctx, instanceManagerParam)
-	if err != nil {
-		return nil, err
-	}
-
 	return &framesTrackerUDSF{
 		tracker:                   &trackerState.t,
-		instanceManager:           &instanceManagerState.m,
 		instanceStatesIDFieldName: instanceStatesIDFieldName,
 		framesFieldName:           framesFieldName,
 		cameraIDFieldName:         cameraIDFieldName,

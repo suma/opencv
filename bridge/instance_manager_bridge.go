@@ -64,12 +64,14 @@ func (m *InstanceManager) Delete() {
 	m.p = nil
 }
 
+/*
 func (m *InstanceManager) Update(tr TrackingResult) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	C.InstanceManager_Update(m.p, tr.p)
 }
+*/
 
 func (m *InstanceManager) GetCurrentStates() []InstanceState {
 	m.mu.RLock()

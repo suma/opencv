@@ -73,7 +73,7 @@ void InstanceManager_Delete(InstanceManager instanceManager) {
 }
 
 void InstanceManager_Update(InstanceManager instanceManager, TrackingResult tr) {
-  instanceManager->update(*tr);
+  //instanceManager->update(*tr);
 }
 
 struct InstanceStates InstanceManager_GetCurrentStates(

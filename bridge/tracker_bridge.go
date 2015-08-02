@@ -7,6 +7,7 @@ package bridge
 */
 import "C"
 import (
+	"reflect"
 	"sync"
 	"unsafe"
 )
@@ -27,13 +28,11 @@ func (t *Tracker) Delete() {
 	t.p = nil
 }
 
-type TrackingResult struct {
-	p C.TrackingResult
-}
-
-func (t *TrackingResult) Delete() {
-	C.TrackingResult_Delete(t.p)
-	t.p = nil
+type Trackee struct {
+	ColorID      int
+	MVCandidate  MVCandidate
+	Interpolated bool
+	Timestamp    uint64 // should placed in TrackingResult
 }
 
 func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
@@ -63,12 +62,31 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 		mvCandidates, C.ulonglong(timestamp))
 }
 
-func (t *Tracker) Track() TrackingResult {
+func (t *Tracker) Track() []Trackee {
 	t.mu.Lock()
 	t.mu.Unlock()
 
 	tr := C.Tracker_Track(t.p)
-	return TrackingResult{p: tr}
+	defer C.TrackingResult_Delete(tr)
+
+	var cArray *C.Trackee = tr.trackees
+	length := int(tr.length)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cArray)),
+		Len:  length,
+		Cap:  length,
+	}
+	goSlice := *(*[]C.Trackee)(unsafe.Pointer(&hdr))
+	trs := make([]Trackee, length)
+	for i, t := range goSlice {
+		trs[i] = Trackee{
+			ColorID:      int(t.colorID),
+			MVCandidate:  MVCandidate{p: t.mvCandidate},
+			Interpolated: int(t.interpolated) != 0,
+			Timestamp:    uint64(tr.timestamp),
+		}
+	}
+	return trs
 }
 
 func (t *Tracker) Ready() bool {

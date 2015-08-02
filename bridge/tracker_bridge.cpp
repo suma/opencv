@@ -12,7 +12,7 @@ void Tracker_Delete(Tracker tracker) {
 }
 
 void TrackingResult_Delete(TrackingResult trackingResult) {
-  delete trackingResult;
+  delete trackingResult.trackees;
 }
 
 void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
@@ -30,9 +30,21 @@ void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
   tracker->push(ret, mvCans, timestamp);
 }
 
-TrackingResult Tracker_Track(Tracker tracker) {
-  scouter::TrackingResult ret = tracker->track();
-  return new scouter::TrackingResult(ret);
+struct TrackingResult Tracker_Track(Tracker tracker) {
+  const scouter::TrackingResult& ret = tracker->track();
+
+  int length = int(ret.trackees.size());
+  struct Trackee* trackees = new Trackee[length];
+  for (int i = 0; i < length; ++i) {
+    const scouter::Trackee& t = ret.trackees[i];
+    scouter::MVObjectCandidate* o = new scouter::MVObjectCandidate(t.object);
+    int interpolated = t.interpolated ? 1 : 0;
+    Trackee trackee = {t.id, o, interpolated};
+    trackees[i] = trackee;
+  }
+
+  struct TrackingResult tr = {trackees, length, ret.timestamp};
+  return tr;
 }
 
 int Tracker_Ready(Tracker tracker) {
