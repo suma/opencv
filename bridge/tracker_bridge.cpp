@@ -30,8 +30,8 @@ void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
   tracker->push(ret, mvCans, timestamp);
 }
 
-TrackingResult Tracker_Track(Tracker tracker, unsigned long long timestamp) {
-  scouter::TrackingResult ret = tracker->track(timestamp);
+TrackingResult Tracker_Track(Tracker tracker) {
+  scouter::TrackingResult ret = tracker->track();
   return new scouter::TrackingResult(ret);
 }
 

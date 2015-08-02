@@ -28,7 +28,7 @@ void TrackingResult_Delete(TrackingResult trackingResult);
 
 void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
   struct MVCandidates mvCandidates, unsigned long long timestamp);
-TrackingResult Tracker_Track(Tracker tracker, unsigned long long timestamp);
+TrackingResult Tracker_Track(Tracker tracker);
 int Tracker_Ready(Tracker tracker);
 
 #ifdef __cplusplus

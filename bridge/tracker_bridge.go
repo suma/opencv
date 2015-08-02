@@ -63,11 +63,11 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 		mvCandidates, C.ulonglong(timestamp))
 }
 
-func (t *Tracker) Track(timestamp uint64) TrackingResult {
+func (t *Tracker) Track() TrackingResult {
 	t.mu.Lock()
 	t.mu.Unlock()
 
-	tr := C.Tracker_Track(t.p, C.ulonglong(timestamp))
+	tr := C.Tracker_Track(t.p)
 	return TrackingResult{p: tr}
 }
 

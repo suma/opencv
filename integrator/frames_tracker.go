@@ -83,7 +83,7 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
-		tr := sf.tracker.Track(uint64(timestamp))
+		tr := sf.tracker.Track()
 		defer tr.Delete()
 		sf.instanceManager.Update(tr)
 
