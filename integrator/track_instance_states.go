@@ -158,10 +158,10 @@ func (sf *trackInstanceStatesUDSF) Process(ctx *core.Context, t *core.Tuple,
 	for _, state := range states {
 		now := time.Now()
 		m := data.Map{
-			"states_id":   isID,
-			"state_count": data.Int(len(states)),
-			"state":       data.Blob(state.Serialize()),
-			"timestamp":   ts,
+			"states_id":    isID,
+			"states_count": data.Int(len(states)),
+			"state":        data.Blob(state.Serialize()),
+			"timestamp":    ts,
 		}
 		traces := []core.TraceEvent{}
 		if traceCopyFlag {

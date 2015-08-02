@@ -4,7 +4,6 @@ import (
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-	"time"
 )
 
 type InstanceStateConverterUDFCreator struct{}
@@ -15,7 +14,7 @@ type InstanceStateConverterUDFCreator struct{}
 //  `convert_instance_states_to_json(states, floorID, timestamp)`
 //    states   : instance state array (`[]data.Blob`)
 //    floorID  : floor id (`data.Int`)
-//    timestamp: timestamp (`data.Timestamp`)
+//    timestamp: timestamp[us] (`data.Int`) = uint64
 func (c *InstanceStateConverterUDFCreator) CreateFunction() interface{} {
 	return convertInstanceStatesToJSON
 }
@@ -25,15 +24,14 @@ func (c *InstanceStateConverterUDFCreator) TypeName() string {
 }
 
 func convertInstanceStatesToJSON(ctx *core.Context, states data.Array,
-	floorID int, timestamp time.Time) (string, error) {
+	floorID int, timestamp int) (string, error) {
 
 	iss, err := convertToCStates(states)
 	if err != nil {
 		return "", err
 	}
 
-	ts := time.Duration(timestamp.UnixNano()) / time.Millisecond
-	json := bridge.ConvertInstanceStatesToJSON(iss, floorID, uint64(ts))
+	json := bridge.ConvertInstanceStatesToJSON(iss, floorID, uint64(timestamp))
 
 	return json, nil
 }
