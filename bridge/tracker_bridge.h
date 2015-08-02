@@ -19,7 +19,7 @@ typedef struct MatWithCameraID {
   MatVec3b mat;
 } MatWithCameraID;
 typedef struct Trackee {
-  int colorID;
+  unsigned long long colorID;
   MVCandidate mvCandidate;
   int interpolated;
 } Trackee;

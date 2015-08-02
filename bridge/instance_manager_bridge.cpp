@@ -1,5 +1,6 @@
 #include "instance_manager_bridge.h"
 #include "util.hpp"
+#include <scouter-core/tracking_result.hpp>
 
 struct ByteArray InstanceState_Serialize(InstanceState s) {
   return serializeObject(*s);
@@ -72,8 +73,23 @@ void InstanceManager_Delete(InstanceManager instanceManager) {
   delete instanceManager;
 }
 
-void InstanceManager_Update(InstanceManager instanceManager, TrackingResult tr) {
-  //instanceManager->update(*tr);
+void InstanceManager_Update(InstanceManager instanceManager,
+    struct MatWithCameraID* frames, int fLength, struct Trackee* trackees,
+    int tLength, unsigned long long timestamp) {
+  scouter::MatMapPtr frameMap(new scouter::MatMap);
+  for (int i = 0; i < fLength; ++i) {
+    frameMap->insert(std::make_pair(frames[i].cameraID, *(frames[i].mat)));
+  }
+
+  scouter::TrackingResult ret(timestamp, frameMap);
+  for (int i = 0; i < tLength; ++i) {
+    const Trackee& t = trackees[i];
+    scouter::Trackee trackee = {t.colorID, *(t.mvCandidate), t.interpolated != 0,
+      frameMap};
+    ret.trackees.push_back(trackee);
+  }
+
+  instanceManager->update(ret);
 }
 
 struct InstanceStates InstanceManager_GetCurrentStates(

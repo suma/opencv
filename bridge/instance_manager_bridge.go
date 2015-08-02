@@ -64,14 +64,42 @@ func (m *InstanceManager) Delete() {
 	m.p = nil
 }
 
-/*
-func (m *InstanceManager) Update(tr TrackingResult) {
+func (m *InstanceManager) Update(frames map[int]MatVec3b, trackees []Trackee,
+	timestamp uint64) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	C.InstanceManager_Update(m.p, tr.p)
+	fLength := len(frames)
+	framesPtr := []C.struct_MatWithCameraID{}
+	for k, v := range frames {
+		matWithID := C.struct_MatWithCameraID{
+			cameraID: C.int(k),
+			mat:      v.p,
+		}
+		framesPtr = append(framesPtr, matWithID)
+	}
+
+	tLength := len(trackees)
+	trs := []C.struct_Trackee{}
+	for _, t := range trackees {
+		var interpo int
+		if t.Interpolated {
+			interpo = 1
+		} else {
+			interpo = 0
+		}
+		trackee := C.struct_Trackee{
+			colorID:      C.ulonglong(t.ColorID),
+			mvCandidate:  t.MVCandidate.p,
+			interpolated: C.int(interpo),
+		}
+
+		trs = append(trs, trackee)
+	}
+	C.InstanceManager_Update(m.p, (*C.MatWithCameraID)(&framesPtr[0]),
+		C.int(fLength), (*C.Trackee)(&trs[0]), C.int(tLength),
+		C.ulonglong(timestamp))
 }
-*/
 
 func (m *InstanceManager) GetCurrentStates() []InstanceState {
 	m.mu.RLock()

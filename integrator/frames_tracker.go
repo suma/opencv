@@ -83,11 +83,14 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 
 	if sf.tracker.Ready() {
 		trs := sf.tracker.Track()
+		defer func() {
+			for _, tr := range trs {
+				tr.MVCandidate.Delete()
+			}
+		}()
 
 		traceCopyFlag := len(t.Trace) > 0
 		for _, trackee := range trs {
-			defer trackee.MVCandidate.Delete()
-
 			now := time.Now()
 			m := data.Map{
 				"states_id":       isID,
@@ -169,8 +172,7 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	trackerParam string, stream string,
 	instanceStatesIDFieldName string, framesFieldName string,
 	cameraIDFieldName string, imageFieldname string, mvRegionsFieldName string,
-	timestampFieldName string) (
-	udf.UDSF, error) {
+	timestampFieldName string) (udf.UDSF, error) {
 
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "frame_tracker_stream",
@@ -236,19 +238,4 @@ func lookupTrackerParamState(ctx *core.Context, trackerParam string) (
 	}
 	return nil, fmt.Errorf(
 		"state '%v' cannot be converted to tracker_param.state", trackerParam)
-}
-
-func lookupInstanceManagerParamState(ctx *core.Context, instanceManagerParam string) (
-	*InstanceManagerParamState, error) {
-	st, err := ctx.SharedStates.Get(instanceManagerParam)
-	if err != nil {
-		return nil, err
-	}
-
-	if s, ok := st.(*InstanceManagerParamState); ok {
-		return s, nil
-	}
-	return nil, fmt.Errorf(
-		"state '%v' cannot be converted to instance_manager_param.state",
-		instanceManagerParam)
 }

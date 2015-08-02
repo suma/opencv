@@ -29,7 +29,7 @@ func (t *Tracker) Delete() {
 }
 
 type Trackee struct {
-	ColorID      int
+	ColorID      uint64
 	MVCandidate  MVCandidate
 	Interpolated bool
 	Timestamp    uint64 // should placed in TrackingResult
@@ -38,7 +38,7 @@ type Trackee struct {
 func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 	timestamp uint64) {
 	t.mu.Lock()
-	t.mu.Unlock()
+	defer t.mu.Unlock()
 
 	length := len(frames)
 	framesPtr := []C.struct_MatWithCameraID{}
@@ -64,7 +64,7 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 
 func (t *Tracker) Track() []Trackee {
 	t.mu.Lock()
-	t.mu.Unlock()
+	defer t.mu.Unlock()
 
 	tr := C.Tracker_Track(t.p)
 	defer C.TrackingResult_Delete(tr)
@@ -80,7 +80,7 @@ func (t *Tracker) Track() []Trackee {
 	trs := make([]Trackee, length)
 	for i, t := range goSlice {
 		trs[i] = Trackee{
-			ColorID:      int(t.colorID),
+			ColorID:      uint64(t.colorID),
 			MVCandidate:  MVCandidate{p: t.mvCandidate},
 			Interpolated: int(t.interpolated) != 0,
 			Timestamp:    uint64(tr.timestamp),
@@ -91,7 +91,7 @@ func (t *Tracker) Track() []Trackee {
 
 func (t *Tracker) Ready() bool {
 	t.mu.RLock()
-	t.mu.RUnlock()
+	defer t.mu.RUnlock()
 
 	ready := C.Tracker_Ready(t.p)
 	if int(ready) == 1 {
