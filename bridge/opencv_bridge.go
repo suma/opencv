@@ -34,9 +34,9 @@ func (m *MatVec3b) Serialize() []byte {
 }
 
 func convertMatVec3bsToPointer(mats []MatVec3b) []C.MatVec3b {
-	imgPointers := []C.MatVec3b{}
-	for _, img := range mats {
-		imgPointers = append(imgPointers, img.p)
+	imgPointers := make([]C.MatVec3b, len(mats))
+	for i, img := range mats {
+		imgPointers[i] = img.p
 	}
 	return imgPointers
 }
