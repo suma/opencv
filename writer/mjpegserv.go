@@ -19,13 +19,17 @@ type MJPEGServCreator struct{}
 // through HTTP access.
 //
 // Usage of WITH parameters:
-//  port   : a port number, default port is 10090
-//  quality: the quality of converting JPEG file, if empty then set 50
+//  port:    A port number, default port is 10090.
+//  quality: The quality of converting JPEG file, if empty then set 50.
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK mjpeg_moniter TYPE mjpeg_server WITH port=8080`
-//  then the sink addressed http://localhost:8080/video/foo/
+//    `CREATE SINK mjpeg_moniter TYPE scouter_mjpeg_server WITH port=8080`
+//  then the sink addressed http://localhost:8080/video/foo/ (Address of "foo"
+//  will be decided by `INSERT` query.)
+//
+// A created AVI file can not be opened until this sink is dropped or SensorBee
+// process is down.
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
@@ -60,7 +64,7 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 }
 
 func (m *MJPEGServCreator) TypeName() string {
-	return "mjpeg_server"
+	return "scouter_mjpeg_server"
 }
 
 type inputData struct {
@@ -76,11 +80,11 @@ type mjpegServ struct {
 	inChan  chan inputData
 }
 
-// Write loads images to a server which have started when sink creation.
+// Write input images to a server which have started when sink creation.
 // Input tuple is required to have follow `data.Map`
 //
 //  data.Map{
-//    "name": [access category name] (will be casted `data.ToString`),
+//    "name": [access category name] (will be casted to string type)
 //    "img" : [image binary data] (`data.Blob`)
 //  }
 //
@@ -92,8 +96,10 @@ type mjpegServ struct {
 //    FROM detected_frame @RANGE 1 TUPLES];
 //  ```
 // then URI will be
-//  http://localhot:8080/video/camera1_detection
-//  http://localhot:8080/snapshot/camera1_detection
+//  * http://localhot:8080/video/camera1_detection
+//    Users can watch images, which updated automatically.
+//  * http://localhot:8080/snapshot/camera1_detection
+//    Users can see a snapshot image.
 func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {

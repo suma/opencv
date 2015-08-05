@@ -25,7 +25,7 @@ func (c *CaptureFromURICreator) TypeName() string {
 //  frame_skip:       The number of frame skip, if set empty or "0" then read
 //                    all frames. FPS is depended on the URI's file (or device).
 //  camera_id:        The unique ID of this source if set empty then the ID will
-//                    be 0
+//                    be 0.
 //  next_frame_error: When this source cannot read a new frame, occur error or
 //                    not decided by the flag. If the flag set `true` then
 //                    return error. Default value is true.
@@ -105,7 +105,7 @@ type captureFromURI struct {
 //
 // Output:
 //  capture:   The frame image binary data ('data.Blob'), serialized from
-//             opencv's matrix data format (`cv::Mat_<cv::Vec3b>`).
+//             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
 //  camera_id: The camera ID.
 //  timestamp: The timestamp of capturing. (reed below details)
 //

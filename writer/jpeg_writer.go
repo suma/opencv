@@ -16,15 +16,18 @@ type JPEGWriterCreator struct{}
 
 // CreateSink creates a JPEG output sink, which output converted JPEG from
 // `cv::Mat_<cv::Vec3b>`.
+//
 // Usage of WITH parameters:
-//  output:  output directory, if empty then files are output to the current
-//           directory.
-//  quality: the quality of conversion, if empty then set 50
+//  output:  Output directory, If empty then files are output to the current
+//           directory. If the directory is not exist, this sink will make the
+//           output directory. Returns an error when the sink could not make it.
+//  quality: The quality of converting JPEG file, if empty then set 50.
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK jpeg_files TYPE jpeg_writer WITH output='temp', quality=50`
-//  then JPEG files are output to "temp" directory.
+//    `CREATE SINK jpeg_files TYPE scouter_jpeg_writer
+//      WITH output='temp', quality=50`
+//  then will create JPEG files and output to "./temp" directory.
 func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
@@ -62,7 +65,7 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 }
 
 func (c *JPEGWriterCreator) TypeName() string {
-	return "jpeg_writer"
+	return "scouter_jpeg_writer"
 }
 
 type jpegWriterSink struct {
@@ -70,21 +73,22 @@ type jpegWriterSink struct {
 	jpegQuality int
 }
 
-// Write outputs JPEG files to the directory which is set `WITH` "output"
+// Write input JPEG files to the directory which is set `WITH` "output"
 // parameter. Input tuple is required to have follow `data.Map`
 //
 //  data.Map{
-//    "name": [output file name] (`data.String`),
-//    "img" : [image binary data] (`data.Blob`),
+//    "name": [output file name] (will be casted to string type)
+//    "img" : [image binary data] (`data.Blob`)
 //  }
 //
 // Example of insertion query:
 //  ```
 //  INSERT INTO jpeg_files SELECT ISTREAM
 //    frame_data AS img,
-//    'camera1' AS name
+//    frame_id AS name
 //    FROM capturing_frame [RANGE 1 TUPLES];
 //  ```
+// then [frame_id].jpg will be created at the directory.
 func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 	name, err := t.Data.Get("name")
 	if err != nil {

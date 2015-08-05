@@ -13,19 +13,20 @@ import (
 // VideoWiterCreator is a creator of VideoWriter.
 type VideoWiterCreator struct{}
 
-// CreateSink creates a AVI Video writer sink, which outputs video file adding
-// image datum.
+// CreateSink creates a AVI Video writer sink, which outputs video file with
+// input image data.
 //
 // Usage of WITH parameters:
-//  file_name: [required] AVI filename
-//  fps      : FPS, if empty then set 1.0
-//  width    : width of output video file, if empty then set 480
-//  height   : height of output video file, if empty then set 320
+//  file_name: [required] AVI filename, will be created [file_name].avi.
+//  fps:       FPS, if empty then set 1.0.
+//  width:     Width of output video file, if empty then set 480.
+//  height:    Height of output video file, if empty then set 320.
 //
 // Example:
 //  when a creation query is
-//    `CREATE SINK sample_avi TYPE avi_video_writer WITH file_name='video/sample';`
-//  then video/sample.avi will be created.
+//    `CREATE SINK sample_avi TYPE scouter_avi_writer
+//      WITH file_name='video/sample';`
+//  then sample.avi will be created at "./video" directory.
 func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
@@ -88,21 +89,23 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 }
 
 func (c *VideoWiterCreator) TypeName() string {
-	return "avi_video_writer"
+	return "scouter_avi_writer"
 }
 
 type videoWriterSink struct {
 	vw bridge.VideoWriter
 }
 
-// Writer add images to a video file which have been created when the sink is
-// created. Input tuples are required to set cv::Mat_<cv::Vec3b> data at "img"
-// key in tuple's map.
+// Write input images and add to a video file which have been created when the
+// sink is created. Input image binary is required to be serialized from
+// `cv::Mat_<cv::Vec3b>` type.
 //
 // Example of insertion query:
-//  INSERT INTO simple_avi SELECT ISTREAM
+//  ```
+//  INSERT INTO sample_avi SELECT ISTREAM
 //    captured_frame AS img
 //    FROM capturing_frames [RANGE 1 TUPLES];
+//  ```
 func (s *videoWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 	img, err := t.Data.Get("img")
 	if err != nil {

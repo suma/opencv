@@ -83,7 +83,7 @@ CREATE STREAM tagging_regions AS SELECT ISTREAM
 
 ```sql
 -- video stream on browser
-CREATE SINK mjpeg_server TYPE mjpeg_server WITH port=8091;
+CREATE SINK mjpeg_server TYPE scouter_mjpeg_server WITH port=8091;
 -- addressed with http://localhost:8091/video/recognize
 INSERT INTO mjpeg_server SELECT ISTREAM
     draw_detection_result_with_tags(tr:img, tr:regions) AS img,
@@ -95,7 +95,7 @@ INSERT INTO mjpeg_server SELECT ISTREAM
 
 ```sql
 -- make AVI-style video file, created in "./video/recognize" directory
-CREATE SINK recognized_avi TYPE avi_video_writer WITH file_name='video/recognize',
+CREATE SINK recognized_avi TYPE scouter_avi_writer WITH file_name='video/recognize',
     fps=5, width=1920, height=1080;
 INSERT INTO recognized_avi SELECT ISTREAM
     draw_detection_result_with_tags(tr:img, tr:regions) AS img
