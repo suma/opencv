@@ -42,7 +42,7 @@ more details or other Sources / UDSs / UDFs / UDSFs / Sinks are written in wiki 
 
 ```sql
 -- capturing
-CREATE PAUSED SOURCE camera1_avi TYPE capture_from_uri WITH
+CREATE PAUSED SOURCE camera1_avi TYPE scouter_capture_from_uri WITH
     uri='video/camera1.avi',
     frame_skip=4, next_frame_error=false;
 

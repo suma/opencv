@@ -14,22 +14,23 @@ import (
 type CaptureFromURICreator struct{}
 
 func (c *CaptureFromURICreator) TypeName() string {
-	return "capture_from_uri"
+	return "scouter_capture_from_uri"
 }
 
 // CreateSource creates a frame generator using OpenCV video capture.
 // URI can be set HTTP address or file path.
 //
 // Usage of WITH parameters:
-//  uri:              [required] a capture data's URI (e.g. /data/test.avi)
-//  frame_skip:       the number of frame skip, if set empty or "0"
-//                    then read all frames
-//  camera_id:        the unique ID of this source if set empty then the ID will be 0
-//  next_frame_error: when this source cannot read a new frame, occur error or not
-//                    decided by the flag. if the flag set `true` then return error.
-//                    default parameter is true.
-func (c *CaptureFromURICreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
-	params data.Map) (core.Source, error) {
+//  uri:              [required] A capture data's URI (e.g. /data/test.avi).
+//  frame_skip:       The number of frame skip, if set empty or "0" then read
+//                    all frames. FPS is depended on the URI's file (or device).
+//  camera_id:        The unique ID of this source if set empty then the ID will
+//                    be 0
+//  next_frame_error: When this source cannot read a new frame, occur error or
+//                    not decided by the flag. If the flag set `true` then
+//                    return error. Default value is true.
+func (c *CaptureFromURICreator) CreateSource(ctx *core.Context,
+	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
 	cs, err := createCaptureFromURI(ctx, ioParams, params)
 	if err != nil {
@@ -100,7 +101,13 @@ type captureFromURI struct {
 
 // GenerateStream streams video capture datum. OpenCV video capture read
 // frames from URI, user can control frame streaming frequency using
-// FrameSkip.
+// FrameSkip.This source is rewindable.
+//
+// Output:
+//  capture:   The frame image binary data ('data.Blob'), serialized from
+//             opencv's matrix data format (`cv::Mat_<cv::Vec3b>`).
+//  camera_id: The camera ID.
+//  timestamp: The timestamp of capturing. (reed below details)
 //
 // When a capture source is a file-style (e.g. AVI file), a "timestamp" value is
 // NOT correspond with the file created time. The "timestamp" value is the time

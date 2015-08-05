@@ -14,17 +14,18 @@ import (
 type CaptureFromDeviceCreator struct{}
 
 func (c *CaptureFromDeviceCreator) TypeName() string {
-	return "capture_from_device"
+	return "scouter_capture_from_device"
 }
 
-// CreateSource creates a frame generator using OpenCV video capture.
+// CreateSource creates a frame generator using OpenCV video capture
+// (`VideoCapture::open).
 //
 // Usage of WITH parameters:
-//  device_id: [required] the ID of associated device
-//  width:     frame width, if set empty or "0" then will be ignore
-//  height:    frame height, if set empty or "0" then will be ignore
-//  fps:       frame per second, if set empty or "0" then will be ignore
-//  camera_id: the unique ID of this source if set empty then the ID will be 0
+//  device_id: [required] The ID of associated device.
+//  width:     Frame width, if set empty or "0" then will be ignore.
+//  height:    Frame height, if set empty or "0" then will be ignore.
+//  fps:       Frame per second, if set empty or "0" then will be ignore.
+//  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
 	did, err := params.Get("device_id")
@@ -94,6 +95,12 @@ type captureFromDevice struct {
 
 // GenerateStream streams video capture datum. OpenCV parameters
 // (e.g width, height...) are set when the source is initialized.
+//
+// Output:
+//  capture:   The frame image binary data ('data.Blob'), serialized from
+//             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
+//  camera_id: The camera ID.
+//  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
 	c.vcap = bridge.NewVideoCapture()
 	if ok := c.vcap.OpenDevice(int(c.deviceID)); !ok {
@@ -162,9 +169,12 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 	return nil
 }
 
-func (c *captureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex, errChan chan error) {
+func (c *captureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex,
+	errChan chan error) {
+
 	if !c.vcap.IsOpened() {
-		errChan <- fmt.Errorf("video stream or file closed, device no: %d)", c.deviceID)
+		errChan <- fmt.Errorf("video stream or file closed, device no: %d)",
+			c.deviceID)
 		return
 	}
 	tmpBuf := bridge.NewMatVec3b()
