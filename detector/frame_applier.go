@@ -9,8 +9,9 @@ import (
 
 type FrameApplierFuncCreator struct{}
 
-func frameApplier(ctx *core.Context, cameraParam string, capture data.Blob) (data.Value, error) {
-	s, err := lookupCameraParamState(ctx, cameraParam)
+func frameApplier(ctx *core.Context, fpParam string, capture data.Blob) (
+	data.Value, error) {
+	s, err := lookupFPParamState(ctx, fpParam)
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +42,17 @@ func (c *FrameApplierFuncCreator) TypeName() string {
 	return "frame_applier"
 }
 
-func lookupCameraParamState(ctx *core.Context, stateName string) (*CameraParamState, error) {
+func lookupFPParamState(ctx *core.Context, stateName string) (
+	*FrameProcessorParamState, error) {
 	st, err := ctx.SharedStates.Get(stateName)
 	if err != nil {
 		return nil, err
 	}
 
-	if s, ok := st.(*CameraParamState); ok {
+	if s, ok := st.(*FrameProcessorParamState); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to camera_parameter.state", stateName)
+	return nil, fmt.Errorf(
+		"state '%v' cannot be converted to frame_processor_parameter.state",
+		stateName)
 }

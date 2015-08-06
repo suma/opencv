@@ -39,7 +39,7 @@ func init() {
 
 	// states
 	states := []PluginStateCreator{
-		&detector.CameraParamState{},
+		&detector.FrameProcessorParamState{},
 		&detector.ACFDetectionParamState{},
 		&detector.MMDetectionParamState{},
 		&recog.ImageTaggerCaffeParamState{},
