@@ -7,11 +7,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// CameraParamState is a shared state of camera parameter for scouter-core.
 type CameraParamState struct {
 	fp bridge.FrameProcessor
 }
 
-func createCameraParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createCameraParamState(ctx *core.Context, params data.Map) (core.SharedState,
+	error) {
 	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
@@ -33,12 +35,19 @@ func createCameraParamState(ctx *core.Context, params data.Map) (core.SharedStat
 	return s, nil
 }
 
-func (s *CameraParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of camera parameters. The parameter is
+// collected on JSON file, see `scouter::CameraParameter`. This state is
+// updatable.
+//
+// Usage of WITH parameters:
+//  file: The file path. Returns an error when cannot read the file.
+func (s *CameraParamState) CreateNewState() func(*core.Context, data.Map) (
+	core.SharedState, error) {
 	return createCameraParamState
 }
 
 func (s *CameraParamState) TypeName() string {
-	return "camera_parameter"
+	return "scouter_camera_param"
 }
 
 func (s *CameraParamState) Terminate(ctx *core.Context) error {
@@ -46,6 +55,10 @@ func (s *CameraParamState) Terminate(ctx *core.Context) error {
 	return nil
 }
 
+// Update the state to reload the JSON file without lock.
+//
+// Usage of IWTH parameters:
+//  file: The file path. Returns an error when cannot read the file.
 func (s *CameraParamState) Update(params data.Map) error {
 	p, err := params.Get("file")
 	if err != nil {
