@@ -47,9 +47,10 @@ CREATE PAUSED SOURCE camera1_avi TYPE scouter_capture_from_uri WITH
     frame_skip=4, next_frame_error=false;
 
 -- frame streaming
-CREATE STATE camera1_param TYPE camera_parameter WITH file='camera1_param.json';
+CREATE STATE camera1_param TYPE scouter_frame_processor_param
+    WITH file='camera1_param.json';
 CREATE STREAM camera1_frame AS SELECT ISTREAM
-    frame_applier('camera1_param', camera1_avi:capture) AS frame_meta,
+    scouter_frame_applier('camera1_param', camera1_avi:capture) AS frame_meta,
     camera1_avi:camera_id AS camera_id
     FROM camera1_avi [RANGE 1 TUPLES];
 ```

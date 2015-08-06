@@ -7,21 +7,17 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// FrameApplierFuncCreator is a creator of frame processing applier UDF.
 type FrameApplierFuncCreator struct{}
 
-func frameApplier(ctx *core.Context, fpParam string, capture data.Blob) (
+func frameApplier(ctx *core.Context, fpParam string, capture []byte) (
 	data.Value, error) {
 	s, err := lookupFPParamState(ctx, fpParam)
 	if err != nil {
 		return nil, err
 	}
 
-	buf, err := data.AsBlob(capture)
-	if err != nil {
-		return nil, err
-	}
-
-	bufp := bridge.DeserializeMatVec3b(buf)
+	bufp := bridge.DeserializeMatVec3b(capture)
 	defer bufp.Delete()
 	img, offsetX, offsetY := s.fp.Projection(bufp)
 
@@ -34,12 +30,31 @@ func frameApplier(ctx *core.Context, fpParam string, capture data.Blob) (
 	return m, nil
 }
 
+// CreateFunction crates frame processing applier UDF.
+//
+// Usage:
+//  `scouter_frame_applier([frame_processor_param_state], [captured image])`
+//  [frame_processor_param_state]
+//    * type: string
+//    * the state name of frame processor parameter
+//  [captured image]
+//    * type: []byte serialized from `cv::Mat_<cv::Vec3b>`
+//    * the image data
+//
+// Return:
+//  The function will return following `data.Map`.
+//  data.Map{
+//    "projected_img": [the result of projected image] (data.Blob)
+//                     (serialized from `cv::Mat_<cv::Vec3b>`),
+//    "offset_x":      [the value of offset X axis] (data.Int),
+//    "offset_y":      [the value of offset Y axis] (data.Int),
+//  }
 func (c *FrameApplierFuncCreator) CreateFunction() interface{} {
 	return frameApplier
 }
 
 func (c *FrameApplierFuncCreator) TypeName() string {
-	return "frame_applier"
+	return "scouter_frame_applier"
 }
 
 func lookupFPParamState(ctx *core.Context, stateName string) (
