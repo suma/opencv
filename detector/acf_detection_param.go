@@ -14,20 +14,6 @@ type ACFDetectionParamState struct {
 	d bridge.Detector
 }
 
-// createACFDetectionParamState creates the core.SharedState for
-// multi model detector, which has detector instance.
-//
-// WITH parameter:
-//   "file": all detection parameters, include "detection_file" and
-//           "camera_parameter_file" (optional)
-//   "detection_file": detection configuration parameters
-//   "camera_parameter_file": camera parameters (optional)
-//
-// the state permit blow pattern
-// * "file" only
-// * "detection_file" only
-// * "detection_file" and "camera_parameter_file"
-// * if the parameter has "file" and others key, the state "file" key only.
 func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
 	config := ""
 	if p, ok := params["file"]; ok {
@@ -45,7 +31,8 @@ func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.Shar
 	} else {
 		dp, ok := params["detection_file"]
 		if !ok {
-			return nil, fmt.Errorf("state parameter requires configuration parameter file path")
+			return nil, fmt.Errorf(
+				"state parameter requires configuration parameter file path")
 		}
 		detectorFilePath, err := data.AsString(dp)
 		if err != nil {
@@ -85,7 +72,8 @@ func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.Shar
 	}
 
 	if config == "" {
-		return nil, fmt.Errorf("state parameter requires configuration parameter file path")
+		return nil, fmt.Errorf(
+			"state parameter requires configuration parameter file path")
 	}
 	s := &ACFDetectionParamState{}
 	s.d = bridge.NewDetector(config)
@@ -93,12 +81,30 @@ func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.Shar
 	return s, nil
 }
 
-func (s *ACFDetectionParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of ACF detector parameters. The parameter is
+// collected on JSON file, see `scouter::Detector::Config`, which is composition
+// of detection.model, camera parameters and so on.
+//
+// Usage of WITH parameter:
+//   "file"          : all detection parameters, include "detection_file" and
+//                     "camera_parameter_file" (optional)
+//   "detection_file": detection configuration parameters
+//   "camera_parameter_file"
+//                   : camera parameters (optional)
+//
+// the state permit blow pattern
+// * "file" only
+// * "detection_file" only
+// * "detection_file" and "camera_parameter_file"
+// * if the parameter includes "file" and others key, the state load "file" key
+//   only.
+func (s *ACFDetectionParamState) CreateNewState() func(*core.Context, data.Map) (
+	core.SharedState, error) {
 	return createACFDetectionParamState
 }
 
 func (s *ACFDetectionParamState) TypeName() string {
-	return "acf_detection_parameter"
+	return "scouter_acf_detection_param"
 }
 
 func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
@@ -106,6 +112,11 @@ func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 	return nil
 }
 
+// Update the state to reload the JSON file without lock.
+//
+// Usage of WITH parameters:
+//  camera_parameter_file: The camera parameter file path. Returns an error when
+//                         cannot read the file.
 func (s *ACFDetectionParamState) Update(params data.Map) error {
 	p, err := params.Get("camera_parameter_file")
 	if err != nil {

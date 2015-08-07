@@ -59,7 +59,7 @@ CREATE STREAM camera1_frame AS SELECT ISTREAM
 
 ```sql
 -- detection
-CREATE STATE detection_param TYPE acf_detection_parameter
+CREATE STATE detection_param TYPE scouter_acf_detection_param
     WITH detection_file='detector_param.json',
          camera_parameter_file='camera1_param.json';
 CREATE STREAM detected_regions AS SELECT ISTREAM

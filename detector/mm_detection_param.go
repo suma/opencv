@@ -14,21 +14,8 @@ type MMDetectionParamState struct {
 	d bridge.MMDetector
 }
 
-// createMMDetectionParamState creates the core.SharedState for
-// multi model detector, which has detector instance.
-//
-// WITH parameter:
-//   "file": all detection parameters, include "detection_file" and
-//           "camera_parameter_file" (optional)
-//   "detection_file": detection configuration parameters
-//   "camera_parameter_file": camera parameters (optional)
-//
-// the state permit blow pattern
-// * "file" only
-// * "detection_file" only
-// * "detection_file" and "camera_parameter_file"
-// * if the parameter has "file" and others key, the state "file" key only.
-func createMMDetectionParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createMMDetectionParamState(ctx *core.Context, params data.Map) (
+	core.SharedState, error) {
 	config := ""
 	if p, ok := params["file"]; ok {
 		path, err := data.AsString(p)
@@ -45,7 +32,8 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (core.Share
 	} else {
 		dp, ok := params["detection_file"]
 		if !ok {
-			return nil, fmt.Errorf("state parameter requires configuration parameter file path")
+			return nil, fmt.Errorf(
+				"state parameter requires configuration parameter file path")
 		}
 		detectorFilePath, err := data.AsString(dp)
 		if err != nil {
@@ -85,7 +73,8 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (core.Share
 	}
 
 	if config == "" {
-		return nil, fmt.Errorf("state parameter requires configuration parameter file path")
+		return nil, fmt.Errorf(
+			"state parameter requires configuration parameter file path")
 	}
 	s := &MMDetectionParamState{}
 	s.d = bridge.NewMMDetector(config)
@@ -93,12 +82,30 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (core.Share
 	return s, nil
 }
 
-func (s *MMDetectionParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of multi-model detector parameters. The
+// parameter is collected on JSON file, see `scouter::MMDetector::Config`, which
+// is composition of detection.model, camera parameters and so on.
+//
+// Usage of WITH parameter:
+//   "file"          : all detection parameters, include "detection_file" and
+//                     "camera_parameter_file" (optional)
+//   "detection_file": detection configuration parameters
+//   "camera_parameter_file"
+//                   : camera parameters (optional)
+//
+// the state permit blow pattern
+// * "file" only
+// * "detection_file" only
+// * "detection_file" and "camera_parameter_file"
+// * if the parameter includes "file" and others key, the state load "file" key
+//   only.
+func (s *MMDetectionParamState) CreateNewState() func(*core.Context, data.Map) (
+	core.SharedState, error) {
 	return createMMDetectionParamState
 }
 
 func (s *MMDetectionParamState) TypeName() string {
-	return "multi_model_detection_parameter"
+	return "scouter_mm_detection_param"
 }
 
 func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
@@ -106,6 +113,11 @@ func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
 	return nil
 }
 
+// Update the state to reload the JSON file without lock.
+//
+// Usage of WITH parameters:
+//  camera_parameter_file: The camera parameter file path. Returns an error when
+//                         cannot read the file.
 func (s *MMDetectionParamState) Update(params data.Map) error {
 	p, err := params.Get("camera_parameter_file")
 	if err != nil {

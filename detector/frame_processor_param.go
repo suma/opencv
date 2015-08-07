@@ -59,7 +59,7 @@ func (s *FrameProcessorParamState) Terminate(ctx *core.Context) error {
 
 // Update the state to reload the JSON file without lock.
 //
-// Usage of IWTH parameters:
+// Usage of WITH parameters:
 //  file: The file path. Returns an error when cannot read the file.
 func (s *FrameProcessorParamState) Update(params data.Map) error {
 	p, err := params.Get("file")
