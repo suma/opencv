@@ -27,7 +27,6 @@ struct ByteArray Candidate_Serialize(Candidate c);
 Candidate Candidate_Deserialize(struct ByteArray src);
 void Candidate_Delete(Candidate c);
 
-struct Candidates InvertCandidates(Candidate* obj, int length);
 void Candidates_Delete(struct Candidates candidates);
 
 Detector Detector_New(const char *config);

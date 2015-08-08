@@ -42,8 +42,10 @@ func convertCandidatezToPointer(
 		// []Candidate -> []C.Candidate
 		candidatePointers := convertCandidatesToPointer(r.Candidates)
 		// -> C.struct_Candidates
-		candidates := C.InvertCandidates((*C.Candidate)(&candidatePointers[0]),
-			C.int(len(candidatePointers)))
+		candidates := C.struct_Candidates{
+			candidates: (*C.Candidate)(&candidatePointers[0]),
+			length:     C.int(len(candidatePointers)),
+		}
 		f := C.struct_RegionsWithCameraID{
 			candidates: candidates,
 			cameraID:   C.int(r.CameraID),

@@ -15,15 +15,6 @@ void Candidate_Delete(Candidate c) {
   delete c;
 }
 
-struct Candidates InvertCandidates(Candidate* obj, int length) {
-  scouter::ObjectCandidate** os = new scouter::ObjectCandidate*[length];
-  for (int i = 0; i < length; ++i) {
-    os[i] = obj[i];
-  }
-  Candidates cs = {os, length};
-  return cs;
-}
-
 void Candidates_Delete(struct Candidates candidates) {
   delete candidates.candidates;
 }
