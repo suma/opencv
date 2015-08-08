@@ -7,7 +7,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-	"sync"
 	"time"
 )
 
@@ -63,25 +62,6 @@ type predictTagsBatchUDSF struct {
 	frameIDName      string
 	regionsName      string
 	croppedImageName string
-	detectCount      detectCounter
-}
-
-type detectCounter struct {
-	sync.RWMutex
-	count map[string]int
-}
-
-func (c *detectCounter) get(k string) (int, bool) {
-	c.RLock()
-	defer c.RUnlock()
-	prev, ok := c.count[k]
-	return prev, ok
-}
-
-func (c *detectCounter) put(k string, v int) {
-	c.Lock()
-	defer c.Unlock()
-	c.count[k] = v
 }
 
 // Process streams tagged regions, which is serialized from
@@ -89,16 +69,13 @@ func (c *detectCounter) put(k string, v int) {
 //
 // Stream Tuple.Data structure:
 //  data.Map{
-//    "frame_id": [frame ID] (`data.Int`),
-//    "region":   [tagged region] (`data.Blob`),
+//    "frame_id":      [frame ID] (`data.Int`),
+//    "regions_count": [size of total tagged regions in a frame] (`data.Int`),
+//    "region":        [tagged region] (`data.Blob`),
 //  }
 func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	w core.Writer) error {
 	frameID, err := t.Data.Get(sf.frameIDName)
-	if err != nil {
-		return err
-	}
-	frameIDStr, err := data.ToString(frameID)
 	if err != nil {
 		return err
 	}
@@ -126,14 +103,6 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 			"region size and cropped image size must same [region: %d, cropped image: %d",
 			len(regions), len(croppedImgs))
 	}
-
-	if prevCount, ok := sf.detectCount.get(frameIDStr); ok {
-		if prevCount > len(regions) {
-			ctx.Log().Debug("prediction has already created")
-			return nil
-		}
-	}
-	sf.detectCount.put(frameIDStr, len(regions))
 
 	candidates := make([]bridge.Candidate, len(regions))
 	cropps := make([]bridge.MatVec3b, len(croppedImgs))
@@ -170,8 +139,9 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	for _, r := range recognized {
 		now := time.Now()
 		m := data.Map{
-			"region_with_tagger": data.Blob(r.Serialize()),
 			"frame_id":           frameID,
+			"regions_count":      data.Int(len(recognized)),
+			"region_with_tagger": data.Blob(r.Serialize()),
 		}
 		traces := []core.TraceEvent{}
 		if traceCopyFlag { // reduce copy cost when trace mode is off
@@ -212,7 +182,6 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 		frameIDName:      frameIDName,
 		regionsName:      regionsName,
 		croppedImageName: croppedImageName,
-		detectCount:      detectCounter{count: map[string]int{}},
 	}, nil
 }
 

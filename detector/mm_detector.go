@@ -61,7 +61,7 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 		now := time.Now()
 		m := data.Map{
 			"frame_id":      frameId,
-			"recions_count": data.Int(len(candidates)),
+			"regions_count": data.Int(len(candidates)),
 			"region":        data.Blob(c.Serialize()),
 		}
 		traces := []core.TraceEvent{}
