@@ -7,11 +7,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// ImageTaggerCaffeParamState is a shared state used by recognizer.
 type ImageTaggerCaffeParamState struct {
 	tagger bridge.ImageTaggerCaffe
 }
 
-func createImageTaggerCaffeParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createImageTaggerCaffeParamState(ctx *core.Context, params data.Map) (
+	core.SharedState, error) {
 	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
@@ -34,12 +36,19 @@ func createImageTaggerCaffeParamState(ctx *core.Context, params data.Map) (core.
 	return s, nil
 }
 
-func (s *ImageTaggerCaffeParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of image tagger by Caffe parameters. The
+// parameters is collected on JSON file, see `scouter::ImageTaggerCaffe::Config`,
+// which is include caffe model.
+//
+// Usage of WITH parameter:
+//  "file": image tagger by Caffe JSON file path.
+func (s *ImageTaggerCaffeParamState) CreateNewState() func(*core.Context, data.Map) (
+	core.SharedState, error) {
 	return createImageTaggerCaffeParamState
 }
 
 func (s *ImageTaggerCaffeParamState) TypeName() string {
-	return "image_tagger_caffe"
+	return "scouter_image_tagger_caffe"
 }
 
 func (s *ImageTaggerCaffeParamState) Terminate(ctx *core.Context) error {

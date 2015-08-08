@@ -72,7 +72,8 @@ CREATE STREAM detected_regions AS SELECT ISTREAM
 
 ```sql
 -- recognize,
-CREATE STATE image_tagger_param TYPE image_tagger_caffe WITH file='recognize_param.json';
+CREATE STATE image_tagger_param TYPE scouter_image_tagger_caffe
+    WITH file='recognize_param.json';
 CREATE STREAM tagging_regions AS SELECT ISTREAM
     dr:frame_meta.projected_img AS img,
     cropping_and_predict_tags_batch('image_tagger_param', dr:regions,
