@@ -10,6 +10,7 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// MMDetectionParamState is a shared state used by multi-model detector.
 type MMDetectionParamState struct {
 	d bridge.MMDetector
 }

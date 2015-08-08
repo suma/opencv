@@ -10,11 +10,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// ACFDetectionParamState is a shared state used by ACF detector.
 type ACFDetectionParamState struct {
 	d bridge.Detector
 }
 
-func createACFDetectionParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createACFDetectionParamState(ctx *core.Context, params data.Map) (
+	core.SharedState, error) {
 	config := ""
 	if p, ok := params["file"]; ok {
 		path, err := data.AsString(p)
