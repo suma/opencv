@@ -258,13 +258,13 @@ func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) (
 	img := bridge.DeserializeMatVec3b(frame)
 	defer img.Delete()
 
-	canObjs := []bridge.Candidate{}
-	for _, c := range regions {
+	canObjs := make([]bridge.Candidate, len(regions))
+	for i, c := range regions {
 		b, err := data.AsBlob(c)
 		if err != nil {
 			return nil, err
 		}
-		canObjs = append(canObjs, bridge.DeserializeCandidate(b))
+		canObjs[i] = bridge.DeserializeCandidate(b)
 	}
 	defer func() {
 		for _, c := range canObjs {
