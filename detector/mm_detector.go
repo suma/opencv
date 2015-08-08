@@ -18,8 +18,9 @@ type mmDetectUDSF struct {
 // `scouter::ObjectCandidate`.
 //
 //  data.Map{
-//    "region"  : [detected region] (`data.Blob`),
-//    "frame_id": [frame ID] (`data.Int`),
+//    "frame_id":      [frame ID] (`data.Int`),
+//    "regions_count": [size of regions created from frame] (`data.Int`),
+//    "region":        [detected region] (`data.Blob`),
 //  }
 func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
 	frameId, err := t.Data.Get(sf.frameIDName)
@@ -58,8 +59,9 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{
-			"region":   data.Blob(c.Serialize()),
-			"frame_id": frameId,
+			"frame_id":      frameId,
+			"recions_count": data.Int(len(candidates)),
+			"region":        data.Blob(c.Serialize()),
 		}
 		traces := []core.TraceEvent{}
 		if traceCopyFlag { // reduce copy cost when trace mode is off
