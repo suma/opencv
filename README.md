@@ -63,7 +63,7 @@ CREATE STATE detection_param TYPE scouter_acf_detection_param
     WITH detection_file='detector_param.json',
          camera_parameter_file='camera1_param.json';
 CREATE STREAM detected_regions AS SELECT ISTREAM
-    acf_detector_batch('detection_param', f:frame_meta) AS regions,
+    scouter_acf_detector_batch('detection_param', f:frame_meta) AS regions,
     f:frame_meta AS frame_meta
     FROM camera1_frame [RANGE 1 TUPLES] AS f;
 ```

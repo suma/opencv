@@ -6,26 +6,34 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// MMDetectBatchFuncCreator is a creator of multii-model detector UDF.
 type MMDetectBatchFuncCreator struct{}
 
-// CreateFunction returns Multi Model Detection function. The function will
-// return detection result array, the type is `[]data.Blob`.
+// CreateFunction returns Multi Model Detection function.
 //
 // Usage:
-//  `mm_detector_batch('detect_param', frame)`
-//    'detect_param' is a parameter name of "multi_model_detection_parameter" state
-//    frame is a captured frame map (`data.Map`), the function required
+//  `scouter_mm_detector_batch([detect_param], [frame])`
+//  [detect_param]
+//    * type: string
+//    * a parameter name of "scouter_mm_detection_param" state
+//  [frame]
+//    * type: data.Map
+//    * captured frame which are applied `scouter_frame_applier` UDF. The
+//      frame's map structure is required following structure.
 //      data.Map{
-//          "projected_img": [image binary] (`data.Blob`)
-//          "offset_x"     : [frame offset x] (`data.Int`)
-//          "offset_y"     : [frame offset y] (`data.Int`)
+//        "projected_img": [image binary] (`data.Blob`)
+//        "offset_x":      [frame offset x] (`data.Int`)
+//        "offset_y":      [frame offset y] (`data.Int`)
 //      }
+//
+// Return:
+//  The function will return detected regions array, the type is `[]data.Blob`.
 func (c *MMDetectBatchFuncCreator) CreateFunction() interface{} {
 	return mmDetectBatch
 }
 
 func (c *MMDetectBatchFuncCreator) TypeName() string {
-	return "mm_detector_batch"
+	return "scouter_mm_detector_batch"
 }
 
 func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
@@ -62,6 +70,7 @@ func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
 	return cans, nil
 }
 
+// FilterByMaskMMBatchFuncCreator is a creator of filtering by bask UDF.
 type FilterByMaskMMBatchFuncCreator struct{}
 
 func filterByMaskMMBatch(ctx *core.Context, detectParam string, regions data.Array) (
@@ -91,22 +100,28 @@ func filterByMaskMMBatch(ctx *core.Context, detectParam string, regions data.Arr
 	return filteredCans, nil
 }
 
-// CreateFunction returns filtered by mask function for multi-model detection.
-// The function will return detection result array, the type is `[]data.Blob`.
+// CreateFunction creates a batch filter by mask for multi model detection.
 //
 // Usage:
-//  `multi_model_filter_by_mask_batch('detect_param', regions)`
-//    'detect_param' is a parameter name of "multi_model_detection_parameter" state
-//    regions are detection results, which are detected by multi-model detector,
-//      required `[]data.Blob` type.
+//  `scouter_mm_filter_by_mask_batch([detect_param], [regions])`
+//  [detect_param]
+//    * type: string
+//    * a parameter name of "scouter_mm_detection_param" state
+//  [regions]
+//    * type: []data.Blob
+//    * detected regions, which are applied multi model detection.
+//
+// Returns:
+//  The function will return filtered regions array, the type is `[]data.Blob`.
 func (c *FilterByMaskMMBatchFuncCreator) CreateFunction() interface{} {
 	return filterByMaskBatch
 }
 
 func (c *FilterByMaskMMBatchFuncCreator) TypeName() string {
-	return "multi_model_filter_by_mask_batch"
+	return "scouter_mm_filter_by_mask_batch"
 }
 
+// EstimateHeightMMBatchFuncCreator is creator of height estimator UDF.
 type EstimateHeightMMBatchFuncCreator struct{}
 
 func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map,
@@ -140,23 +155,32 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 	return estimatedCans, nil
 }
 
-// CreateFunction returns estimated height function for multi-model detection.
-// The function will return detection result array, the type is `[]data.Blob`.
+// CreateFunction creates a estimate height function for multi model detection.
 //
 // Usage:
-//  `multi_model_estimate_height_batch('detect_param', frame, regions)`
-//    'detect_param' is a parameter name of "multi_model_detection_parameter" state
-//    frame is a captured frame map (`data.Map`), the function required
+//  `scouter_mm_estimate_height_batch([detect_param], [frame], [regions])`
+//  [detect_param]
+//    * type: string
+//    * a parameter name of "scouter_mm_detection_param" state
+//  [frame]
+//    * type: data.Map
+//    * captured frame which are applied `scouter_frame_applier` UDF. The
+//      frame's map structure is required following structure.
 //      data.Map{
-//          "offset_x"  : [frame offset x] (`data.Int`)
-//          "offset_y"  : [frame offset y] (`data.Int`)
+//        "offset_x"  : [frame offset x] (`data.Int`)
+//        "offset_y"  : [frame offset y] (`data.Int`)
 //      }
-//    regions are detection results, which are detected by multi-model detector,
-//      required `[]data.Blob` type.
+//  [regions]
+//    * type: []data.Blob
+//    * detected regions, which are applied multi model detection.
+//    * these regions are detected from [frame]
+//
+// Return:
+//   The function will return detection result array, the type is `[]data.Blob`.
 func (c *EstimateHeightMMBatchFuncCreator) CreateFunction() interface{} {
 	return estimateHeightBatch
 }
 
 func (c *EstimateHeightMMBatchFuncCreator) TypeName() string {
-	return "multi_model_estimate_height_batch"
+	return "scouter_mm_estimate_height_batch"
 }
