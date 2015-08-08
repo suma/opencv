@@ -17,6 +17,7 @@ type mmDetectUDSF struct {
 // Process streams detected regions. which is serialized from
 // `scouter::ObjectCandidate`.
 //
+// Stream Tuple.Data structure:
 //  data.Map{
 //    "frame_id":      [frame ID] (`data.Int`),
 //    "regions_count": [size of regions created from frame] (`data.Int`),
@@ -141,10 +142,10 @@ type MMDetectRegionStreamFuncCreator struct{}
 // keys
 //   * "frame_id"
 //   * "frame"
-// could be addressed with UDS's arguments. When the arguments are empty,
+// could be addressed with UDSF's arguments. When the arguments are empty,
 // this stream function applies default key name.
 //
-//
+// Stream Tuple.Data structure:
 //  data.Map{
 //    "frame_id": [frame id] (`data.Int`),
 //    "frame"   : data.Map{

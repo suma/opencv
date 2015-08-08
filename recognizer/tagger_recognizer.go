@@ -6,9 +6,11 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// PredictTagsFuncCreator is a creator of predicting tags UDF.
 type PredictTagsFuncCreator struct{}
 
-func predictTags(ctx *core.Context, taggerParam string, cropImg []byte, region []byte) ([]byte, error) {
+func predictTags(ctx *core.Context, taggerParam string, cropImg []byte,
+	region []byte) ([]byte, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
@@ -25,14 +27,33 @@ func predictTags(ctx *core.Context, taggerParam string, cropImg []byte, region [
 	return taggedRegion.Serialize(), nil
 }
 
+// CreateFunction returns predict tags and tagged regions function. Tags
+// information is set in regions.
+//
+// Usage:
+//  scouter_predict_tags([tagger_param], [cropped_image], [region])`
+//  [tagger_param]
+//    * type: string
+//    * a parameter name of "scouter_image_tagger_caffe" state
+//  [image]
+//    * type: []byte
+//    * a cropped image created by cropped function.
+//  [region]
+//    * type: []byte
+//    * a detected region created by detected function.
+//
+// Return:
+//  The function will return a region with tags.
 func (c *PredictTagsFuncCreator) CreateFunction() interface{} {
 	return predictTags
 }
 
 func (c *PredictTagsFuncCreator) TypeName() string {
-	return "predict_tags"
+	return "scouter_predict_tags"
 }
 
+// CroppingAndPredictTagsFuncCreator is a creator of cropping and predict tags
+// UDF.
 type CroppingAndPredictTagsFuncCreator struct{}
 
 func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte,
@@ -53,17 +74,39 @@ func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte
 	return taggedRegion.Serialize(), nil
 }
 
+// CreateFunction returns cropping and predict tags function. This function
+// executes two tasks. First, cropping an image took by tagger parameters.
+// Second, predicting tags and return region with the tags. Tags information is
+// set in a region.
+//
+// Usage:
+//  `scouter_crop_and_predict_tags([tagger_param], [region], [image])`
+//  [tagger_param]
+//    * type: string
+//    * a parameter name of "scouter_image_tagger_caffe" state
+//  [region]
+//    * type: []byte
+//    * a detected region created by detected function.
+//    * these regions are detected from [image]
+//  [image]
+//    * type: []byte
+//    * a captured image
+// Return:
+//  The function will return a tagging region, the type is `[]byte`
 func (c *CroppingAndPredictTagsFuncCreator) CreateFunction() interface{} {
 	return croppingAndPredictTags
 }
 
 func (c *CroppingAndPredictTagsFuncCreator) TypeName() string {
-	return "cropping_and_predict_tags"
+	return "scouter_crop_and_predict_tags"
 }
 
+// DrawDeteciontResultFuncCreator is a creator of drawing regions with tags in a
+// frame UDF.
 type DrawDeteciontResultFuncCreator struct{}
 
-func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) ([]byte, error) {
+func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) (
+	[]byte, error) {
 	img := bridge.DeserializeMatVec3b(frame)
 	defer img.Delete()
 
@@ -86,10 +129,25 @@ func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) ([
 	return ret.Serialize(), nil
 }
 
+// CreateFunction creates a drawing regions with tags on a frame function.
+//
+// Usage:
+//  `scouter_draw_regions_with_tags([frame], [regions])`
+//  [frame]
+//    * type: []byte
+//    * captured frame, which is serialized from `cv::Mat_<cv::Vec3b>`.
+//  [regions]
+//    * type: []data.Blob
+//    * detected regions, which are applied prediction UDF/UDSF
+//    * these regions are detected from [frame]
+//
+// Return:
+//  The function will return an image data serialized from `cv::Mat_<cv::Vec3b>`,
+//  the type is `[]byte`
 func (c *DrawDeteciontResultFuncCreator) CreateFunction() interface{} {
 	return drawDetectionResult
 }
 
 func (c *DrawDeteciontResultFuncCreator) TypeName() string {
-	return "draw_detection_result_with_tags"
+	return "scouter_draw_regions_with_tags"
 }

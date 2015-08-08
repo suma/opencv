@@ -11,47 +11,59 @@ import (
 	"time"
 )
 
+// ACFDetectBatchFuncCreator is a creator of cropping region from frame UDF.
 type RegionCropFuncCreator struct{}
 
-func crop(ctx *core.Context, taggerParam string, region data.Blob, image data.Blob) (data.Value, error) {
+func crop(ctx *core.Context, taggerParam string, region []byte, image []byte) (
+	[]byte, error) {
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
 	if err != nil {
 		return nil, err
 	}
 
-	regionByte, err := data.AsBlob(region)
-	if err != nil {
-		return nil, err
-	}
-	r := bridge.DeserializeCandidate(regionByte)
+	r := bridge.DeserializeCandidate(region)
 	defer r.Delete()
 
-	imageByte, err := data.AsBlob(image)
-	if err != nil {
-		return nil, err
-	}
-	img := bridge.DeserializeMatVec3b(imageByte)
+	img := bridge.DeserializeMatVec3b(image)
 	defer img.Delete()
 
 	cropped := s.tagger.Crop(r, img)
 	defer cropped.Delete()
-	return data.Blob(cropped.Serialize()), nil
+	return cropped.Serialize(), nil
 }
 
+// CreateFunction returns cropping region from frame function.
+//
+// Usage:
+//  `scouter_crop_region([tagger_param], [region], [image])`
+//  [tagger_param]
+//    * type: string
+//    * a parameter name of "scouter_image_tagger_caffe" state
+//  [region]
+//    * type: []byte
+//    * a detected region created by detector UDF
+//    * the region is detected from [image]
+//  [image]
+//    * type: []byte
+//    * a captured image
+//
+// Return:
+//  The function will return cropped imaged, the type is `[]byte`.
 func (c *RegionCropFuncCreator) CreateFunction() interface{} {
 	return crop
 }
 
 func (c *RegionCropFuncCreator) TypeName() string {
-	return "region_crop"
+	return "scouter_crop_region"
 }
 
 type predictTagsBatchUDSF struct {
-	predictTagsBatch      func([]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
-	frameIDFieldName      string
-	regionsFieldName      string
-	croppedImageFieldName string
-	detectCount           detectCounter
+	predictTagsBatch func(
+		[]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
+	frameIDName      string
+	regionsName      string
+	croppedImageName string
+	detectCount      detectCounter
 }
 
 type detectCounter struct {
@@ -72,8 +84,17 @@ func (c *detectCounter) put(k string, v int) {
 	c.count[k] = v
 }
 
-func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	frameID, err := t.Data.Get(sf.frameIDFieldName)
+// Process streams tagged regions, which is serialized from
+// `scouter::ObjectCandidate`. Tags information is set in a region.
+//
+// Stream Tuple.Data structure:
+//  data.Map{
+//    "frame_id": [frame ID] (`data.Int`),
+//    "region":   [tagged region] (`data.Blob`),
+//  }
+func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
+	w core.Writer) error {
+	frameID, err := t.Data.Get(sf.frameIDName)
 	if err != nil {
 		return err
 	}
@@ -82,7 +103,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 		return err
 	}
 
-	regionsData, err := t.Data.Get(sf.regionsFieldName)
+	regionsData, err := t.Data.Get(sf.regionsName)
 	if err != nil {
 		return err
 	}
@@ -91,7 +112,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 		return err
 	}
 
-	croppedImgsData, err := t.Data.Get(sf.croppedImageFieldName)
+	croppedImgsData, err := t.Data.Get(sf.croppedImageName)
 	if err != nil {
 		return err
 	}
@@ -101,7 +122,8 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple, w core
 	}
 
 	if len(regions) != len(croppedImgs) {
-		return fmt.Errorf("region size and cropped image size must same [region: %d, cropped image: %d",
+		return fmt.Errorf(
+			"region size and cropped image size must same [region: %d, cropped image: %d",
 			len(regions), len(croppedImgs))
 	}
 
@@ -171,11 +193,11 @@ func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
 
-func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, taggerParam string,
-	stream string, frameIDFieldName string, regionsFieldName string,
-	croppedImageFieldName string) (udf.UDSF, error) {
+func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
+	taggerParam string, stream string, frameIDName string, regionsName string,
+	croppedImageName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
-		InputName: "predict_tags_batch_stream",
+		InputName: "scouter_predict_tags_batch_stream",
 	}); err != nil {
 		return nil, err
 	}
@@ -186,32 +208,89 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer, tagger
 	}
 
 	return &predictTagsBatchUDSF{
-		predictTagsBatch:      s.tagger.PredictTagsBatch,
-		frameIDFieldName:      frameIDFieldName,
-		regionsFieldName:      regionsFieldName,
-		croppedImageFieldName: croppedImageFieldName,
-		detectCount:           detectCounter{count: map[string]int{}},
+		predictTagsBatch: s.tagger.PredictTagsBatch,
+		frameIDName:      frameIDName,
+		regionsName:      regionsName,
+		croppedImageName: croppedImageName,
+		detectCount:      detectCounter{count: map[string]int{}},
 	}, nil
 }
 
+// PredictTagsBatchStreamFuncCreator is a creator of predicting tags UDSF.
 type PredictTagsBatchStreamFuncCreator struct{}
 
+// CreateStreamFunction returns predicting tags stream function. This stream
+// function requires ID per frame to determine the regions detected from.
+//
+// Usage:
+//  ```
+//  scouter_predict_tags_batch_stream([tagger_param], [stream],
+//                                    [frame_id_name], [regions_name])
+//  ```
+//  [tagger_param]
+//    * type: string
+//    * a parameter name of "scouter_image_tagger_caffe" state
+//  [stream]
+//    * type: string
+//    * a input stream name, see following stream spec.
+//  [frame_id_name]
+//    * type: string
+//    * a field name of Frame ID
+//    * if empty then applied "frame_id"
+//  [regions_name]
+//    * type: string
+//    * a field name of regions
+//    * if empty, then applied "regions"
+//
+// Input tuples are required to have following `data.Map` structures. The keys
+//  * "frame_id"
+//  * "regions"
+//  could be addressed with UDSF's arguments. When the arguments are empty, this
+//  stream function applies default key name.
+//
+// Stream Tuple.Data structure:
+//  data.Map{
+//    "frame_id": [frame id] (`data.Int`),
+//    "regions" : [detected regions] (`[]data.Blob`)
+//  }
 func (c *PredictTagsBatchStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createPredictTagsBatchUDSF
 }
 
 func (c *PredictTagsBatchStreamFuncCreator) TypeName() string {
-	return "predict_tags_batch_stream"
+	return "scouter_predict_tags_batch_stream"
 }
 
+// CroppingAndPredictTagsBatchFuncCreator is a creator of cropping and predict
+// tags batch UDF.
 type CroppingAndPredictTagsBatchFuncCreator struct{}
 
+// CreateFunction returns cropping and predict tags batch function. This
+// function executes two tasks. First, cropping an image took by tagger
+// parameters. Second, predicting tags and return regions with the tags. Tags
+// information is set in a region.
+//
+// Usage:
+//  `scouter_crop_and_predict_tags_batch([tagger_param], [regions], [image])`
+//  [tagger_param]
+//    * type: string
+//    * a parameter name of "scouter_image_tagger_caffe" state
+//  [region]
+//    * type: []data.Blob
+//    * detected regions created by detected function.
+//    * these regions are detected from [image]
+//  [image]
+//    * type: []byte
+//    * a captured image
+//
+// Return:
+//  The function will return tagging regions, the type is `[]data.Blob`.
 func (c *CroppingAndPredictTagsBatchFuncCreator) CreateFunction() interface{} {
 	return croppingAndPredictTagsBatch
 }
 
 func (c *CroppingAndPredictTagsBatchFuncCreator) TypeName() string {
-	return "cropping_and_predict_tags_batch"
+	return "scouter_crop_and_predict_tags_batch"
 }
 
 func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,

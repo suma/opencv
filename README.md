@@ -76,7 +76,7 @@ CREATE STATE image_tagger_param TYPE scouter_image_tagger_caffe
     WITH file='recognize_param.json';
 CREATE STREAM tagging_regions AS SELECT ISTREAM
     dr:frame_meta.projected_img AS img,
-    cropping_and_predict_tags_batch('image_tagger_param', dr:regions,
+    scouter_crop_and_predict_tags_batch('image_tagger_param', dr:regions,
         dr:frame_meta.projected_img) AS regions
     FROM detected_regions [RANGE 10 TUPLES] AS dr;
 ```
@@ -88,7 +88,7 @@ CREATE STREAM tagging_regions AS SELECT ISTREAM
 CREATE SINK mjpeg_server TYPE scouter_mjpeg_server WITH port=8091;
 -- addressed with http://localhost:8091/video/recognize
 INSERT INTO mjpeg_server SELECT ISTREAM
-    draw_detection_result_with_tags(tr:img, tr:regions) AS img,
+    scouter_draw_regions_with_tags(tr:img, tr:regions) AS img,
     'recognize' AS name
     FROM tagging_regions [RANGE 1 TUPLES] AS tr;
 ```
@@ -100,7 +100,7 @@ INSERT INTO mjpeg_server SELECT ISTREAM
 CREATE SINK recognized_avi TYPE scouter_avi_writer WITH file_name='video/recognize',
     fps=5, width=1920, height=1080;
 INSERT INTO recognized_avi SELECT ISTREAM
-    draw_detection_result_with_tags(tr:img, tr:regions) AS img
+    scouter_draw_regions_with_tags(tr:img, tr:regions) AS img
     FROM tagging_regions [RANGE 1 TUPLES] AS tr;
 ```
 
