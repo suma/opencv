@@ -177,7 +177,7 @@ func estimateHeightBatch(ctx *core.Context, detectParam string, frame data.Map,
 //    * these regions are detected from [frame]
 //
 // Return:
-//   The function will return detection result array, the type is `[]data.Blob`.
+//   The function will return estimate regions array, the type is `[]data.Blob`.
 func (c *EstimateHeightBatchFuncCreator) CreateFunction() interface{} {
 	return estimateHeightBatch
 }

@@ -6,7 +6,7 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-// MMDetectBatchFuncCreator is a creator of multii-model detector UDF.
+// MMDetectBatchFuncCreator is a creator of multi-model detector UDF.
 type MMDetectBatchFuncCreator struct{}
 
 // CreateFunction returns Multi Model Detection function.
@@ -177,7 +177,7 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 //    * these regions are detected from [frame]
 //
 // Return:
-//   The function will return detection result array, the type is `[]data.Blob`.
+//   The function will return estimate regions array, the type is `[]data.Blob`.
 func (c *EstimateHeightMMBatchFuncCreator) CreateFunction() interface{} {
 	return estimateHeightBatch
 }
