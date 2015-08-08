@@ -135,8 +135,8 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	}
 	sf.detectCount.put(frameIDStr, len(regions))
 
-	candidates := []bridge.Candidate{}
-	cropps := []bridge.MatVec3b{}
+	candidates := make([]bridge.Candidate, len(regions))
+	cropps := make([]bridge.MatVec3b, len(croppedImgs))
 	defer func() {
 		for _, c := range candidates {
 			c.Delete()
@@ -150,13 +150,13 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 		if err != nil {
 			return err
 		}
-		candidates = append(candidates, bridge.DeserializeCandidate(rb))
+		candidates[i] = bridge.DeserializeCandidate(rb)
 
 		cb, err := data.AsBlob(croppedImgs[i])
 		if err != nil {
 			return err
 		}
-		cropps = append(cropps, bridge.DeserializeMatVec3b(cb))
+		cropps[i] = bridge.DeserializeMatVec3b(cb)
 	}
 
 	recognized := sf.predictTagsBatch(candidates, cropps)
@@ -305,18 +305,18 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 	image := bridge.DeserializeMatVec3b(img)
 	defer image.Delete()
 
-	cans := []bridge.Candidate{}
-	cropped := []bridge.MatVec3b{}
-	for _, r := range regions {
+	cans := make([]bridge.Candidate, len(regions))
+	cropped := make([]bridge.MatVec3b, len(regions))
+	for i, r := range regions {
 		regionByte, err := data.AsBlob(r)
 		if err != nil {
 			return nil, err
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
-		cans = append(cans, regionPtr)
+		cans[i] = regionPtr
 
 		c := s.tagger.Crop(regionPtr, image)
-		cropped = append(cropped, c)
+		cropped[i] = c
 	}
 
 	defer func() {
@@ -336,9 +336,9 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 		}
 	}()
 
-	recognizedCans := data.Array{}
-	for _, r := range recognized {
-		recognizedCans = append(recognizedCans, data.Blob(r.Serialize()))
+	recognizedCans := make(data.Array, len(recognized))
+	for i, r := range recognized {
+		recognizedCans[i] = data.Blob(r.Serialize())
 	}
 
 	return recognizedCans, nil
