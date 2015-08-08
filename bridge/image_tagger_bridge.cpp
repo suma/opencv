@@ -2,7 +2,8 @@
 #include "util.hpp"
 
 ImageTaggerCaffe ImageTaggerCaffe_New(const char* config) {
-  scouter::ImageTaggerCaffe::Config conf = load_json<scouter::ImageTaggerCaffe::Config>(config);
+  scouter::ImageTaggerCaffe::Config conf =
+    load_json<scouter::ImageTaggerCaffe::Config>(config);
   return new scouter::ImageTaggerCaffe(conf);
 }
 
@@ -10,7 +11,8 @@ void ImageTaggerCaffe_Delete(ImageTaggerCaffe tagger) {
   delete tagger;
 }
 
-MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate, MatVec3b image) {
+MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate,
+    MatVec3b image) {
   cv::Mat_<cv::Vec3b> cropped = tagger->crop(*candidate, *image);
   return new cv::Mat_<cv::Vec3b>(cropped);
 }
@@ -45,8 +47,8 @@ struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
   return cs;
 }
 
-Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger, Candidate candidate,
-    MatVec3b image) {
+Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger,
+    Candidate candidate, MatVec3b image) {
   cv::Mat_<cv::Vec3b>* cropped = ImageTaggerCaffe_Crop(tagger, candidate, image);
   return ImageTaggerCaffe_PredictTags(tagger, candidate, cropped);
 }

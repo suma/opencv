@@ -17,13 +17,14 @@ typedef void* ImageTaggerCaffe;
 
 ImageTaggerCaffe ImageTaggerCaffe_New(const char* config);
 void ImageTaggerCaffe_Delete(ImageTaggerCaffe tagger);
-MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate, MatVec3b image);
+MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate,
+  MatVec3b image);
 Candidate ImageTaggerCaffe_PredictTags(ImageTaggerCaffe tagger, Candidate candidate,
   MatVec3b cropedImg);
 struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
   Candidate* candidates, MatVec3b* croppedImages, int length);
-Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger, Candidate candidate,
-  MatVec3b image);
+Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger,
+  Candidate candidate, MatVec3b image);
 
 #ifdef __cplusplus
 }
