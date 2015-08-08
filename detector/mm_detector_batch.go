@@ -62,10 +62,10 @@ func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
 		}
 	}()
 
-	cans := data.Array{}
-	for _, c := range candidates {
+	cans := make(data.Array, len(candidates))
+	for i, c := range candidates {
 		b := data.Blob(c.Serialize())
-		cans = append(cans, b)
+		cans[i] = b
 	}
 	return cans, nil
 }
@@ -81,6 +81,7 @@ func filterByMaskMMBatch(ctx *core.Context, detectParam string, regions data.Arr
 		return nil, err
 	}
 
+	// filterCans size is not same as len(regions), and not use make()
 	filteredCans := data.Array{}
 	for _, r := range regions {
 		regionByte, err := data.AsBlob(r)
@@ -137,8 +138,8 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 		return nil, err
 	}
 
-	estimatedCans := data.Array{}
-	for _, r := range regions {
+	estimatedCans := make(data.Array, len(regions))
+	for i, r := range regions {
 		regionByte, err := data.AsBlob(r)
 		if err != nil {
 			return nil, err
@@ -147,7 +148,7 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 		estimate := func() {
 			defer regionPtr.Delete()
 			s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
-			estimatedCans = append(estimatedCans, data.Blob(regionPtr.Serialize()))
+			estimatedCans[i] = data.Blob(regionPtr.Serialize())
 		}
 		estimate()
 	}

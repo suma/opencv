@@ -37,9 +37,9 @@ func DeserializeCandidate(c []byte) Candidate {
 }
 
 func convertCandidatesToPointer(candidates []Candidate) []C.Candidate {
-	candidatePointers := []C.Candidate{}
-	for _, c := range candidates {
-		candidatePointers = append(candidatePointers, c.p)
+	candidatePointers := make([]C.Candidate, len(candidates))
+	for i, c := range candidates {
+		candidatePointers[i] = c.p
 	}
 	return candidatePointers
 }
