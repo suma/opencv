@@ -14,8 +14,8 @@ func TestNewVisualizerParamState(t *testing.T) {
 	Convey("Given a parameter", t, func() {
 		params := data.Map{}
 		Convey("When the parameter has valid configs", func() {
-			params["camera_ids"] = data.Int(0)
-			params["camera_params"] = data.String("camera_param_test.json")
+			params["camera_ids"] = data.Array{data.Int(0)}
+			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
 			params["instance_manager_param"] = data.String("imparam")
 			Convey("Then the state should be initialized", func() {
 				state, err := createInstancesVisualizerParamState(ctx, params)
@@ -28,16 +28,16 @@ func TestNewVisualizerParamState(t *testing.T) {
 		})
 
 		Convey("When the parameter does not have camera ids", func() {
-			params["camera_params"] = data.String("camera_param_test.json")
-			params["instance_manager_param"] = data.String("imparam")
+			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
+			params["instance_manager_param"] = data.Array{data.String("imparam")}
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the parameter has invalid camera id", func() {
-			params["camera_ids"] = data.String("0")
-			params["camera_params"] = data.String("camera_param_test.json")
+			params["camera_ids"] = data.Array{data.String("0")}
+			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
 			params["instance_manager_param"] = data.String("imparam")
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)
@@ -54,8 +54,8 @@ func TestNewVisualizerParamState(t *testing.T) {
 			})
 		})
 		Convey("When the parameter has invalid camera param path", func() {
-			params["camera_ids"] = data.Int(0)
-			params["camera_params"] = data.Null{}
+			params["camera_ids"] = data.Array{data.Int(0)}
+			params["camera_params"] = data.Array{data.Null{}}
 			params["instance_manager_param"] = data.String("imparam")
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)
@@ -63,8 +63,8 @@ func TestNewVisualizerParamState(t *testing.T) {
 			})
 		})
 		Convey("When the parameter has not existed camera param path", func() {
-			params["camera_ids"] = data.Int(0)
-			params["camera_params"] = data.String("not_exist.json")
+			params["camera_ids"] = data.Array{data.Int(0)}
+			params["camera_params"] = data.Array{data.String("not_exist.json")}
 			params["instance_manager_param"] = data.String("imparam")
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)
@@ -73,16 +73,16 @@ func TestNewVisualizerParamState(t *testing.T) {
 		})
 
 		Convey("When the parameter does not have im param", func() {
-			params["camera_ids"] = data.Int(0)
-			params["camera_params"] = data.String("camera_param_test.json")
+			params["camera_ids"] = data.Array{data.Int(0)}
+			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)
 				So(err, ShouldNotBeNil)
 			})
 		})
 		Convey("When the parameter has not existed im param", func() {
-			params["camera_ids"] = data.Int(0)
-			params["camera_params"] = data.String("camera_param_test.json")
+			params["camera_ids"] = data.Array{data.Int(0)}
+			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
 			params["instance_manager_param"] = data.String("not_exist")
 			Convey("Then an error should be occurred", func() {
 				_, err := createInstancesVisualizerParamState(ctx, params)

@@ -16,37 +16,52 @@ type InstancesVisualizerParamState struct {
 
 func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	// camera_ids and camera_parameters should be array type
 	ids, err := params.Get("camera_ids")
 	if err != nil {
 		return nil, err
 	}
-	cameraIDs, err := data.AsInt(ids)
+	cameraIDs, err := data.AsArray(ids)
 	if err != nil {
 		return nil, err
 	}
-	cameraIDInts := []int{int(cameraIDs)}
+	cameraIDInts := make([]int, len(cameraIDs))
+	for i, id := range cameraIDs {
+		idInt, err := data.AsInt(id)
+		if err != nil {
+			return nil, err
+		}
+		cameraIDInts[i] = int(idInt)
+	}
 
+	// read all file path and convert to camera parameter
 	paths, err := params.Get("camera_params")
 	if err != nil {
 		return nil, err
 	}
-	pathStr, err := data.AsString(paths)
+	pathsStr, err := data.AsArray(paths)
 	if err != nil {
 		return nil, err
 	}
-	fileByte, err := ioutil.ReadFile(pathStr)
-	if err != nil {
-		return nil, err
+	cameraParams := make([]scconf.CameraParameter, len(pathsStr))
+	for i, path := range pathsStr {
+		pathStr, err := data.AsString(path)
+		if err != nil {
+			return nil, err
+		}
+		fileByte, err := ioutil.ReadFile(pathStr)
+		if err != nil {
+			return nil, err
+		}
+
+		var param scconf.CameraParameter
+		err = json.Unmarshal(fileByte, &param)
+		if err != nil {
+			return nil, err
+		}
+		cameraParams[i] = param
 	}
 
-	var param scconf.CameraParameter
-	err = json.Unmarshal(fileByte, &param)
-	if err != nil {
-		return nil, err
-	}
-	cameraParams := []scconf.CameraParameter{param}
-
+	// make instance visualizer parameter manually
 	visualizerParam := scconf.Visualizer{
 		CameraIDs:        cameraIDInts,
 		CameraParameters: cameraParams,
@@ -91,7 +106,8 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 //  * camera_params=['file1.json', 'file2.json']
 // then this state will save 'file1.json' with ID=0 and 'file2.json' with ID=1.
 //
-// "instance_amanger_param" is need to create Instance Visualizer instance.
+// "instance_amanger_param" is need to create Instance Visualizer instance, so
+// need to `CREATE STATE` "scouter_instance_manager_param" UDS.
 func (s *InstancesVisualizerParamState) CreateNewState() func(*core.Context, data.Map) (
 	core.SharedState, error) {
 	return createInstancesVisualizerParamState
