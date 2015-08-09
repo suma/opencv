@@ -7,11 +7,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// InstanceManagerParamState is a shared state used by Instance Manager UDF/UDSF.
 type InstanceManagerParamState struct {
 	m bridge.InstanceManager
 }
 
-func createInstanceManagerParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createInstanceManagerParamState(ctx *core.Context, params data.Map) (
+	core.SharedState, error) {
 	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
@@ -33,12 +35,18 @@ func createInstanceManagerParamState(ctx *core.Context, params data.Map) (core.S
 	return s, nil
 }
 
-func (s *InstanceManagerParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of Instance Manager parameters. The parameter
+// is collected on JSON, see `scouter::InstanceManager::Config`.
+//
+// Usage of WITH parameter:
+//  "file": instance manager parameters file path
+func (s *InstanceManagerParamState) CreateNewState() func(
+	*core.Context, data.Map) (core.SharedState, error) {
 	return createInstanceManagerParamState
 }
 
 func (s *InstanceManagerParamState) TypeName() string {
-	return "instance_manager_parameter"
+	return "scouter_instance_manager_param"
 }
 
 func (s *InstanceManagerParamState) Terminate(ctx *core.Context) error {

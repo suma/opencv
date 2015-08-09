@@ -9,6 +9,7 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// InstancesVisualizerParamState is a shared state used by Instance Visualizer.
 type InstancesVisualizerParamState struct {
 	v bridge.InstancesVisualizer
 }
@@ -26,7 +27,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 	cameraIDInts := []int{int(cameraIDs)}
 
-	paths, err := params.Get("camera_parameters")
+	paths, err := params.Get("camera_params")
 	if err != nil {
 		return nil, err
 	}
@@ -76,13 +77,28 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	return s, nil
 }
 
+// CreateNewState creates a state of Instance Visualizer parameters. The state
+// could save or load multi places camera parameters.
+//
+// Usage of WITH parameter:
+//  "camera_ids":             camera IDs ([]int)
+//  "camera_params":          camera parameters JSON file paths ([]string)
+//  "instance_manager_param": a "scouter_instance_manager_param" UDS name
+//
+// The order of "camera_ids" and "camera_params" must correspond with each
+// others. For example, the `CREATE STATE` query is
+//  * camera_ids=[0, 1]
+//  * camera_params=['file1.json', 'file2.json']
+// then this state will save 'file1.json' with ID=0 and 'file2.json' with ID=1.
+//
+// "instance_amanger_param" is need to create Instance Visualizer instance.
 func (s *InstancesVisualizerParamState) CreateNewState() func(*core.Context, data.Map) (
 	core.SharedState, error) {
 	return createInstancesVisualizerParamState
 }
 
 func (s *InstancesVisualizerParamState) TypeName() string {
-	return "instances_visualizer_parameter"
+	return "scouter_instances_visualizer_param"
 }
 
 func (s *InstancesVisualizerParamState) Terminate(ctx *core.Context) error {

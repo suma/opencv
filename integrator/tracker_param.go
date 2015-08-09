@@ -7,11 +7,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// TrackerParamState is a shared state used by tracker UDF/UDSF
 type TrackerParamState struct {
 	t bridge.Tracker
 }
 
-func createTrackerParamState(ctx *core.Context, params data.Map) (core.SharedState, error) {
+func createTrackerParamState(ctx *core.Context, params data.Map) (core.SharedState,
+	error) {
 	p, err := params.Get("file")
 	if err != nil {
 		return nil, err
@@ -34,12 +36,19 @@ func createTrackerParamState(ctx *core.Context, params data.Map) (core.SharedSta
 	return s, nil
 }
 
-func (s *TrackerParamState) CreateNewState() func(*core.Context, data.Map) (core.SharedState, error) {
+// CreateNewState creates a state of Tracking parameters. The parameter is
+// collected on JSON, see `scouter::TrackerSP::Config`, which is composition of
+// acceptable frame distance, forward frame distance, and so on.
+//
+// Usage of WITH parameter:
+//  "file": tracking parameters file path
+func (s *TrackerParamState) CreateNewState() func(*core.Context, data.Map) (
+	core.SharedState, error) {
 	return createTrackerParamState
 }
 
 func (s *TrackerParamState) TypeName() string {
-	return "tracker_parameter"
+	return "scouter_tracker_param"
 }
 
 func (s *TrackerParamState) Terminate(ctx *core.Context) error {
