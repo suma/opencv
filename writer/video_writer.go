@@ -47,14 +47,14 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	}
 	name += ".avi"
 
-	if absPath, err := filepath.Abs(name); err != nil {
+	absPath, err := filepath.Abs(name)
+	if err != nil {
 		return nil, fmt.Errorf("invalid file path: %v", err.Error())
-	} else {
-		dirPath := filepath.Dir(absPath)
-		_, err = os.Stat(dirPath)
-		if os.IsNotExist(err) {
-			os.MkdirAll(dirPath, 0755)
-		}
+	}
+	dirPath := filepath.Dir(absPath)
+	_, err = os.Stat(dirPath)
+	if os.IsNotExist(err) {
+		os.MkdirAll(dirPath, 0755)
 	}
 
 	fps, err := params.Get(fpsPath)
@@ -95,6 +95,7 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	return s, nil
 }
 
+// TypeName returns type name.
 func (c *VideoWiterCreator) TypeName() string {
 	return "scouter_avi_writer"
 }

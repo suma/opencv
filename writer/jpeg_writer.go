@@ -47,13 +47,13 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		return nil, err
 	}
 
-	if absPath, err := filepath.Abs(outputDir); err != nil {
+	absPath, err := filepath.Abs(outputDir)
+	if err != nil {
 		return nil, fmt.Errorf("invalid file path: %v", err.Error())
-	} else {
-		_, err = os.Stat(absPath)
-		if os.IsNotExist(err) {
-			os.MkdirAll(absPath, 0755)
-		}
+	}
+	_, err = os.Stat(absPath)
+	if os.IsNotExist(err) {
+		os.MkdirAll(absPath, 0755)
 	}
 
 	quality, err := params.Get(qualityPath)
@@ -71,6 +71,7 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 	return s, nil
 }
 
+// TypeName returns type name.
 func (c *JPEGWriterCreator) TypeName() string {
 	return "scouter_jpeg_writer"
 }

@@ -65,6 +65,7 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	return ms, nil
 }
 
+// TypeName returns type name.
 func (m *MJPEGServCreator) TypeName() string {
 	return "scouter_mjpeg_server"
 }
@@ -150,7 +151,7 @@ func (s *subscriber) channel() chan []byte {
 
 type publisher struct {
 	subscribers     map[int]*subscriber
-	nextSubsriberId int
+	nextSubsriberID int
 	m               sync.Mutex
 	currentFrames   map[string][]byte
 }
@@ -164,7 +165,7 @@ func newPublisher() *publisher {
 
 func (p *publisher) getNameList() []string {
 	names := []string{}
-	for name, _ := range p.currentFrames {
+	for name := range p.currentFrames {
 		names = append(names, name)
 	}
 	return names
@@ -195,11 +196,11 @@ func (p *publisher) subscribe(key string) *subscriber {
 	p.m.Lock()
 	defer p.m.Unlock()
 	s := &subscriber{
-		id:  p.nextSubsriberId,
+		id:  p.nextSubsriberID,
 		key: key,
 		ch:  make(chan []byte),
 	}
-	p.nextSubsriberId += 1
+	p.nextSubsriberID++
 	go func() {
 		s.ch <- p.currentFrames[key]
 	}()
