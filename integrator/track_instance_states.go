@@ -9,8 +9,30 @@ import (
 	"time"
 )
 
+// TrackInstanceStatesUDSFCreator is a creator of tracking UDSF.
 type TrackInstanceStatesUDSFCreator struct{}
 
+// CreateStreamFunction returns tracking multi frames stream function. This
+// stream function requires ID per instance state to determine states from.
+//
+// Usage:
+//  ```
+//  scouter_tracking_instance_states([instance_manager_param], [stream],
+//                                   [frames_name], [camera_id_name],
+//                                   [image_name], [trackees_name],
+//                                   [timestamp_name])
+//  ```
+//  [instance_manager_param]
+//  [stream]
+//  [frames_name]
+//  [camera_id_name]
+//  [image_name]
+//  [trackees_name]
+//  [timestampe_name]
+//
+// Input tuples are required to have following `data.Map` structure.
+//
+// Stream Tuple.Data structure:
 //  data.Map{
 //    "instanceStatesIDFieldName": [ID],
 //    "framesFieldName"          : data.Array{
@@ -20,12 +42,13 @@ type TrackInstanceStatesUDSFCreator struct{}
 //      }
 //    },
 //    "trackeesFieldName" : [tracking result] ([]data.Blob),
-//    "timestampFieldName": [frame captured time[us]] (data.Int)
+//    "timestampFieldName": [frame captured time[us]] (data.Int),
 //  }
 func (c *TrackInstanceStatesUDSFCreator) CreateStreamFunction() interface{} {
 	return createTrackInstanceStatesUDSF
 }
 
+// TypeName returns type name.
 func (c *TrackInstanceStatesUDSFCreator) TypeName() string {
 	return "scouter_tracking_instance_states"
 }
@@ -269,6 +292,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 	return trackees, nil
 }
 
+// Terminate the components.
 func (sf *trackInstanceStatesUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }

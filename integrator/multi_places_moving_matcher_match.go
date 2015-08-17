@@ -7,7 +7,7 @@ import (
 )
 
 func movingMatcherBatch(ctx *core.Context, multiPlaceRegions data.Array,
-	kThreashold float32) (data.Array, error) {
+	kthreashold float32) (data.Array, error) {
 
 	convertedRegions, err := convertToSliceRegions(multiPlaceRegions)
 	defer func() {
@@ -21,7 +21,7 @@ func movingMatcherBatch(ctx *core.Context, multiPlaceRegions data.Array,
 		return nil, err
 	}
 
-	mvCandidates := bridge.GetMatching(kThreashold, convertedRegions)
+	mvCandidates := bridge.GetMatching(kthreashold, convertedRegions)
 	defer func() {
 		for _, c := range mvCandidates {
 			c.Delete()
@@ -102,19 +102,25 @@ type MultiPlacesMovingMatcherBatchUDFCreator struct{}
 // `[]data.Blob`.
 //
 // Usage:
-//  `multi_place_moving_matcher_batch(multi_place_regions, kThreashold)`
-//  multi_place_regions is required following `data.Array`
-//    data.Array{
-//      []data.Map{
-//        "camera_id": [camera ID],
-//        "regions"  : [regions] (data.Array of data.Blob),
+//  `scouter_multi_place_moving_matcher_batch([multi_place_regions],
+//                                            [kthreshold])`
+//  [multi_place_regions]
+//    * type: data.Array
+//    * regions with camera ID data, required following data.Map structure.
+//      data.Array{
+//        []data.Map{
+//          "camera_id": [camera ID],
+//          "regions"  : [regions] (data.Array of data.Blob),
+//        }
 //      }
-//    }
-//  kThreshold is the threshold parameter of matching.
+//  [kthreshold]
+//    * type: float
+//    * threshold parameter of matching.
 func (c *MultiPlacesMovingMatcherBatchUDFCreator) CreateFunction() interface{} {
 	return movingMatcherBatch
 }
 
+// TypeName returns type name.
 func (c *MultiPlacesMovingMatcherBatchUDFCreator) TypeName() string {
 	return "scouter_multi_place_moving_matcher_batch"
 }

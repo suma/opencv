@@ -49,10 +49,12 @@ func (s *TrackerParamState) CreateNewState() func(*core.Context, data.Map) (
 	return createTrackerParamState
 }
 
+// TypeName returns type name.
 func (s *TrackerParamState) TypeName() string {
 	return "scouter_tracker_param"
 }
 
+// Terminate the components.
 func (s *TrackerParamState) Terminate(ctx *core.Context) error {
 	s.t.Delete()
 	return nil

@@ -45,10 +45,12 @@ func (s *InstanceManagerParamState) CreateNewState() func(
 	return createInstanceManagerParamState
 }
 
+// TypeName returns type name.
 func (s *InstanceManagerParamState) TypeName() string {
 	return "scouter_instance_manager_param"
 }
 
+// Terminate the components.
 func (s *InstanceManagerParamState) Terminate(ctx *core.Context) error {
 	s.m.Delete()
 	return nil

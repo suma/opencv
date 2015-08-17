@@ -6,19 +6,30 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// InstanceStateConverterUDFCreator is a creator of converter UDF.
 type InstanceStateConverterUDFCreator struct{}
 
 // CreateFunction returns JSON converter from instance states.
 //
 // Usage:
-//  `convert_instance_states_to_json(states, floorID, timestamp)`
-//    states   : instance state array (`[]data.Blob`)
-//    floorID  : floor id (`data.Int`)
-//    timestamp: timestamp[us] (`data.Int`) = uint64
+//  `scouter_convert_instance_states_to_json(states, floorID, timestamp)`
+//  [states]
+//    * type: []byte
+//    * instance states array
+//  [floorID]
+//    * type: int
+//    * the ID of floor to determine the camera.
+//  [timestamp]
+//    * type: uint64, in SensorBee, data.Int
+//    * timestamp[us]
+//
+// Return:
+//  The JSON text.
 func (c *InstanceStateConverterUDFCreator) CreateFunction() interface{} {
 	return convertInstanceStatesToJSON
 }
 
+// TypeName returns type name.
 func (c *InstanceStateConverterUDFCreator) TypeName() string {
 	return "scouter_convert_instance_states_to_json"
 }

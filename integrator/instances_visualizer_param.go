@@ -120,10 +120,12 @@ func (s *InstancesVisualizerParamState) CreateNewState() func(*core.Context, dat
 	return createInstancesVisualizerParamState
 }
 
+// TypeName returns type name.
 func (s *InstancesVisualizerParamState) TypeName() string {
 	return "scouter_instances_visualizer_param"
 }
 
+// Terminate the components.
 func (s *InstancesVisualizerParamState) Terminate(ctx *core.Context) error {
 	s.v.Delete()
 	return nil

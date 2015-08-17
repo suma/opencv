@@ -164,6 +164,7 @@ func convertToMVCandidateSlice(mvRegionsArray data.Array) (
 	return mvCans, nil
 }
 
+// Terminate the components.
 func (sf *framesTrackerUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
@@ -204,9 +205,26 @@ type FramesTrackerStreamFuncCreator struct{}
 // If captured frames include multiple places, then frames and detections could
 // be distinguished with camera ID.
 //
+// Usage:
+//  ```
+//  scouter_multi_region_tracking([tracker_param], [stream],
+//                                [instance_states_id_name], [frames_name],
+//                                [camera_id_name], [image_name],
+//                                [mv_region_name], [timestamp_name])
+//  ```
+//  [tracker_param]
+//  [stream]
+//  [instance_states_id_name]
+//  [frames_name]
+//  [camera_id_name]
+//  [image_name]
+//  [mv_region_name]
+//  [timestamp_name]
+//
 // Input tuples are required to have following `data.Map` structure, each key
 // name is addressed with UDSF's arguments.
 //
+// Stream Tuple.Data structure:
 //  data.Map{
 //    "instanceStatesIDFieldName": [ID],
 //    "framesFieldName"          : data.Array{
@@ -216,12 +234,13 @@ type FramesTrackerStreamFuncCreator struct{}
 //      }
 //    },
 //    "mvRegionsFieldName": [moving matched detection result] ([]data.Blob),
-//    "timestampFieldName": [frame captured time] (data.Timestamp)
+//    "timestampFieldName": [frame captured time] (data.Timestamp),
 //  }
 func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createFramesTrackerUDSF
 }
 
+// TypeName returns type name.
 func (c *FramesTrackerStreamFuncCreator) TypeName() string {
 	return "scouter_multi_region_tracking"
 }

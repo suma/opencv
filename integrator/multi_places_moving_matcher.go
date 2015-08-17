@@ -16,7 +16,7 @@ type multiPlacesMovingMatcherUDSF struct {
 	aggRegionsFieldName    data.Path
 	cameraIDFieldName      data.Path
 	regionsFieldName       data.Path
-	kThreashold            float32
+	kthreshold             float32
 }
 
 func (sf *multiPlacesMovingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple,
@@ -47,7 +47,7 @@ func (sf *multiPlacesMovingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple
 		return err
 	}
 
-	mvCandidates := sf.mvMatcher(sf.kThreashold, convertedRegions)
+	mvCandidates := sf.mvMatcher(sf.kthreshold, convertedRegions)
 	defer func() {
 		for _, c := range mvCandidates {
 			c.Delete()
@@ -77,6 +77,7 @@ func (sf *multiPlacesMovingMatcherUDSF) Process(ctx *core.Context, t *core.Tuple
 	return nil
 }
 
+// Terminate the components.
 func (sf *multiPlacesMovingMatcherUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
@@ -138,7 +139,7 @@ func (sf *multiPlacesMovingMatcherUDSF) lookupRegions(regions data.Map) (
 
 func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	stream string, integrationIDFieldName string, aggRegionsFieldName string,
-	cameraIDFieldName string, regionsFieldName string, kThreashlold float32) (
+	cameraIDFieldName string, regionsFieldName string, kthreshlold float32) (
 
 	udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
@@ -153,7 +154,7 @@ func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 		aggRegionsFieldName:    data.MustCompilePath(aggRegionsFieldName),
 		cameraIDFieldName:      data.MustCompilePath(cameraIDFieldName),
 		regionsFieldName:       data.MustCompilePath(regionsFieldName),
-		kThreashold:            kThreashlold,
+		kthreshold:             kthreshlold,
 	}, nil
 }
 
@@ -162,9 +163,24 @@ func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 type MultiPlacesMovingMatcherUDSFCreator struct{}
 
 // CreateStreamFunction creates moving matcher stream function for multi places.
+//
+// Usage:
+//  ```
+//  scouter_multi_place_moving_matcher([stream], [integration_id_name],
+//                                     [agg_regions_name], [camera_id_name],
+//                                     [regions_name], [kthreshold])
+//  ```
+//  [stream]
+//  [integration_id_name]
+//  [agg_regions_name]
+//  [camera_id_name]
+//  [regions_name]
+//  [kthreshold]
+//
 // Input tuples are required to have following `data.Map` structure, each key
 // name is addressed with UDSF's arguments.
 //
+// Stream Tuple.Data structure:
 //  data.Map{
 //    "integrationIDFieldName": [ID],
 //    "aggRegionsFildName"    : data.Array{
@@ -178,6 +194,7 @@ func (c *MultiPlacesMovingMatcherUDSFCreator) CreateStreamFunction() interface{}
 	return createMovingMatcherUDSF
 }
 
+// TypeName returns type name.
 func (c *MultiPlacesMovingMatcherUDSFCreator) TypeName() string {
 	return "scouter_multi_place_moving_matcher"
 }

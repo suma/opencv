@@ -7,12 +7,29 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+// InstancesVisualizerFuncCreator is a creator of visualizer UDF.
 type InstancesVisualizerFuncCreator struct{}
 
+// CreateFunction returns drawing with instance states function.
+//
+// Usage:
+//  ```
+//  scouter_draw_regions_with_instance_states([visualize_param], [frames],
+//                                            [states], [trackees])
+//  ```
+//  [visualize_param]
+//  [frames]
+//  [states]
+//  [trackees]
+//
+// Return:
+//  The function will return an image data serialize from `cv::Mat_<cv::Vec3b>`,
+//  the type is `[]byte`.
 func (c *InstancesVisualizerFuncCreator) CreateFunction() interface{} {
 	return drawWithInstanceStates
 }
 
+// TypeName returns type name.
 func (c *InstancesVisualizerFuncCreator) TypeName() string {
 	return "scouter_draw_regions_with_instance_states"
 }
