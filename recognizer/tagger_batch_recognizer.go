@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// ACFDetectBatchFuncCreator is a creator of cropping region from frame UDF.
+// RegionCropFuncCreator is a creator of cropping region from frame UDF.
 type RegionCropFuncCreator struct{}
 
 func crop(ctx *core.Context, taggerParam string, region []byte, image []byte) (
@@ -52,6 +52,7 @@ func (c *RegionCropFuncCreator) CreateFunction() interface{} {
 	return crop
 }
 
+// TypeName returns type name.
 func (c *RegionCropFuncCreator) TypeName() string {
 	return "scouter_crop_region"
 }
@@ -159,6 +160,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	return nil
 }
 
+// Terminate the components.
 func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
@@ -226,6 +228,7 @@ func (c *PredictTagsBatchStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createPredictTagsBatchUDSF
 }
 
+// TypeName returns type name.
 func (c *PredictTagsBatchStreamFuncCreator) TypeName() string {
 	return "scouter_predict_tags_batch_stream"
 }
@@ -258,6 +261,7 @@ func (c *CroppingAndPredictTagsBatchFuncCreator) CreateFunction() interface{} {
 	return croppingAndPredictTagsBatch
 }
 
+// TypeName returns type name.
 func (c *CroppingAndPredictTagsBatchFuncCreator) TypeName() string {
 	return "scouter_crop_and_predict_tags_batch"
 }

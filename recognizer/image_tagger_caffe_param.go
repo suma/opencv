@@ -49,10 +49,12 @@ func (s *ImageTaggerCaffeParamState) CreateNewState() func(*core.Context, data.M
 	return createImageTaggerCaffeParamState
 }
 
+// TypeName returns type name.
 func (s *ImageTaggerCaffeParamState) TypeName() string {
 	return "scouter_image_tagger_caffe"
 }
 
+// Terminate the components.
 func (s *ImageTaggerCaffeParamState) Terminate(ctx *core.Context) error {
 	s.tagger.Delete()
 	return nil

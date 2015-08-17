@@ -48,6 +48,7 @@ func (c *PredictTagsFuncCreator) CreateFunction() interface{} {
 	return predictTags
 }
 
+// TypeName returns type name.
 func (c *PredictTagsFuncCreator) TypeName() string {
 	return "scouter_predict_tags"
 }
@@ -97,6 +98,7 @@ func (c *CroppingAndPredictTagsFuncCreator) CreateFunction() interface{} {
 	return croppingAndPredictTags
 }
 
+// TypeName returns type name.
 func (c *CroppingAndPredictTagsFuncCreator) TypeName() string {
 	return "scouter_crop_and_predict_tags"
 }
@@ -148,6 +150,7 @@ func (c *DrawDeteciontResultFuncCreator) CreateFunction() interface{} {
 	return drawDetectionResult
 }
 
+// TypeName returns type name.
 func (c *DrawDeteciontResultFuncCreator) TypeName() string {
 	return "scouter_draw_regions_with_tags"
 }
