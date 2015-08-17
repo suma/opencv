@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"pfi/ComputerVision/scouter-core-conf"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -18,7 +19,7 @@ type MMDetectionParamState struct {
 func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
 	config := ""
-	if p, err := params.Get(filePath); err == nil {
+	if p, err := params.Get(utils.FilePath); err == nil {
 		path, err := data.AsString(p)
 		if err != nil {
 			return nil, err
@@ -31,7 +32,7 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 
 		config = string(b)
 	} else {
-		dp, err := params.Get(detectionFilePath)
+		dp, err := params.Get(utils.DetectionFilePath)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"state parameter requires configuration parameter file path")
@@ -50,7 +51,7 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 			return nil, err
 		}
 
-		if cp, err := params.Get(cameraParameterFilePath); err == nil {
+		if cp, err := params.Get(utils.CameraParameterFilePath); err == nil {
 			cameraParamFilePath, err := data.AsString(cp)
 			if err != nil {
 				return nil, err
@@ -122,7 +123,7 @@ func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
 //  camera_parameter_file: The camera parameter file path. Returns an error when
 //                         cannot read the file.
 func (s *MMDetectionParamState) Update(params data.Map) error {
-	p, err := params.Get(cameraParameterFilePath)
+	p, err := params.Get(utils.CameraParameterFilePath)
 	if err != nil {
 		return err
 	}

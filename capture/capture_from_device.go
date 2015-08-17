@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -18,13 +19,6 @@ func (c *FromDeviceCreator) TypeName() string {
 	return "scouter_capture_from_device"
 }
 
-var (
-	deviceIDPath = data.MustCompilePath("device_id")
-	widthPath    = data.MustCompilePath("width")
-	heightPath   = data.MustCompilePath("height")
-	fpsPath      = data.MustCompilePath("fps")
-)
-
 // CreateSource creates a frame generator using OpenCV video capture
 // (`VideoCapture::open`).
 //
@@ -36,7 +30,7 @@ var (
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
-	did, err := params.Get(deviceIDPath)
+	did, err := params.Get(utils.DeviceIDPath)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +39,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	w, err := params.Get(widthPath)
+	w, err := params.Get(utils.WidthPath)
 	if err != nil {
 		w = data.Int(0) // will be ignored
 	}
@@ -54,7 +48,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	h, err := params.Get(heightPath)
+	h, err := params.Get(utils.HeightPath)
 	if err != nil {
 		h = data.Int(0) // will be ignored
 	}
@@ -63,7 +57,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	f, err := params.Get(fpsPath)
+	f, err := params.Get(utils.FPSPath)
 	if err != nil {
 		f = data.Int(0) // will be ignored
 	}
@@ -72,7 +66,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	cid, err := params.Get(cameraIDPath)
+	cid, err := params.Get(utils.CameraIDPath)
 	if err != nil {
 		cid = data.Int(0)
 	}

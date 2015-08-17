@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"pfi/ComputerVision/scouter-core-conf"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -14,16 +15,9 @@ type InstancesVisualizerParamState struct {
 	v bridge.InstancesVisualizer
 }
 
-var (
-	cameraIDsPath            = data.MustCompilePath("camera_ids")
-	cameraParameterFilePath  = data.MustCompilePath("camera_parameter_file")
-	cameraParameterFilesPath = data.MustCompilePath("camera_parameter_files")
-	instanceManagerParamPath = data.MustCompilePath("instance_manager_param")
-)
-
 func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	ids, err := params.Get(cameraIDsPath)
+	ids, err := params.Get(utils.CameraIDsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +35,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 
 	// read all file path and convert to camera parameter
-	paths, err := params.Get(cameraParameterFilesPath)
+	paths, err := params.Get(utils.CameraParameterFilesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +74,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 	visualizerConf := string(b)
 
-	imParamName, err := params.Get(instanceManagerParamPath)
+	imParamName, err := params.Get(utils.InstanceManagerParamPath)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +129,7 @@ func (s *InstancesVisualizerParamState) Terminate(ctx *core.Context) error {
 // projection parameter using camera parameter JSON file with camera ID.
 func (s *InstancesVisualizerParamState) Update(params data.Map) error {
 	var cameraID int
-	if id, err := params.Get(cameraIDPath); err != nil {
+	if id, err := params.Get(utils.CameraIDPath); err != nil {
 		return err
 	} else if ci, err := data.AsInt(id); err != nil {
 		return err
@@ -144,7 +138,7 @@ func (s *InstancesVisualizerParamState) Update(params data.Map) error {
 	}
 
 	var path string
-	if p, err := params.Get(cameraParameterFilePath); err != nil {
+	if p, err := params.Get(utils.CameraParameterFilePath); err != nil {
 		return err
 	} else if path, err = data.AsString(p); err != nil {
 		return err

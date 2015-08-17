@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"pfi/ComputerVision/scouter-core-conf"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -15,16 +16,10 @@ type ACFDetectionParamState struct {
 	d bridge.Detector
 }
 
-var (
-	filePath                = data.MustCompilePath("file")
-	detectionFilePath       = data.MustCompilePath("detection_file")
-	cameraParameterFilePath = data.MustCompilePath("camera_parameter_file")
-)
-
 func createACFDetectionParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
 	config := ""
-	if p, err := params.Get(filePath); err == nil {
+	if p, err := params.Get(utils.FilePath); err == nil {
 		path, err := data.AsString(p)
 		if err != nil {
 			return nil, err
@@ -37,7 +32,7 @@ func createACFDetectionParamState(ctx *core.Context, params data.Map) (
 
 		config = string(b)
 	} else {
-		dp, err := params.Get(detectionFilePath)
+		dp, err := params.Get(utils.DetectionFilePath)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"state parameter requires configuration parameter file path")
@@ -56,7 +51,7 @@ func createACFDetectionParamState(ctx *core.Context, params data.Map) (
 			return nil, err
 		}
 
-		if cp, err := params.Get(cameraParameterFilePath); err == nil {
+		if cp, err := params.Get(utils.CameraParameterFilePath); err == nil {
 			cameraParamFilePath, err := data.AsString(cp)
 			if err != nil {
 				return nil, err
@@ -128,7 +123,7 @@ func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 //  camera_parameter_file: The camera parameter file path. Returns an error when
 //                         cannot read the file.
 func (s *ACFDetectionParamState) Update(params data.Map) error {
-	p, err := params.Get(cameraParameterFilePath)
+	p, err := params.Get(utils.CameraParameterFilePath)
 	if err != nil {
 		return err
 	}

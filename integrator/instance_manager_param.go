@@ -3,6 +3,7 @@ package integrator
 import (
 	"io/ioutil"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -14,7 +15,7 @@ type InstanceManagerParamState struct {
 
 func createInstanceManagerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	p, err := params.Get(filePath)
+	p, err := params.Get(utils.FilePath)
 	if err != nil {
 		return nil, err
 	}

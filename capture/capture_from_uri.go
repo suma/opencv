@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -40,17 +41,10 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 	return core.NewRewindableSource(cs), nil
 }
 
-var (
-	uriPath            = data.MustCompilePath("uri")
-	frameSkipPath      = data.MustCompilePath("frame_skip")
-	cameraIDPath       = data.MustCompilePath("camera_id")
-	nextFrameErrorPath = data.MustCompilePath("next_frame_error")
-)
-
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
 	core.Source, error) {
 
-	uri, err := params.Get(uriPath)
+	uri, err := params.Get(utils.URIPath)
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
 	}
@@ -59,7 +53,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	fs, err := params.Get(frameSkipPath)
+	fs, err := params.Get(utils.FrameSkipPath)
 	if err != nil {
 		fs = data.Int(0) // will be ignored
 	}
@@ -68,7 +62,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	cid, err := params.Get(cameraIDPath)
+	cid, err := params.Get(utils.CameraIDPath)
 	if err != nil {
 		cid = data.Int(0)
 	}
@@ -77,7 +71,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	endErrFlag, err := params.Get(nextFrameErrorPath)
+	endErrFlag, err := params.Get(utils.NextFrameErrorPath)
 	if err != nil {
 		endErrFlag = data.True
 	}

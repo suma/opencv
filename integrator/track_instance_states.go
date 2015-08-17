@@ -3,6 +3,7 @@ package integrator
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql/udf"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -235,13 +236,6 @@ func (sf *trackInstanceStatesUDSF) convertToMatVecMap(frameArray data.Array) (
 	return matMap, nil
 }
 
-var (
-	colorIDPath        = data.MustCompilePath("color_id")
-	movingDetectedPath = data.MustCompilePath("moving_detected")
-	interpolatedPath   = data.MustCompilePath("interpolated")
-	timestampPath      = data.MustCompilePath("timestamp")
-)
-
 func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 	trackees := []bridge.Trackee{}
 	for _, tr := range trsArray {
@@ -250,7 +244,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			return nil, err
 		}
 		var colorID uint64
-		if cid, err := trMap.Get(colorIDPath); err != nil {
+		if cid, err := trMap.Get(utils.ColorIDPath); err != nil {
 			return nil, err
 		} else if cidInt, err := data.AsInt(cid); err != nil {
 			return nil, err
@@ -258,7 +252,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			colorID = uint64(cidInt)
 		}
 		var mvRegion bridge.MVCandidate
-		if mvCan, err := trMap.Get(movingDetectedPath); err != nil {
+		if mvCan, err := trMap.Get(utils.MovingDetectedPath); err != nil {
 			return nil, err
 		} else if mvByte, err := data.AsBlob(mvCan); err != nil {
 			return nil, err
@@ -266,13 +260,13 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			mvRegion = bridge.DeserializeMVCandidate(mvByte)
 		}
 		var interpolated bool
-		if interpo, err := trMap.Get(interpolatedPath); err != nil {
+		if interpo, err := trMap.Get(utils.InterpolatedPath); err != nil {
 			return nil, err
 		} else if interpolated, err = data.AsBool(interpo); err != nil {
 			return nil, err
 		}
 		var timestamp uint64
-		if ts, err := trMap.Get(timestampPath); err != nil {
+		if ts, err := trMap.Get(utils.TimestampPath); err != nil {
 			return nil, err
 		} else if tsInt, err := data.AsInt(ts); err != nil {
 			return nil, err

@@ -2,14 +2,9 @@ package detector
 
 import (
 	"fmt"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-)
-
-var (
-	projectedIMGPath = data.MustCompilePath("projected_img")
-	offsetXPath      = data.MustCompilePath("offset_x")
-	offsetYPath      = data.MustCompilePath("offset_y")
 )
 
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (
@@ -36,11 +31,12 @@ func lookupMMDetectParamState(ctx *core.Context, detectParam string) (
 	if s, ok := st.(*MMDetectionParamState); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be converted to mm_detection_param.state", detectParam)
+	return nil, fmt.Errorf("state '%v' cannot be converted to mm_detection_param.state",
+		detectParam)
 }
 
 func lookupFrameData(frame data.Map) ([]byte, error) {
-	img, err := frame.Get(projectedIMGPath)
+	img, err := frame.Get(utils.ProjectedIMGPath)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -53,7 +49,7 @@ func lookupFrameData(frame data.Map) ([]byte, error) {
 }
 
 func lookupOffsets(frame data.Map) (int, int, error) {
-	ox, err := frame.Get(offsetXPath)
+	ox, err := frame.Get(utils.OffsetXPath)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -62,7 +58,7 @@ func lookupOffsets(frame data.Map) (int, int, error) {
 		return 0, 0, err
 	}
 
-	oy, err := frame.Get(offsetYPath)
+	oy, err := frame.Get(utils.OffsetYPath)
 	if err != nil {
 		return 0, 0, err
 	}

@@ -3,6 +3,7 @@ package integrator
 import (
 	"fmt"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -79,11 +80,6 @@ func drawWithInstanceStates(ctx *core.Context, visualizerParam string,
 	return img.Serialize(), nil
 }
 
-var (
-	cameraIDPath = data.MustCompilePath("camera_id")
-	imgPath      = data.MustCompilePath("img")
-)
-
 func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) {
 	matMap := map[int]bridge.MatVec3b{}
 	for _, f := range frameArray {
@@ -92,7 +88,7 @@ func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) 
 			return matMap, err
 		}
 
-		id, err := fMap.Get(cameraIDPath)
+		id, err := fMap.Get(utils.CameraIDPath)
 		if err != nil {
 			return matMap, err
 		}
@@ -101,7 +97,7 @@ func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) 
 			return matMap, err
 		}
 
-		image, err := fMap.Get(imgPath)
+		image, err := fMap.Get(utils.IMGPath)
 		if err != nil {
 			return matMap, err
 		}

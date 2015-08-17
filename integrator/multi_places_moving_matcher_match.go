@@ -2,6 +2,7 @@ package integrator
 
 import (
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -54,12 +55,10 @@ func convertToSliceRegions(aggRegions data.Array) (
 	return aggRegionsWithID, nil
 }
 
-var regionsPath = data.MustCompilePath("regions")
-
 func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 
 	empty := bridge.RegionsWithCameraID{}
-	id, err := regions.Get(cameraIDPath)
+	id, err := regions.Get(utils.CameraIDPath)
 	if err != nil {
 		return empty, err
 	}
@@ -68,7 +67,7 @@ func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 		return empty, err
 	}
 
-	rs, err := regions.Get(regionsPath)
+	rs, err := regions.Get(utils.RegionsPath)
 	if err != nil {
 		return empty, err
 	}

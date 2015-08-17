@@ -3,6 +3,7 @@ package detector
 import (
 	"io/ioutil"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
 )
@@ -15,7 +16,7 @@ type FrameProcessorParamState struct {
 
 func createFrameProcessorParamState(ctx *core.Context, params data.Map) (core.SharedState,
 	error) {
-	p, err := params.Get(filePath)
+	p, err := params.Get(utils.FilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (s *FrameProcessorParamState) Terminate(ctx *core.Context) error {
 // Usage of WITH parameters:
 //  file: The file path. Returns an error when cannot read the file.
 func (s *FrameProcessorParamState) Update(params data.Map) error {
-	p, err := params.Get(filePath)
+	p, err := params.Get(utils.FilePath)
 	if err != nil {
 		return err
 	}

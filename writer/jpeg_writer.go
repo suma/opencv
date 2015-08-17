@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"pfi/sensorbee/scouter/bridge"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -13,13 +14,6 @@ import (
 
 // JPEGWriterCreator is a creator of JPEG Writer.
 type JPEGWriterCreator struct{}
-
-var (
-	outputPath  = data.MustCompilePath("output")
-	qualityPath = data.MustCompilePath("quality")
-	namePath    = data.MustCompilePath("name")
-	imgPath     = data.MustCompilePath("img")
-)
 
 // CreateSink creates a JPEG output sink, which output converted JPEG from
 // `cv::Mat_<cv::Vec3b>`.
@@ -38,7 +32,7 @@ var (
 func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
-	output, err := params.Get(outputPath)
+	output, err := params.Get(utils.OutputPath)
 	if err != nil {
 		output = data.String(".")
 	}
@@ -56,7 +50,7 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		os.MkdirAll(absPath, 0755)
 	}
 
-	quality, err := params.Get(qualityPath)
+	quality, err := params.Get(utils.QualityPath)
 	if err != nil {
 		quality = data.Int(50)
 	}
@@ -98,7 +92,7 @@ type jpegWriterSink struct {
 //  ```
 // then [frame_id].jpg will be created at the directory.
 func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
-	name, err := t.Data.Get(namePath)
+	name, err := t.Data.Get(utils.NamePath)
 	if err != nil {
 		return err
 	}
@@ -107,7 +101,7 @@ func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 		return err
 	}
 
-	img, err := t.Data.Get(imgPath)
+	img, err := t.Data.Get(utils.IMGPath)
 	if err != nil {
 		return err
 	}
