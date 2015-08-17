@@ -16,7 +16,8 @@ type InstancesVisualizerParamState struct {
 
 var (
 	cameraIDsPath            = data.MustCompilePath("camera_ids")
-	cameraParamsPath         = data.MustCompilePath("camera_params")
+	cameraParameterFilePath  = data.MustCompilePath("camera_parameter_file")
+	cameraParameterFilesPath = data.MustCompilePath("camera_parameter_files")
 	instanceManagerParamPath = data.MustCompilePath("instance_manager_param")
 )
 
@@ -40,7 +41,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 
 	// read all file path and convert to camera parameter
-	paths, err := params.Get(cameraParamsPath)
+	paths, err := params.Get(cameraParameterFilesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +104,13 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 //
 // Usage of WITH parameter:
 //  "camera_ids":             camera IDs ([]int)
-//  "camera_params":          camera parameters JSON file paths ([]string)
+//  "camera_parameter_files": camera parameters JSON file paths ([]string)
 //  "instance_manager_param": a "scouter_instance_manager_param" UDS name
 //
-// The order of "camera_ids" and "camera_params" must correspond with each
-// others. For example, the `CREATE STATE` query is
+// The order of "camera_ids" and "camera_parameter_files" must correspond with
+// each others. For example, the `CREATE STATE` query is
 //  * camera_ids=[0, 1]
-//  * camera_params=['file1.json', 'file2.json']
+//  * camera_parameter_files=['file1.json', 'file2.json']
 // then this state will save 'file1.json' with ID=0 and 'file2.json' with ID=1.
 //
 // "instance_amanger_param" is need to create Instance Visualizer instance, so
@@ -125,5 +126,34 @@ func (s *InstancesVisualizerParamState) TypeName() string {
 
 func (s *InstancesVisualizerParamState) Terminate(ctx *core.Context) error {
 	s.v.Delete()
+	return nil
+}
+
+// Update the state to reload the JSON file without global lock. User can update
+// projection parameter using camera parameter JSON file with camera ID.
+func (s *InstancesVisualizerParamState) Update(params data.Map) error {
+	var cameraID int
+	if id, err := params.Get(cameraIDPath); err != nil {
+		return err
+	} else if ci, err := data.AsInt(id); err != nil {
+		return err
+	} else {
+		cameraID = int(ci)
+	}
+
+	var path string
+	if p, err := params.Get(cameraParameterFilePath); err != nil {
+		return err
+	} else if path, err = data.AsString(p); err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	cpConfig := string(b)
+	s.v.UpdateCameraParameter(cameraID, cpConfig)
+
 	return nil
 }

@@ -12,6 +12,12 @@ void InstancesVisualizer_Delete(InstancesVisualizer iv) {
   delete iv;
 }
 
+void InstancesVisualizer_UpdateCameraParam(InstancesVisualizer iv,
+    int cameraID, const char *config) {
+  const scouter::CameraParameter& cp = load_json<scouter::CameraParameter>(config);
+  iv->update_camera_parameter(cameraID, cp);
+}
+
 MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv,
     struct MatWithCameraID* frames, int fLength, struct InstanceStates states,
     struct Trackee* trackees, int tLength) {

@@ -7,11 +7,13 @@ package bridge
 */
 import "C"
 import (
+	"sync"
 	"unsafe"
 )
 
 type InstancesVisualizer struct {
-	p C.InstancesVisualizer
+	mu sync.RWMutex
+	p  C.InstancesVisualizer
 }
 
 // NewInstancesVisualizer create InstancesVisualizer. InstanceManager is
@@ -27,8 +29,19 @@ func (v *InstancesVisualizer) Delete() {
 	v.p = nil
 }
 
+func (v *InstancesVisualizer) UpdateCameraParameter(cameraID int, config string) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	cConfig := C.CString(config)
+	defer C.free(unsafe.Pointer(cConfig))
+	C.InstancesVisualizer_UpdateCameraParam(v.p, C.int(cameraID), cConfig)
+}
+
 func (v *InstancesVisualizer) Draw(frames map[int]MatVec3b, states []InstanceState,
 	trackees []Trackee) MatVec3b {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
 
 	// MatMapPtr
 	fLength := len(frames)

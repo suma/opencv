@@ -17,6 +17,8 @@ typedef void* InstancesVisualizer;
 InstancesVisualizer InstancesVisualizer_New(InstanceManager im,
   const char *config);
 void InstancesVisualizer_Delete(InstancesVisualizer iv);
+void InstancesVisualizer_UpdateCameraParam(InstancesVisualizer iv,
+  int cameraID, const char *config);
 
 MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv,
     struct MatWithCameraID* frames, int fLength, struct InstanceStates states,
