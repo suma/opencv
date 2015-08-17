@@ -105,10 +105,12 @@ func (s *MMDetectionParamState) CreateNewState() func(*core.Context, data.Map) (
 	return createMMDetectionParamState
 }
 
+// TypeName returns type name.
 func (s *MMDetectionParamState) TypeName() string {
 	return "scouter_mm_detection_param"
 }
 
+// Terminate the components.
 func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
 	s.d.Delete()
 	return nil

@@ -24,7 +24,7 @@ type mmDetectUDSF struct {
 //    "region":        [detected region] (`data.Blob`),
 //  }
 func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer) error {
-	frameId, err := t.Data.Get(sf.frameIDName)
+	frameID, err := t.Data.Get(sf.frameIDName)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{
-			"frame_id":      frameId,
+			"frame_id":      frameID,
 			"regions_count": data.Int(len(candidates)),
 			"region":        data.Blob(c.Serialize()),
 		}
@@ -80,6 +80,7 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 	return nil
 }
 
+// Terminate the components.
 func (sf *mmDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
@@ -158,6 +159,7 @@ func (c *MMDetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createMMDetectUDSF
 }
 
+// TypeName returns type name.
 func (c *MMDetectRegionStreamFuncCreator) TypeName() string {
 	return "scouter_mm_detector_stream"
 }
@@ -196,6 +198,7 @@ func (c *FilterByMaskMMFuncCreator) CreateFunction() interface{} {
 	return filterByMaskMM
 }
 
+// TypeName returns type name.
 func (c *FilterByMaskMMFuncCreator) TypeName() string {
 	return "scouter_mm_filter_by_mask"
 }
@@ -247,6 +250,7 @@ func (c *EstimateHeightMMFuncCreator) CreateFunction() interface{} {
 	return estimateHeightMM
 }
 
+// TypeName returns type name.
 func (c *EstimateHeightMMFuncCreator) TypeName() string {
 	return "scouter_mm_estimate_height"
 }

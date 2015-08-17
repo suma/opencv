@@ -32,6 +32,7 @@ func (c *ACFDetectBatchFuncCreator) CreateFunction() interface{} {
 	return acfDetectBatch
 }
 
+// TypeName returns type name.
 func (c *ACFDetectBatchFuncCreator) TypeName() string {
 	return "scouter_acf_detector_batch"
 }
@@ -118,6 +119,7 @@ func (c *FilterByMaskBatchFuncCreator) CreateFunction() interface{} {
 	return filterByMaskBatch
 }
 
+// TypeName returns type name.
 func (c *FilterByMaskBatchFuncCreator) TypeName() string {
 	return "scouter_filter_by_mask_batch"
 }
@@ -182,6 +184,7 @@ func (c *EstimateHeightBatchFuncCreator) CreateFunction() interface{} {
 	return estimateHeightBatch
 }
 
+// TypeName returns type name.
 func (c *EstimateHeightBatchFuncCreator) TypeName() string {
 	return "scouter_estimate_height_batch"
 }

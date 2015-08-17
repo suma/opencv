@@ -48,10 +48,12 @@ func (s *FrameProcessorParamState) CreateNewState() func(*core.Context, data.Map
 	return createFrameProcessorParamState
 }
 
+// TypeName returns type name.
 func (s *FrameProcessorParamState) TypeName() string {
 	return "scouter_frame_processor_param"
 }
 
+// Terminate the components.
 func (s *FrameProcessorParamState) Terminate(ctx *core.Context) error {
 	s.fp.Delete()
 	return nil

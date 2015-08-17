@@ -53,6 +53,7 @@ func (c *FrameApplierFuncCreator) CreateFunction() interface{} {
 	return frameApplier
 }
 
+// TypeName returns type name.
 func (c *FrameApplierFuncCreator) TypeName() string {
 	return "scouter_frame_applier"
 }

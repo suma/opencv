@@ -32,6 +32,7 @@ func (c *MMDetectBatchFuncCreator) CreateFunction() interface{} {
 	return mmDetectBatch
 }
 
+// TypeName returns type name.
 func (c *MMDetectBatchFuncCreator) TypeName() string {
 	return "scouter_mm_detector_batch"
 }
@@ -118,6 +119,7 @@ func (c *FilterByMaskMMBatchFuncCreator) CreateFunction() interface{} {
 	return filterByMaskBatch
 }
 
+// TypeName returns type name.
 func (c *FilterByMaskMMBatchFuncCreator) TypeName() string {
 	return "scouter_mm_filter_by_mask_batch"
 }
@@ -182,6 +184,7 @@ func (c *EstimateHeightMMBatchFuncCreator) CreateFunction() interface{} {
 	return estimateHeightBatch
 }
 
+// TypeName returns type name.
 func (c *EstimateHeightMMBatchFuncCreator) TypeName() string {
 	return "scouter_mm_estimate_height_batch"
 }

@@ -26,7 +26,7 @@ type acfDetectUDSF struct {
 func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple,
 	w core.Writer) error {
 
-	frameId, err := t.Data.Get(sf.frameIDName)
+	frameID, err := t.Data.Get(sf.frameIDName)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple,
 	for _, c := range candidates {
 		now := time.Now()
 		m := data.Map{
-			"frame_id":      frameId,
+			"frame_id":      frameID,
 			"regions_count": data.Int(len(candidates)),
 			"region":        data.Blob(c.Serialize()),
 		}
@@ -82,6 +82,7 @@ func (sf *acfDetectUDSF) Process(ctx *core.Context, t *core.Tuple,
 	return nil
 }
 
+// Terminate the components.
 func (sf *acfDetectUDSF) Terminate(ctx *core.Context) error {
 	return nil
 }
@@ -160,6 +161,7 @@ func (c *DetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createACFDetectUDSF
 }
 
+// TypeName returns type name.
 func (c *DetectRegionStreamFuncCreator) TypeName() string {
 	return "scouter_acf_detector_stream"
 }
@@ -197,6 +199,7 @@ func (c *FilterByMaskFuncCreator) CreateFunction() interface{} {
 	return filterByMask
 }
 
+// TypeName returns type name.
 func (c *FilterByMaskFuncCreator) TypeName() string {
 	return "scouter_filter_by_mask"
 }
@@ -248,6 +251,7 @@ func (c *EstimateHeightFuncCreator) CreateFunction() interface{} {
 	return estimateHeight
 }
 
+// TypeName returns type name.
 func (c *EstimateHeightFuncCreator) TypeName() string {
 	return "scouter_estimate_height"
 }
@@ -299,6 +303,7 @@ func (c *DrawDetectionResultFuncCreator) CreateFunction() interface{} {
 	return drawDetectionResult
 }
 
+// TypeName returns type name.
 func (c *DrawDetectionResultFuncCreator) TypeName() string {
 	return "scouter_draw_regions"
 }

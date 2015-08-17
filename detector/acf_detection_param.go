@@ -111,10 +111,12 @@ func (s *ACFDetectionParamState) CreateNewState() func(*core.Context, data.Map) 
 	return createACFDetectionParamState
 }
 
+// TypeName returns type name.
 func (s *ACFDetectionParamState) TypeName() string {
 	return "scouter_acf_detection_param"
 }
 
+// Terminate the components.
 func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 	s.d.Delete()
 	return nil
