@@ -19,7 +19,7 @@ import (
 //
 func init() {
 	// sources
-	sources := []PluginSourceCreator{
+	sources := []SourceCreator{
 		&capture.CaptureFromURICreator{},
 		&capture.CaptureFromDeviceCreator{},
 	}
@@ -28,7 +28,7 @@ func init() {
 	}
 
 	// sinks
-	sinks := []PluginSinkCreator{
+	sinks := []SinkCreator{
 		&writer.MJPEGServCreator{},
 		&writer.JPEGWriterCreator{},
 		&writer.VideoWiterCreator{},
@@ -38,7 +38,7 @@ func init() {
 	}
 
 	// states
-	states := []PluginStateCreator{
+	states := []StateCreator{
 		&detector.FrameProcessorParamState{},
 		&detector.ACFDetectionParamState{},
 		&detector.MMDetectionParamState{},
@@ -53,7 +53,7 @@ func init() {
 	}
 
 	// UDFs
-	udfuncs := []PluginUDFCreator{
+	udfuncs := []UDFCreator{
 		&detector.FrameApplierFuncCreator{},
 		&detector.ACFDetectBatchFuncCreator{},
 		&detector.FilterByMaskBatchFuncCreator{},
@@ -81,7 +81,7 @@ func init() {
 	}
 
 	// UDSFs
-	udsfuncs := []PluginUDSFCreator{
+	udsfuncs := []UDSFCreator{
 		&detector.DetectRegionStreamFuncCreator{},
 		&detector.MMDetectRegionStreamFuncCreator{},
 		&recog.PredictTagsBatchStreamFuncCreator{},

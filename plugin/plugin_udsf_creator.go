@@ -1,9 +1,9 @@
 package plugin
 
-// PluginUDSFCreator is an interface to get BQL UDSF function and to registration.
-type PluginUDSFCreator interface {
-	// CreateStreamFunction returns user plug-in function. THis function only deal
-	// with generic function.
+// UDSFCreator is an interface to register the user defined stream function.
+type UDSFCreator interface {
+	// CreateStreamFunction returns user defined stream function. This function
+	// only deal with generic function.
 	CreateStreamFunction() interface{}
 	// TypeName returns name of registration.
 	// Example:

@@ -2,15 +2,13 @@ package plugin
 
 import (
 	"pfi/sensorbee/sensorbee/bql"
-	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/data"
 )
 
-// PluginSourceCreator is an interface to get bql.SourceCreator.
-type PluginSourceCreator interface {
-	// CreateSource returns user plug-in source type. Returns error when
-	// parameter is invalid.
-	CreateSource(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (core.Source, error)
+// SourceCreator is an interface to register the user defined source.
+type SourceCreator interface {
+	// SourceCreator is a function and returns user defined source. Returns an
+	// error when parameter is invalid.
+	bql.SourceCreator
 	// TypeName returns name of registration.
 	// Example:
 	//  a type name is "capture", then

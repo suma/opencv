@@ -5,8 +5,8 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-// PluginStateCreator is an interface to get core.SharedSate
-type PluginStateCreator interface {
+// StateCreator is an interface to register the user defined state.
+type StateCreator interface {
 	// CreateNewState returns the SharedState creator function
 	CreateNewState() func(*core.Context, data.Map) (core.SharedState, error)
 	// TypeName returns the SharedState' type.
