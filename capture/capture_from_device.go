@@ -17,6 +17,13 @@ func (c *CaptureFromDeviceCreator) TypeName() string {
 	return "scouter_capture_from_device"
 }
 
+var (
+	deviceIDPath = data.MustCompilePath("device_id")
+	widthPath    = data.MustCompilePath("width")
+	heightPath   = data.MustCompilePath("height")
+	fpsPath      = data.MustCompilePath("fps")
+)
+
 // CreateSource creates a frame generator using OpenCV video capture
 // (`VideoCapture::open).
 //
@@ -28,7 +35,7 @@ func (c *CaptureFromDeviceCreator) TypeName() string {
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
-	did, err := params.Get("device_id")
+	did, err := params.Get(deviceIDPath)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +44,7 @@ func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql
 		return nil, err
 	}
 
-	w, err := params.Get("width")
+	w, err := params.Get(widthPath)
 	if err != nil {
 		w = data.Int(0) // will be ignored
 	}
@@ -46,7 +53,7 @@ func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql
 		return nil, err
 	}
 
-	h, err := params.Get("height")
+	h, err := params.Get(heightPath)
 	if err != nil {
 		h = data.Int(0) // will be ignored
 	}
@@ -55,7 +62,7 @@ func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql
 		return nil, err
 	}
 
-	f, err := params.Get("fps")
+	f, err := params.Get(fpsPath)
 	if err != nil {
 		f = data.Int(0) // will be ignored
 	}
@@ -64,7 +71,7 @@ func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql
 		return nil, err
 	}
 
-	cid, err := params.Get("camera_id")
+	cid, err := params.Get(cameraIDPath)
 	if err != nil {
 		cid = data.Int(0)
 	}

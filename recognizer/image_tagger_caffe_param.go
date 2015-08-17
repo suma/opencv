@@ -12,9 +12,11 @@ type ImageTaggerCaffeParamState struct {
 	tagger bridge.ImageTaggerCaffe
 }
 
+var filePath = data.MustCompilePath("file")
+
 func createImageTaggerCaffeParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	p, err := params.Get("file")
+	p, err := params.Get(filePath)
 	if err != nil {
 		return nil, err
 	}

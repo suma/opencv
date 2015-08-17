@@ -49,12 +49,12 @@ func createTrackInstanceStatesUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 
 	return &trackInstanceStatesUDSF{
 		instanceManager:           &imState.m,
-		instanceStatesIDFieldName: instanceStatesIDFieldName,
-		framesFieldName:           framesFieldName,
-		cameraIDFieldName:         cameraIDFieldName,
-		imageFieldName:            imageFieldName,
-		trackeesFieldName:         trackeesFieldName,
-		timestampFieldName:        timestampFieldName,
+		instanceStatesIDFieldName: data.MustCompilePath(instanceStatesIDFieldName),
+		framesFieldName:           data.MustCompilePath(framesFieldName),
+		cameraIDFieldName:         data.MustCompilePath(cameraIDFieldName),
+		imageFieldName:            data.MustCompilePath(imageFieldName),
+		trackeesFieldName:         data.MustCompilePath(trackeesFieldName),
+		timestampFieldName:        data.MustCompilePath(timestampFieldName),
 	}, nil
 }
 
@@ -75,12 +75,12 @@ func lookupInstanceManagerParamState(ctx *core.Context, instanceManagerParam str
 
 type trackInstanceStatesUDSF struct {
 	instanceManager           *bridge.InstanceManager
-	instanceStatesIDFieldName string
-	framesFieldName           string
-	cameraIDFieldName         string
-	imageFieldName            string
-	trackeesFieldName         string
-	timestampFieldName        string
+	instanceStatesIDFieldName data.Path
+	framesFieldName           data.Path
+	cameraIDFieldName         data.Path
+	imageFieldName            data.Path
+	trackeesFieldName         data.Path
+	timestampFieldName        data.Path
 }
 
 func (sf *trackInstanceStatesUDSF) Process(ctx *core.Context, t *core.Tuple,
@@ -212,6 +212,13 @@ func (sf *trackInstanceStatesUDSF) convertToMatVecMap(frameArray data.Array) (
 	return matMap, nil
 }
 
+var (
+	colorIDPath        = data.MustCompilePath("color_id")
+	movingDetectedPath = data.MustCompilePath("moving_detected")
+	interpolatedPath   = data.MustCompilePath("interpolated")
+	timestampPath      = data.MustCompilePath("timestamp")
+)
+
 func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 	trackees := []bridge.Trackee{}
 	for _, tr := range trsArray {
@@ -220,7 +227,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			return nil, err
 		}
 		var colorID uint64
-		if cid, err := trMap.Get("color_id"); err != nil {
+		if cid, err := trMap.Get(colorIDPath); err != nil {
 			return nil, err
 		} else if cidInt, err := data.AsInt(cid); err != nil {
 			return nil, err
@@ -228,7 +235,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			colorID = uint64(cidInt)
 		}
 		var mvRegion bridge.MVCandidate
-		if mvCan, err := trMap.Get("moving_detected"); err != nil {
+		if mvCan, err := trMap.Get(movingDetectedPath); err != nil {
 			return nil, err
 		} else if mvByte, err := data.AsBlob(mvCan); err != nil {
 			return nil, err
@@ -236,13 +243,13 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 			mvRegion = bridge.DeserializeMVCandiate(mvByte)
 		}
 		var interpolated bool
-		if interpo, err := trMap.Get("interpolated"); err != nil {
+		if interpo, err := trMap.Get(interpolatedPath); err != nil {
 			return nil, err
 		} else if interpolated, err = data.AsBool(interpo); err != nil {
 			return nil, err
 		}
 		var timestamp uint64
-		if ts, err := trMap.Get("timestamp"); err != nil {
+		if ts, err := trMap.Get(timestampPath); err != nil {
 			return nil, err
 		} else if tsInt, err := data.AsInt(ts); err != nil {
 			return nil, err

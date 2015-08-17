@@ -12,10 +12,10 @@ type multiPlacesMovingMatcherUDSF struct {
 	mvMatcher func(float32,
 		[]bridge.RegionsWithCameraID) []bridge.MVCandidate
 
-	integrationIDFieldName string
-	aggRegionsFieldName    string
-	cameraIDFieldName      string
-	regionsFieldName       string
+	integrationIDFieldName data.Path
+	aggRegionsFieldName    data.Path
+	cameraIDFieldName      data.Path
+	regionsFieldName       data.Path
 	kThreashold            float32
 }
 
@@ -149,10 +149,10 @@ func createMovingMatcherUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 
 	return &multiPlacesMovingMatcherUDSF{
 		mvMatcher:              bridge.GetMatching,
-		integrationIDFieldName: integrationIDFieldName,
-		aggRegionsFieldName:    aggRegionsFieldName,
-		cameraIDFieldName:      cameraIDFieldName,
-		regionsFieldName:       regionsFieldName,
+		integrationIDFieldName: data.MustCompilePath(integrationIDFieldName),
+		aggRegionsFieldName:    data.MustCompilePath(aggRegionsFieldName),
+		cameraIDFieldName:      data.MustCompilePath(cameraIDFieldName),
+		regionsFieldName:       data.MustCompilePath(regionsFieldName),
 		kThreashold:            kThreashlold,
 	}, nil
 }

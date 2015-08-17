@@ -10,7 +10,7 @@ import (
 func TestNewVisualizerParamState(t *testing.T) {
 	cc := &core.ContextConfig{}
 	ctx := core.NewContext(cc)
-	ctx.SharedStates.Add("imparam", &InstanceManagerParamState{})
+	ctx.SharedStates.Add("imparam", "instance_visualizer_param", &InstanceManagerParamState{})
 	Convey("Given a parameter", t, func() {
 		params := data.Map{}
 		Convey("When the parameter has valid configs", func() {

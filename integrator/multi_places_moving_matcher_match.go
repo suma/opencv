@@ -54,10 +54,12 @@ func convertToSliceRegions(aggRegions data.Array) (
 	return aggRegionsWithID, nil
 }
 
+var regionsPath = data.MustCompilePath("regions")
+
 func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 
 	empty := bridge.RegionsWithCameraID{}
-	id, err := regions.Get("camera_id")
+	id, err := regions.Get(cameraIDPath)
 	if err != nil {
 		return empty, err
 	}
@@ -66,7 +68,7 @@ func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 		return empty, err
 	}
 
-	rs, err := regions.Get("regions")
+	rs, err := regions.Get(regionsPath)
 	if err != nil {
 		return empty, err
 	}

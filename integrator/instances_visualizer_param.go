@@ -14,9 +14,15 @@ type InstancesVisualizerParamState struct {
 	v bridge.InstancesVisualizer
 }
 
+var (
+	cameraIDsPath            = data.MustCompilePath("camera_ids")
+	cameraParamsPath         = data.MustCompilePath("camera_params")
+	instanceManagerParamPath = data.MustCompilePath("instance_manager_param")
+)
+
 func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	ids, err := params.Get("camera_ids")
+	ids, err := params.Get(cameraIDsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +40,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 
 	// read all file path and convert to camera parameter
-	paths, err := params.Get("camera_params")
+	paths, err := params.Get(cameraParamsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +79,7 @@ func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	}
 	visualizerConf := string(b)
 
-	imParamName, err := params.Get("instance_manager_param")
+	imParamName, err := params.Get(instanceManagerParamPath)
 	if err != nil {
 		return nil, err
 	}

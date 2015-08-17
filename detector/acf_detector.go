@@ -10,8 +10,8 @@ import (
 
 type acfDetectUDSF struct {
 	acfDetect   func(bridge.MatVec3b, int, int) []bridge.Candidate
-	frameIDName string
-	frameName   string
+	frameIDName data.Path
+	frameName   data.Path
 }
 
 // Process streams detected regions. which is serialized from
@@ -109,8 +109,8 @@ func createACFDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam s
 
 	return &acfDetectUDSF{
 		acfDetect:   s.d.ACFDetect,
-		frameIDName: frameIDName,
-		frameName:   frameName,
+		frameIDName: data.MustCompilePath(frameIDName),
+		frameName:   data.MustCompilePath(frameName),
 	}, nil
 }
 

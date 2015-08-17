@@ -39,10 +39,17 @@ func (c *CaptureFromURICreator) CreateSource(ctx *core.Context,
 	return core.NewRewindableSource(cs), nil
 }
 
+var (
+	uriPath            = data.MustCompilePath("uri")
+	frameSkipPath      = data.MustCompilePath("frame_skip")
+	cameraIDPath       = data.MustCompilePath("camera_id")
+	nextFrameErrorPath = data.MustCompilePath("next_frame_error")
+)
+
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
 	core.Source, error) {
 
-	uri, err := params.Get("uri")
+	uri, err := params.Get(uriPath)
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
 	}
@@ -51,7 +58,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	fs, err := params.Get("frame_skip")
+	fs, err := params.Get(frameSkipPath)
 	if err != nil {
 		fs = data.Int(0) // will be ignored
 	}
@@ -60,7 +67,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	cid, err := params.Get("camera_id")
+	cid, err := params.Get(cameraIDPath)
 	if err != nil {
 		cid = data.Int(0)
 	}
@@ -69,7 +76,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	endErrFlag, err := params.Get("next_frame_error")
+	endErrFlag, err := params.Get(nextFrameErrorPath)
 	if err != nil {
 		endErrFlag = data.True
 	}

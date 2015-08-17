@@ -15,7 +15,7 @@ type FrameProcessorParamState struct {
 
 func createFrameProcessorParamState(ctx *core.Context, params data.Map) (core.SharedState,
 	error) {
-	p, err := params.Get("file")
+	p, err := params.Get(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *FrameProcessorParamState) Terminate(ctx *core.Context) error {
 // Usage of WITH parameters:
 //  file: The file path. Returns an error when cannot read the file.
 func (s *FrameProcessorParamState) Update(params data.Map) error {
-	p, err := params.Get("file")
+	p, err := params.Get(filePath)
 	if err != nil {
 		return err
 	}

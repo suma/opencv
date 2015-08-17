@@ -13,6 +13,13 @@ import (
 // VideoWiterCreator is a creator of VideoWriter.
 type VideoWiterCreator struct{}
 
+var (
+	fileNamePath = data.MustCompilePath("file_name")
+	fpsPath      = data.MustCompilePath("fps")
+	widthPath    = data.MustCompilePath("width")
+	heightPath   = data.MustCompilePath("height")
+)
+
 // CreateSink creates a AVI Video writer sink, which outputs video file with
 // input image data.
 //
@@ -30,7 +37,7 @@ type VideoWiterCreator struct{}
 func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
-	fn, err := params.Get("file_name")
+	fn, err := params.Get(fileNamePath)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +57,7 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		}
 	}
 
-	fps, err := params.Get("fps")
+	fps, err := params.Get(fpsPath)
 	if err != nil {
 		fps = data.Float(1.0)
 	}
@@ -59,7 +66,7 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		return nil, err
 	}
 
-	w, err := params.Get("width")
+	w, err := params.Get(widthPath)
 	if err != nil {
 		w = data.Int(480)
 	}
@@ -68,7 +75,7 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		return nil, err
 	}
 
-	h, err := params.Get("height")
+	h, err := params.Get(heightPath)
 	if err != nil {
 		h = data.Int(320)
 	}
@@ -107,7 +114,7 @@ type videoWriterSink struct {
 //    FROM capturing_frames [RANGE 1 TUPLES];
 //  ```
 func (s *videoWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
-	img, err := t.Data.Get("img")
+	img, err := t.Data.Get(imgPath)
 	if err != nil {
 		return err
 	}

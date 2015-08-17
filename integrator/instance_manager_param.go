@@ -14,7 +14,7 @@ type InstanceManagerParamState struct {
 
 func createInstanceManagerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	p, err := params.Get("file")
+	p, err := params.Get(filePath)
 	if err != nil {
 		return nil, err
 	}

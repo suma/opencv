@@ -18,7 +18,7 @@ type MMDetectionParamState struct {
 func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
 	config := ""
-	if p, ok := params["file"]; ok {
+	if p, err := params.Get(filePath); err == nil {
 		path, err := data.AsString(p)
 		if err != nil {
 			return nil, err
@@ -31,8 +31,8 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 
 		config = string(b)
 	} else {
-		dp, ok := params["detection_file"]
-		if !ok {
+		dp, err := params.Get(detectionFilePath)
+		if err != nil {
 			return nil, fmt.Errorf(
 				"state parameter requires configuration parameter file path")
 		}
@@ -50,7 +50,7 @@ func createMMDetectionParamState(ctx *core.Context, params data.Map) (
 			return nil, err
 		}
 
-		if cp, ok := params["camera_parameter_file"]; ok {
+		if cp, err := params.Get(cameraParameterFilePath); err == nil {
 			cameraParamFilePath, err := data.AsString(cp)
 			if err != nil {
 				return nil, err
@@ -120,7 +120,7 @@ func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
 //  camera_parameter_file: The camera parameter file path. Returns an error when
 //                         cannot read the file.
 func (s *MMDetectionParamState) Update(params data.Map) error {
-	p, err := params.Get("camera_parameter_file")
+	p, err := params.Get(cameraParameterFilePath)
 	if err != nil {
 		return err
 	}

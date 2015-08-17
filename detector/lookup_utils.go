@@ -6,6 +6,12 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
+var (
+	projectedIMGPath = data.MustCompilePath("projected_img")
+	offsetXPath      = data.MustCompilePath("offset_x")
+	offsetYPath      = data.MustCompilePath("offset_y")
+)
+
 func lookupACFDetectParamState(ctx *core.Context, detectParam string) (
 	*ACFDetectionParamState, error) {
 	st, err := ctx.SharedStates.Get(detectParam)
@@ -34,7 +40,7 @@ func lookupMMDetectParamState(ctx *core.Context, detectParam string) (
 }
 
 func lookupFrameData(frame data.Map) ([]byte, error) {
-	img, err := frame.Get("projected_img")
+	img, err := frame.Get(projectedIMGPath)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -47,7 +53,7 @@ func lookupFrameData(frame data.Map) ([]byte, error) {
 }
 
 func lookupOffsets(frame data.Map) (int, int, error) {
-	ox, err := frame.Get("offset_x")
+	ox, err := frame.Get(offsetXPath)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -56,7 +62,7 @@ func lookupOffsets(frame data.Map) (int, int, error) {
 		return 0, 0, err
 	}
 
-	oy, err := frame.Get("offset_y")
+	oy, err := frame.Get(offsetYPath)
 	if err != nil {
 		return 0, 0, err
 	}

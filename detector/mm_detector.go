@@ -10,8 +10,8 @@ import (
 
 type mmDetectUDSF struct {
 	mmDetect    func(bridge.MatVec3b, int, int) []bridge.Candidate
-	frameIDName string
-	frameName   string
+	frameIDName data.Path
+	frameName   data.Path
 }
 
 // Process streams detected regions. which is serialized from
@@ -107,8 +107,8 @@ func createMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam st
 
 	return &mmDetectUDSF{
 		mmDetect:    s.d.MMDetect,
-		frameIDName: frameIDName,
-		frameName:   frameName,
+		frameIDName: data.MustCompilePath(frameIDName),
+		frameName:   data.MustCompilePath(frameName),
 	}, nil
 }
 

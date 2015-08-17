@@ -14,6 +14,13 @@ import (
 // JPEGWriterCreator is a creator of JPEG Writer.
 type JPEGWriterCreator struct{}
 
+var (
+	outputPath  = data.MustCompilePath("output")
+	qualityPath = data.MustCompilePath("quality")
+	namePath    = data.MustCompilePath("name")
+	imgPath     = data.MustCompilePath("img")
+)
+
 // CreateSink creates a JPEG output sink, which output converted JPEG from
 // `cv::Mat_<cv::Vec3b>`.
 //
@@ -31,7 +38,7 @@ type JPEGWriterCreator struct{}
 func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
-	output, err := params.Get("output")
+	output, err := params.Get(outputPath)
 	if err != nil {
 		output = data.String(".")
 	}
@@ -49,7 +56,7 @@ func (c *JPEGWriterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		}
 	}
 
-	quality, err := params.Get("quality")
+	quality, err := params.Get(qualityPath)
 	if err != nil {
 		quality = data.Int(50)
 	}
@@ -90,7 +97,7 @@ type jpegWriterSink struct {
 //  ```
 // then [frame_id].jpg will be created at the directory.
 func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
-	name, err := t.Data.Get("name")
+	name, err := t.Data.Get(namePath)
 	if err != nil {
 		return err
 	}
@@ -99,7 +106,7 @@ func (s *jpegWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 		return err
 	}
 
-	img, err := t.Data.Get("img")
+	img, err := t.Data.Get(imgPath)
 	if err != nil {
 		return err
 	}

@@ -11,12 +11,12 @@ import (
 
 type framesTrackerUDSF struct {
 	tracker                   *bridge.Tracker
-	instanceStatesIDFieldName string
-	framesFieldName           string
-	cameraIDFieldName         string
-	imageFieldName            string
-	mvRegionsFieldName        string
-	timestampFieldName        string
+	instanceStatesIDFieldName data.Path
+	framesFieldName           data.Path
+	cameraIDFieldName         data.Path
+	imageFieldName            data.Path
+	mvRegionsFieldName        data.Path
+	timestampFieldName        data.Path
 }
 
 func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
@@ -187,12 +187,12 @@ func createFramesTrackerUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 
 	return &framesTrackerUDSF{
 		tracker:                   &trackerState.t,
-		instanceStatesIDFieldName: instanceStatesIDFieldName,
-		framesFieldName:           framesFieldName,
-		cameraIDFieldName:         cameraIDFieldName,
-		imageFieldName:            imageFieldname,
-		mvRegionsFieldName:        mvRegionsFieldName,
-		timestampFieldName:        timestampFieldName,
+		instanceStatesIDFieldName: data.MustCompilePath(instanceStatesIDFieldName),
+		framesFieldName:           data.MustCompilePath(framesFieldName),
+		cameraIDFieldName:         data.MustCompilePath(cameraIDFieldName),
+		imageFieldName:            data.MustCompilePath(imageFieldname),
+		mvRegionsFieldName:        data.MustCompilePath(mvRegionsFieldName),
+		timestampFieldName:        data.MustCompilePath(timestampFieldName),
 	}, nil
 }
 

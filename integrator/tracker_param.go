@@ -12,9 +12,11 @@ type TrackerParamState struct {
 	t bridge.Tracker
 }
 
+var filePath = data.MustCompilePath("file")
+
 func createTrackerParamState(ctx *core.Context, params data.Map) (core.SharedState,
 	error) {
-	p, err := params.Get("file")
+	p, err := params.Get(filePath)
 	if err != nil {
 		return nil, err
 	}

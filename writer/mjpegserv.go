@@ -15,6 +15,8 @@ import (
 // MJPEGServCreator is a creator of MJPEG server.
 type MJPEGServCreator struct{}
 
+var portPath = data.MustCompilePath("port")
+
 // CreateSink creates a MJPEG server sink, user can access AVI file or images
 // through HTTP access.
 //
@@ -33,7 +35,7 @@ type MJPEGServCreator struct{}
 func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Sink, error) {
 
-	port, err := params.Get("port")
+	port, err := params.Get(portPath)
 	if err != nil {
 		defaultPort := 10090
 		ctx.Log().Infof("mjpeg server is starting with %d port", defaultPort)
@@ -44,7 +46,7 @@ func (m *MJPEGServCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams,
 		return nil, err
 	}
 
-	quality, err := params.Get("quality")
+	quality, err := params.Get(qualityPath)
 	if err != nil {
 		quality = data.Int(50)
 	}
@@ -101,7 +103,7 @@ type mjpegServ struct {
 //  * http://localhot:8080/snapshot/camera1_detection
 //    Users can see a snapshot image.
 func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
-	name, err := t.Data.Get("name")
+	name, err := t.Data.Get(namePath)
 	if err != nil {
 		return err
 	}
@@ -110,7 +112,7 @@ func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 		return err
 	}
 
-	img, err := t.Data.Get("img")
+	img, err := t.Data.Get(imgPath)
 	if err != nil {
 		return err
 	}

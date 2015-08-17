@@ -59,9 +59,9 @@ func (c *RegionCropFuncCreator) TypeName() string {
 type predictTagsBatchUDSF struct {
 	predictTagsBatch func(
 		[]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
-	frameIDName      string
-	regionsName      string
-	croppedImageName string
+	frameIDName      data.Path
+	regionsName      data.Path
+	croppedImageName data.Path
 }
 
 // Process streams tagged regions, which is serialized from
@@ -179,9 +179,9 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 
 	return &predictTagsBatchUDSF{
 		predictTagsBatch: s.tagger.PredictTagsBatch,
-		frameIDName:      frameIDName,
-		regionsName:      regionsName,
-		croppedImageName: croppedImageName,
+		frameIDName:      data.MustCompilePath(frameIDName),
+		regionsName:      data.MustCompilePath(regionsName),
+		croppedImageName: data.MustCompilePath(croppedImageName),
 	}, nil
 }
 

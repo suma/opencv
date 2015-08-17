@@ -62,6 +62,11 @@ func drawWithInstanceStates(ctx *core.Context, visualizerParam string,
 	return img.Serialize(), nil
 }
 
+var (
+	cameraIDPath = data.MustCompilePath("camera_id")
+	imgPath      = data.MustCompilePath("img")
+)
+
 func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) {
 	matMap := map[int]bridge.MatVec3b{}
 	for _, f := range frameArray {
@@ -70,7 +75,7 @@ func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) 
 			return matMap, err
 		}
 
-		id, err := fMap.Get("camera_id")
+		id, err := fMap.Get(cameraIDPath)
 		if err != nil {
 			return matMap, err
 		}
@@ -79,7 +84,7 @@ func convertToMatVecMap(frameArray data.Array) (map[int]bridge.MatVec3b, error) 
 			return matMap, err
 		}
 
-		image, err := fMap.Get("img")
+		image, err := fMap.Get(imgPath)
 		if err != nil {
 			return matMap, err
 		}
