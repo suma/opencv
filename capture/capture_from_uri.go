@@ -10,10 +10,11 @@ import (
 	"time"
 )
 
-// CaptureFromURICreator is a creator of a capture from URI.
-type CaptureFromURICreator struct{}
+// FromURICreator is a creator of a capture from URI.
+type FromURICreator struct{}
 
-func (c *CaptureFromURICreator) TypeName() string {
+// TypeName returns type name.
+func (c *FromURICreator) TypeName() string {
 	return "scouter_capture_from_uri"
 }
 
@@ -29,7 +30,7 @@ func (c *CaptureFromURICreator) TypeName() string {
 //  next_frame_error: When this source cannot read a new frame, occur error or
 //                    not decided by the flag. If the flag set `true` then
 //                    return error. Default value is true.
-func (c *CaptureFromURICreator) CreateSource(ctx *core.Context,
+func (c *FromURICreator) CreateSource(ctx *core.Context,
 	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
 	cs, err := createCaptureFromURI(ctx, ioParams, params)

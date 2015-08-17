@@ -11,7 +11,7 @@ import (
 
 func TestGenerateStreamDeviceError(t *testing.T) {
 	ctx := &core.Context{}
-	sc := CaptureFromDeviceCreator{}
+	sc := FromDeviceCreator{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromDevice source with invalid device ID", t, func() {
 		params := data.Map{
@@ -34,7 +34,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromDevice creator", t, func() {
-		sc := CaptureFromDeviceCreator{}
+		sc := FromDeviceCreator{}
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
 				"device_id": data.Int(0),

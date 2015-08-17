@@ -10,10 +10,11 @@ import (
 	"time"
 )
 
-// CaptureFromDeviceCreator is a creator of a capture from device.
-type CaptureFromDeviceCreator struct{}
+// FromDeviceCreator is a creator of a capture from device.
+type FromDeviceCreator struct{}
 
-func (c *CaptureFromDeviceCreator) TypeName() string {
+// TypeName returns type name.
+func (c *FromDeviceCreator) TypeName() string {
 	return "scouter_capture_from_device"
 }
 
@@ -25,7 +26,7 @@ var (
 )
 
 // CreateSource creates a frame generator using OpenCV video capture
-// (`VideoCapture::open).
+// (`VideoCapture::open`).
 //
 // Usage of WITH parameters:
 //  device_id: [required] The ID of associated device.
@@ -33,7 +34,7 @@ var (
 //  height:    Frame height, if set empty or "0" then will be ignore.
 //  fps:       Frame per second, if set empty or "0" then will be ignore.
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
-func (c *CaptureFromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
+func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
 	did, err := params.Get(deviceIDPath)
 	if err != nil {

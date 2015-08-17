@@ -11,7 +11,7 @@ import (
 
 func TestGenerateStreamURIError(t *testing.T) {
 	ctx := &core.Context{}
-	sc := CaptureFromURICreator{}
+	sc := FromURICreator{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromURI source with invalid URI", t, func() {
 		params := data.Map{

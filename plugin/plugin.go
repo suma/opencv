@@ -20,8 +20,8 @@ import (
 func init() {
 	// sources
 	sources := []SourceCreator{
-		&capture.CaptureFromURICreator{},
-		&capture.CaptureFromDeviceCreator{},
+		&capture.FromURICreator{},
+		&capture.FromDeviceCreator{},
 	}
 	for _, source := range sources {
 		bql.MustRegisterGlobalSourceCreator(source.TypeName(), source)
