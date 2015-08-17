@@ -15,26 +15,33 @@ import (
 	"unsafe"
 )
 
+// ImageTaggerCaffe is a bind of `scouter::ImageTaggerCaffe`.
 type ImageTaggerCaffe struct {
 	p C.ImageTaggerCaffe
 }
 
+// NewImageTaggerCaffe returns a new tagger.
 func NewImageTaggerCaffe(config string) ImageTaggerCaffe {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return ImageTaggerCaffe{p: C.ImageTaggerCaffe_New(cConfig)}
 }
 
+// Delete object.
 func (t *ImageTaggerCaffe) Delete() {
 	C.ImageTaggerCaffe_Delete(t.p)
 	t.p = nil
 }
 
+// Crop the image around the candidate (=region) information, and returns
+// image data.
 func (t *ImageTaggerCaffe) Crop(candidate Candidate, image MatVec3b) MatVec3b {
 	cropped := C.ImageTaggerCaffe_Crop(t.p, candidate.p, image.p)
 	return MatVec3b{p: cropped}
 }
 
+// PredictTags predicts attributes with caffe models at candidate information
+// and set tags in the candidate.
 func (t *ImageTaggerCaffe) PredictTags(candidate Candidate,
 	croppedImg MatVec3b) Candidate {
 
@@ -42,6 +49,9 @@ func (t *ImageTaggerCaffe) PredictTags(candidate Candidate,
 	return Candidate{p: recognized}
 }
 
+// PredictTagsBatch predicts attributes with caffe models at candidate
+// information and set tags int the candidates. The function executes to predict
+// attributes on batch.
 func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate,
 	croppedImg []MatVec3b) []Candidate {
 
@@ -55,6 +65,8 @@ func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate,
 	return convertCandidatesToSlice(recognized)
 }
 
+// CroppingAndPredictTags crops image around the candidate and predict
+// attributes with caffe models. The function executes these two tasks.
 func (t *ImageTaggerCaffe) CroppingAndPredictTags(candidate Candidate,
 	image MatVec3b) Candidate {
 

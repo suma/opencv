@@ -11,22 +11,26 @@ import (
 	"unsafe"
 )
 
+// FrameProcessor is a bind of `scouter::FrameProcessor`.
 type FrameProcessor struct {
 	mu sync.RWMutex
 	p  C.FrameProcessor
 }
 
+// NewFrameProcessor returns a new frame processor.
 func NewFrameProcessor(config string) FrameProcessor {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return FrameProcessor{p: C.FrameProcessor_New(cConfig)}
 }
 
+// Delete object.
 func (fp *FrameProcessor) Delete() {
 	C.FrameProcessor_Delete(fp.p)
 	fp.p = nil
 }
 
+// UpdateConfig updates camera parameter in the frame processor.
 func (fp *FrameProcessor) UpdateConfig(config string) {
 	fp.mu.Lock()
 	defer fp.mu.Unlock()
@@ -36,6 +40,8 @@ func (fp *FrameProcessor) UpdateConfig(config string) {
 	C.FrameProcessor_UpdateConfig(fp.p, cConfig)
 }
 
+// Projection the image data with frame processor parameters, and returns with
+// offset information.
 func (fp *FrameProcessor) Projection(buf MatVec3b) (MatVec3b, int, int) {
 	fp.mu.RLock()
 	defer fp.mu.RUnlock()

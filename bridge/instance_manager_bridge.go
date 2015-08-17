@@ -12,26 +12,31 @@ import (
 	"unsafe"
 )
 
+// InstanceState is a bind ob `scouter::InstanceState`.
 type InstanceState struct {
 	p C.InstanceState
 }
 
+// Serialize object.
 func (s InstanceState) Serialize() []byte {
 	b := C.InstanceState_Serialize(s.p)
 	defer C.ByteArray_Release(b)
 	return ToGoBytes(b)
 }
 
+// DeserializeInstanceState deserializes object.
 func DeserializeInstanceState(s []byte) InstanceState {
 	b := toByteArray(s)
 	return InstanceState{p: C.InstanceState_Deserialize(b)}
 }
 
+// Delete object.
 func (s InstanceState) Delete() {
 	C.InstanceState_Delete(s.p)
 	s.p = nil
 }
 
+// ConvertInstanceStatesToJSON converts instance state object to JSON style text.
 func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
 	timestamp uint64) string {
 
@@ -48,22 +53,26 @@ func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
 	return C.GoStringN(cJSON.str, cJSON.length)
 }
 
+// InstanceManager is a bind of `scouter::InstanceManager`.
 type InstanceManager struct {
 	mu sync.RWMutex
 	p  C.InstanceManager
 }
 
+// NewInstanceManager return a new instance manager.
 func NewInstanceManager(config string) InstanceManager {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return InstanceManager{p: C.InstanceManager_New(cConfig)}
 }
 
+// Delete object.
 func (m *InstanceManager) Delete() {
 	C.InstanceManager_Delete(m.p)
 	m.p = nil
 }
 
+// Update cached frames managed by instance manager.
 func (m *InstanceManager) Update(frames map[int]MatVec3b, trackees []Trackee,
 	timestamp uint64) {
 	m.mu.Lock()
@@ -101,6 +110,8 @@ func (m *InstanceManager) Update(frames map[int]MatVec3b, trackees []Trackee,
 		C.ulonglong(timestamp))
 }
 
+// GetCurrentStates returns a current state managed and cached in instance
+// manager.
 func (m *InstanceManager) GetCurrentStates() []InstanceState {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -108,7 +119,7 @@ func (m *InstanceManager) GetCurrentStates() []InstanceState {
 	currentStates := C.InstanceManager_GetCurrentStates(m.p)
 	defer C.InstanceStates_Delete(currentStates)
 
-	var cArray *C.InstanceState = currentStates.instanceStates
+	cArray := currentStates.instanceStates
 	length := int(currentStates.length)
 	hdr := reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(cArray)),

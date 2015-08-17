@@ -240,7 +240,7 @@ func convertToTrackeeSlice(trsArray data.Array) ([]bridge.Trackee, error) {
 		} else if mvByte, err := data.AsBlob(mvCan); err != nil {
 			return nil, err
 		} else {
-			mvRegion = bridge.DeserializeMVCandiate(mvByte)
+			mvRegion = bridge.DeserializeMVCandidate(mvByte)
 		}
 		var interpolated bool
 		if interpo, err := trMap.Get(interpolatedPath); err != nil {

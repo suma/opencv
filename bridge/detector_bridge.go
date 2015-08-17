@@ -21,16 +21,19 @@ const (
 	CvCapPropFps = 5
 )
 
+// Candidate is the bind of `scouter::ObjectCandidate`.
 type Candidate struct {
 	p C.Candidate
 }
 
+// Serialize object.
 func (c Candidate) Serialize() []byte {
 	b := C.Candidate_Serialize(c.p)
 	defer C.ByteArray_Release(b)
 	return ToGoBytes(b)
 }
 
+// DeserializeCandidate deserializes object.
 func DeserializeCandidate(c []byte) Candidate {
 	b := toByteArray(c)
 	return Candidate{p: C.Candidate_Deserialize(b)}
@@ -45,7 +48,7 @@ func convertCandidatesToPointer(candidates []Candidate) []C.Candidate {
 }
 
 func convertCandidatesToSlice(candidates C.struct_Candidates) []Candidate {
-	var cArray *C.Candidate = candidates.candidates
+	cArray := candidates.candidates
 	length := int(candidates.length)
 	hdr := reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(cArray)),
@@ -60,27 +63,33 @@ func convertCandidatesToSlice(candidates C.struct_Candidates) []Candidate {
 	return cs
 }
 
+// Delete object.
 func (c Candidate) Delete() {
 	C.Candidate_Delete(c.p)
 	c.p = nil
 }
 
+// Detector is a bind of `scouter::Detector`.
 type Detector struct {
 	mu sync.RWMutex
 	p  C.Detector
 }
 
+// NewDetector returns a ACF detector.
 func NewDetector(config string) Detector {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return Detector{p: C.Detector_New(cConfig)}
 }
 
+// Delete object.
 func (d *Detector) Delete() {
 	C.Detector_Delete(d.p)
 	d.p = nil
 }
 
+// UpdateCameraParameter updates the camera parameter configuration of a
+// detector.
 func (d *Detector) UpdateCameraParameter(config string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -90,6 +99,7 @@ func (d *Detector) UpdateCameraParameter(config string) {
 	C.Detector_UpdateCameraParameter(d.p, cConfig)
 }
 
+// ACFDetect detects with detection parameters and returns ObjectCandidate array.
 func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -100,6 +110,8 @@ func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate
 	return convertCandidatesToSlice(candidates)
 }
 
+// FilterByMask filters the candidate (=region information) is masked place of
+// not.
 func (d *Detector) FilterByMask(candidate Candidate) bool {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -108,6 +120,7 @@ func (d *Detector) FilterByMask(candidate Candidate) bool {
 	return int(masked) == 0
 }
 
+// EstimateHeight estimates the height with camera parameters.
 func (d *Detector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -115,6 +128,7 @@ func (d *Detector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int
 	C.Detector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
+// PutFeature put features in the candidate (=region information).
 func (d *Detector) PutFeature(candidate *Candidate, img MatVec3b) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -122,22 +136,27 @@ func (d *Detector) PutFeature(candidate *Candidate, img MatVec3b) {
 	C.Detector_PutFeature(d.p, candidate.p, img.p)
 }
 
+// MMDetector is a bind of `scouter::MultiModelDetector`.
 type MMDetector struct {
 	mu sync.RWMutex
 	p  C.MMDetector
 }
 
+// NewMMDetector returns a new multi model detector.
 func NewMMDetector(config string) MMDetector {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return MMDetector{p: C.MMDetector_New(cConfig)}
 }
 
+// Delete object.
 func (d *MMDetector) Delete() {
 	C.MMDetector_Delete(d.p)
 	d.p = nil
 }
 
+// UpdateCameraParameter updates the camera parameter configuration of a
+// detector.
 func (d *MMDetector) UpdateCameraParameter(config string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -147,6 +166,7 @@ func (d *MMDetector) UpdateCameraParameter(config string) {
 	C.MMDetector_UpdateCameraParameter(d.p, cConfig)
 }
 
+// MMDetect detects with detection parameters and returns ObjectCandidates array.
 func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -157,6 +177,8 @@ func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidat
 	return convertCandidatesToSlice(candidates)
 }
 
+// FilterByMask filters the candidate (=region information) is masked place of
+// not.
 func (d *MMDetector) FilterByMask(candidate Candidate) bool {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -165,6 +187,7 @@ func (d *MMDetector) FilterByMask(candidate Candidate) bool {
 	return int(masked) == 0
 }
 
+// EstimateHeight estimates the height with camera parameters.
 func (d *MMDetector) EstimateHeight(candidate *Candidate, offsetX int, offsetY int) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -172,6 +195,8 @@ func (d *MMDetector) EstimateHeight(candidate *Candidate, offsetX int, offsetY i
 	C.MMDetector_EstimateHeight(d.p, candidate.p, C.int(offsetX), C.int(offsetY))
 }
 
+// DrawDetectionResult draws the candidates (=region information) on the image.
+//
 // draw result should be called by each candidate,
 // but think the cost of copying MatVec3b, called by []C.Candidate
 func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
@@ -181,6 +206,8 @@ func DrawDetectionResult(img MatVec3b, candidates []Candidate) MatVec3b {
 	return MatVec3b{p: ret}
 }
 
+// DrawDetectionResultWithTags draws the candidate (=region information) on the
+// image.
 func DrawDetectionResultWithTags(img MatVec3b, candidates []Candidate) MatVec3b {
 	l := len(candidates)
 	candidatePointer := convertCandidatesToPointer(candidates)

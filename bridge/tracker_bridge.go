@@ -12,22 +12,26 @@ import (
 	"unsafe"
 )
 
+// Tracker is a bind of `scouter::Tracker`.
 type Tracker struct {
 	mu sync.RWMutex
 	p  C.Tracker
 }
 
+// NewTracker returns a new tracker.
 func NewTracker(config string) Tracker {
 	cConfig := C.CString(config)
 	defer C.free(unsafe.Pointer(cConfig))
 	return Tracker{p: C.Tracker_New(cConfig)}
 }
 
+// Delete object.
 func (t *Tracker) Delete() {
 	C.Tracker_Delete(t.p)
 	t.p = nil
 }
 
+// Trackee is a utility structure, as scouter-core Tracke structure.
 type Trackee struct {
 	ColorID      uint64
 	MVCandidate  MVCandidate
@@ -35,6 +39,7 @@ type Trackee struct {
 	Timestamp    uint64 // should placed in TrackingResult
 }
 
+// Push frame and regions with the tracker.
 func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 	timestamp uint64) {
 	t.mu.Lock()
@@ -62,6 +67,7 @@ func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
 		mvCandidates, C.ulonglong(timestamp))
 }
 
+// Track returns Trackee array cached in the tracker.
 func (t *Tracker) Track() []Trackee {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -69,7 +75,7 @@ func (t *Tracker) Track() []Trackee {
 	tr := C.Tracker_Track(t.p)
 	defer C.TrackingResult_Delete(tr)
 
-	var cArray *C.Trackee = tr.trackees
+	cArray := tr.trackees
 	length := int(tr.length)
 	hdr := reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(cArray)),
@@ -89,6 +95,8 @@ func (t *Tracker) Track() []Trackee {
 	return trs
 }
 
+// Ready return the tracker could start tracking by acceptance value of tracking
+// configuration.
 func (t *Tracker) Ready() bool {
 	t.mu.RLock()
 	defer t.mu.RUnlock()

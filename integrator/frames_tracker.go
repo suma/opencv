@@ -159,7 +159,7 @@ func convertToMVCandidateSlice(mvRegionsArray data.Array) (
 		if err != nil {
 			return nil, err
 		}
-		mvCans = append(mvCans, bridge.DeserializeMVCandiate(b))
+		mvCans = append(mvCans, bridge.DeserializeMVCandidate(b))
 	}
 	return mvCans, nil
 }

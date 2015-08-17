@@ -11,6 +11,7 @@ import (
 	"unsafe"
 )
 
+// InstancesVisualizer is a bind of `scouter::InstancesVisualizer`.
 type InstancesVisualizer struct {
 	mu sync.RWMutex
 	p  C.InstancesVisualizer
@@ -24,11 +25,13 @@ func NewInstancesVisualizer(im *InstanceManager, config string) InstancesVisuali
 	return InstancesVisualizer{p: C.InstancesVisualizer_New(im.p, cConfig)}
 }
 
+// Delete object.
 func (v *InstancesVisualizer) Delete() {
 	C.InstancesVisualizer_Delete(v.p)
 	v.p = nil
 }
 
+// UpdateCameraParameter updates camera parameter with camera ID.
 func (v *InstancesVisualizer) UpdateCameraParameter(cameraID int, config string) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
@@ -38,6 +41,7 @@ func (v *InstancesVisualizer) UpdateCameraParameter(cameraID int, config string)
 	C.InstancesVisualizer_UpdateCameraParam(v.p, C.int(cameraID), cConfig)
 }
 
+// Draw instance states on image.
 func (v *InstancesVisualizer) Draw(frames map[int]MatVec3b, states []InstanceState,
 	trackees []Trackee) MatVec3b {
 	v.mu.RLock()

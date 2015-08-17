@@ -10,26 +10,32 @@ import (
 	"unsafe"
 )
 
+// RegionsWithCameraID is a utility structure to manage ObjectCandidates with
+// camera ID.
 type RegionsWithCameraID struct {
 	CameraID   int
 	Candidates []Candidate
 }
 
+// MVCandidate is a bind of `scouter::MVObjectCandidate`
 type MVCandidate struct {
 	p C.MVCandidate
 }
 
+// Serialize object.
 func (c MVCandidate) Serialize() []byte {
 	b := C.MVCandidate_Serialize(c.p)
 	defer C.ByteArray_Release(b)
 	return ToGoBytes(b)
 }
 
-func DeserializeMVCandiate(c []byte) MVCandidate {
+// DeserializeMVCandidate deserializes object.
+func DeserializeMVCandidate(c []byte) MVCandidate {
 	b := toByteArray(c)
 	return MVCandidate{p: C.MVCandidate_Deserialize(b)}
 }
 
+// Delete object.
 func (c MVCandidate) Delete() {
 	C.MVCandidate_Delete(c.p)
 	c.p = nil
@@ -55,16 +61,18 @@ func convertCandidatezToPointer(
 	return regionsPointers
 }
 
-func GetMatching(kThreashold float32, regions []RegionsWithCameraID) []MVCandidate {
+// GetMatching find matched ObjectCandidate and aggregation with
+// MVObjectCandidate. "kthreshold" is used top-k algorithm.
+func GetMatching(kthreshold float32, regions []RegionsWithCameraID) []MVCandidate {
 	//  -> []C.struct_RegionsWithCameraID
 	regionsPointers := convertCandidatezToPointer(regions)
 	// -> *C.MVCandidate
 	mvCandidatePointers := C.MVOM_GetMatching(
 		(*C.struct_RegionsWithCameraID)(&regionsPointers[0]),
-		C.int(len(regions)), C.float(kThreashold))
+		C.int(len(regions)), C.float(kthreshold))
 	defer C.MVCandidates_Delete(mvCandidatePointers)
 
-	var cArray *C.MVCandidate = mvCandidatePointers.mvCandidates
+	cArray := mvCandidatePointers.mvCandidates
 	length := int(mvCandidatePointers.length)
 	hdr := reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(cArray)),
