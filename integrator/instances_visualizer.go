@@ -14,7 +14,7 @@ func (c *InstancesVisualizerFuncCreator) CreateFunction() interface{} {
 }
 
 func (c *InstancesVisualizerFuncCreator) TypeName() string {
-	return "draw_with_instance_states"
+	return "scouter_draw_regions_with_instance_states"
 }
 
 func drawWithInstanceStates(ctx *core.Context, visualizerParam string,

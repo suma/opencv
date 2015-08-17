@@ -27,7 +27,7 @@ func (c *TrackInstanceStatesUDSFCreator) CreateStreamFunction() interface{} {
 }
 
 func (c *TrackInstanceStatesUDSFCreator) TypeName() string {
-	return "tracking_instance_states"
+	return "scouter_tracking_instance_states"
 }
 
 func createTrackInstanceStatesUDSF(ctx *core.Context, decl udf.UDSFDeclarer,

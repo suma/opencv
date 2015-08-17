@@ -179,5 +179,5 @@ func (c *MultiPlacesMovingMatcherUDSFCreator) CreateStreamFunction() interface{}
 }
 
 func (c *MultiPlacesMovingMatcherUDSFCreator) TypeName() string {
-	return "multi_place_moving_matcher"
+	return "scouter_multi_place_moving_matcher"
 }

@@ -20,7 +20,7 @@ func (c *InstanceStateConverterUDFCreator) CreateFunction() interface{} {
 }
 
 func (c *InstanceStateConverterUDFCreator) TypeName() string {
-	return "convert_instance_states_to_json"
+	return "scouter_convert_instance_states_to_json"
 }
 
 func convertInstanceStatesToJSON(ctx *core.Context, states data.Array,

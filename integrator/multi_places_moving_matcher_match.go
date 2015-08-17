@@ -116,5 +116,5 @@ func (c *MultiPlacesMovingMatcherBatchUDFCreator) CreateFunction() interface{} {
 }
 
 func (c *MultiPlacesMovingMatcherBatchUDFCreator) TypeName() string {
-	return "multi_place_moving_matcher_batch"
+	return "scouter_multi_place_moving_matcher_batch"
 }

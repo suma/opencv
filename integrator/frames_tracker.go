@@ -223,7 +223,7 @@ func (c *FramesTrackerStreamFuncCreator) CreateStreamFunction() interface{} {
 }
 
 func (c *FramesTrackerStreamFuncCreator) TypeName() string {
-	return "multi_region_tracking"
+	return "scouter_multi_region_tracking"
 }
 
 func lookupTrackerParamState(ctx *core.Context, trackerParam string) (
