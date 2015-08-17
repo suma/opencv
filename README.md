@@ -20,7 +20,7 @@ This plug-in is to use [scouter-core](https://github.pfidev.jp/ComputerVision/sc
     * [ComputerVision/scouter-core-conf](https://github.pfidev.jp/ComputerVision/scouter-core-conf)
 * SensorBee
     * [sensorbee/sensorbee](https://github.pfidev.jp/sensorbee/sensorbee)
-    * later v0.1.0
+    * later v0.2.0
 
 # Usage
 
