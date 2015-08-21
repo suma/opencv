@@ -90,13 +90,12 @@ func filterByMaskBatch(ctx *core.Context, detectParam string, regions data.Array
 			return nil, err
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
-		filter := func() {
+		func() {
 			defer regionPtr.Delete()
 			if !s.d.FilterByMask(regionPtr) {
 				filteredCans = append(filteredCans, r)
 			}
-		}
-		filter()
+		}()
 	}
 
 	return filteredCans, nil
@@ -147,12 +146,11 @@ func estimateHeightBatch(ctx *core.Context, detectParam string, frame data.Map,
 			return nil, err
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
-		estimate := func() {
+		func() {
 			defer regionPtr.Delete()
 			s.d.EstimateHeight(&regionPtr, offsetX, offsetY)
 			estimatedCans[i] = data.Blob(regionPtr.Serialize())
-		}
-		estimate()
+		}()
 	}
 
 	return estimatedCans, nil
