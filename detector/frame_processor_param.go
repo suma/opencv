@@ -16,21 +16,20 @@ type FrameProcessorParamState struct {
 
 func createFrameProcessorParamState(ctx *core.Context, params data.Map) (core.SharedState,
 	error) {
-	p, err := params.Get(utils.FilePath)
-	if err != nil {
-		return nil, err
-	}
-	path, err := data.AsString(p)
-	if err != nil {
-		return nil, err
-	}
+	fpConfig := "{}"
+	if p, err := params.Get(utils.FilePath); err == nil {
+		path, err := data.AsString(p)
+		if err != nil {
+			return nil, err
+		}
 
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
 
-	fpConfig := string(b)
+		fpConfig = string(b)
+	}
 	s := &FrameProcessorParamState{}
 	s.fp = bridge.NewFrameProcessor(fpConfig)
 

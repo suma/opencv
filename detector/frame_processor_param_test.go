@@ -16,17 +16,23 @@ func TestNewFrameProcessorParamState(t *testing.T) {
 			Convey("Then the state set with frame processor", func() {
 				state, err := createFrameProcessorParamState(ctx, params)
 				So(err, ShouldBeNil)
+				So(state, ShouldNotBeNil)
+				defer state.Terminate(ctx)
 				cs, ok := state.(*FrameProcessorParamState)
 				So(ok, ShouldBeTrue)
 				So(cs.fp, ShouldNotBeNil)
-				cs.fp.Delete()
 			})
 		})
-		Convey("When the parameter has invalid param", func() {
+		Convey("When the parameter not have 'file' param", func() {
 			params["filee"] = data.String("frame_processor_param_test.json")
-			Convey("Then an error should be occur", func() {
-				_, err := createFrameProcessorParamState(ctx, params)
-				So(err, ShouldNotBeNil)
+			Convey("Then the state set with empty parameter", func() {
+				state, err := createFrameProcessorParamState(ctx, params)
+				So(err, ShouldBeNil)
+				So(state, ShouldNotBeNil)
+				defer state.Terminate(ctx)
+				cs, ok := state.(*FrameProcessorParamState)
+				So(ok, ShouldBeTrue)
+				So(cs.fp, ShouldNotBeNil)
 			})
 		})
 		Convey("When the parameter has null file path", func() {

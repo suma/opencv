@@ -27,6 +27,18 @@ func TestNewVisualizerParamState(t *testing.T) {
 			})
 		})
 
+		Convey("When the parameter has empty camera parameters", func() {
+			params["instance_manager_param"] = data.String("imparam")
+			Convey("Then the state should be initialized with empty parameter", func() {
+				state, err := createInstancesVisualizerParamState(ctx, params)
+				So(err, ShouldBeNil)
+				defer state.Terminate(ctx)
+				ivs, ok := state.(*InstancesVisualizerParamState)
+				So(ok, ShouldBeTrue)
+				So(ivs.v, ShouldNotBeNil)
+			})
+		})
+
 		Convey("When the parameter does not have camera ids", func() {
 			params["camera_params"] = data.Array{data.String("camera_param_test.json")}
 			params["instance_manager_param"] = data.Array{data.String("imparam")}

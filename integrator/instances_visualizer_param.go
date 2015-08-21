@@ -2,6 +2,7 @@ package integrator
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"pfi/ComputerVision/scouter-core-conf"
 	"pfi/sensorbee/scouter/bridge"
@@ -17,49 +18,51 @@ type InstancesVisualizerParamState struct {
 
 func createInstancesVisualizerParamState(ctx *core.Context, params data.Map) (
 	core.SharedState, error) {
-	ids, err := params.Get(utils.CameraIDsPath)
-	if err != nil {
-		return nil, err
-	}
-	cameraIDs, err := data.AsArray(ids)
-	if err != nil {
-		return nil, err
-	}
-	cameraIDInts := make([]int, len(cameraIDs))
-	for i, id := range cameraIDs {
-		idInt, err := data.AsInt(id)
+	cameraIDInts := []int{}
+	if ids, err := params.Get(utils.CameraIDsPath); err == nil {
+		cameraIDs, err := data.AsArray(ids)
 		if err != nil {
 			return nil, err
 		}
-		cameraIDInts[i] = int(idInt)
+		cameraIDInts = make([]int, len(cameraIDs))
+		for i, id := range cameraIDs {
+			idInt, err := data.AsInt(id)
+			if err != nil {
+				return nil, err
+			}
+			cameraIDInts[i] = int(idInt)
+		}
 	}
 
 	// read all file path and convert to camera parameter
-	paths, err := params.Get(utils.CameraParameterFilesPath)
-	if err != nil {
-		return nil, err
-	}
-	pathsStr, err := data.AsArray(paths)
-	if err != nil {
-		return nil, err
-	}
-	cameraParams := make([]scconf.CameraParameter, len(pathsStr))
-	for i, path := range pathsStr {
-		pathStr, err := data.AsString(path)
+	cameraParams := []scconf.CameraParameter{}
+	if paths, err := params.Get(utils.CameraParameterFilesPath); err == nil {
+		pathsStr, err := data.AsArray(paths)
 		if err != nil {
 			return nil, err
 		}
-		fileByte, err := ioutil.ReadFile(pathStr)
-		if err != nil {
-			return nil, err
-		}
+		cameraParams = make([]scconf.CameraParameter, len(pathsStr))
+		for i, path := range pathsStr {
+			pathStr, err := data.AsString(path)
+			if err != nil {
+				return nil, err
+			}
+			fileByte, err := ioutil.ReadFile(pathStr)
+			if err != nil {
+				return nil, err
+			}
 
-		var param scconf.CameraParameter
-		err = json.Unmarshal(fileByte, &param)
-		if err != nil {
-			return nil, err
+			var param scconf.CameraParameter
+			err = json.Unmarshal(fileByte, &param)
+			if err != nil {
+				return nil, err
+			}
+			cameraParams[i] = param
 		}
-		cameraParams[i] = param
+	}
+
+	if len(cameraIDInts) != len(cameraParams) {
+		return nil, fmt.Errorf("camera ID size and camera parameter file size must be same")
 	}
 
 	// make instance visualizer parameter manually
