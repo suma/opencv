@@ -15,6 +15,7 @@ void FrameProcessor_UpdateConfig(FrameProcessor fp, const char *config) {
   const scouter::CameraParameter& cp = load_json<scouter::CameraParameter>(config);
   fp->update_config(cp);
 }
+
 struct ScouterFrame FrameProcessor_Projection(FrameProcessor fp, MatVec3b buf) {
   scouter::FrameMeta meta = scouter::FrameMeta();
   scouter::Frame* frame = new scouter::Frame(fp->apply(*buf, meta));

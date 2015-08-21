@@ -22,6 +22,7 @@ var (
 	FilePath                = data.MustCompilePath("file")
 	DetectionFilePath       = data.MustCompilePath("detection_file")
 	CameraParameterFilePath = data.MustCompilePath("camera_parameter_file")
+	ROIParameterFilePath    = data.MustCompilePath("roi_parameter_file")
 
 	/* detector frame structure */
 
