@@ -33,6 +33,8 @@ String InstanceState_ToJSON(struct InstanceStates instanceStates, int floorID,
 InstanceManager InstanceManager_New(const char *config);
 void InstanceManager_Delete(InstanceManager instanceManager);
 
+struct InstanceStates TrackAndGetStates(Tracker tracker, InstanceManager im);
+
 void InstanceManager_Update(InstanceManager instanceManager,
   struct MatWithCameraID* frames, int fLength, struct Trackee* trackees,
   int tLength, unsigned long long timestamp);

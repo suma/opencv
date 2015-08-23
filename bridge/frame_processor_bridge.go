@@ -11,6 +11,15 @@ import (
 	"unsafe"
 )
 
+// ScouterFrame is a bind of `scouter::Frame`
+type ScouterFrame struct {
+	Image     MatVec3b
+	OffsetX   int
+	OffsetY   int
+	Timestamp uint64
+	CameraID  int
+}
+
 // FrameProcessor is a bind of `scouter::FrameProcessor`.
 type FrameProcessor struct {
 	mu sync.RWMutex

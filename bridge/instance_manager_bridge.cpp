@@ -73,34 +73,27 @@ void InstanceManager_Delete(InstanceManager instanceManager) {
   delete instanceManager;
 }
 
+struct InstanceStates TrackAndGetStates(Tracker tracker, InstanceManager im) {
+  scouter::TrackingResult result = tracker->track();
+  im->update(result);
+  std::vector<scouter::InstanceState> states = im->get_current_states();
+
+  scouter::InstanceState** ret = new scouter::InstanceState*[states.size()];
+  for (size_t i = 0; i < states.size(); ++i) {
+    ret[i] = new scouter::InstanceState(states[i]);
+  }
+
+  InstanceStates iss = {ret, (int)states.size()};
+  return iss;
+}
+
 void InstanceManager_Update(InstanceManager instanceManager,
     struct MatWithCameraID* frames, int fLength, struct Trackee* trackees,
     int tLength, unsigned long long timestamp) {
-  scouter::MatMapPtr frameMap(new scouter::MatMap);
-  for (int i = 0; i < fLength; ++i) {
-    frameMap->insert(std::make_pair(frames[i].cameraID, *(frames[i].mat)));
-  }
-
-  scouter::TrackingResult ret(timestamp, frameMap);
-  for (int i = 0; i < tLength; ++i) {
-    const Trackee& t = trackees[i];
-    scouter::Trackee trackee = {t.colorID, *(t.mvCandidate), t.interpolated != 0,
-      frameMap};
-    ret.trackees.push_back(trackee);
-  }
-
-  instanceManager->update(ret);
 }
 
 struct InstanceStates InstanceManager_GetCurrentStates(
     InstanceManager instanceManager) {
-  const std::vector<scouter::InstanceState>& currentStates =
-    instanceManager->get_current_states();
-  scouter::InstanceState** states =
-    new scouter::InstanceState*[currentStates.size()];
-  for (size_t i = 0; i < currentStates.size(); ++i) {
-    states[i] = new scouter::InstanceState(currentStates[i]);
-  }
-  InstanceStates ret = {states, currentStates.size()};
+  InstanceStates ret = {};
   return ret;
 }

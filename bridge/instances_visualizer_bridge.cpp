@@ -18,32 +18,8 @@ void InstancesVisualizer_UpdateCameraParam(InstancesVisualizer iv,
   iv->update_camera_parameter(cameraID, cp);
 }
 
-MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv,
-    struct MatWithCameraID* frames, int fLength, struct InstanceStates states,
-    struct Trackee* trackees, int tLength) {
-
-  // prepare for C++ objects
-  scouter::MatMapPtr frameMap(new scouter::MatMap);
-  for (int i = 0; i < fLength; ++i) {
-    frameMap->insert(std::make_pair(frames[i].cameraID, *(frames[i].mat)));
-  }
-
-  std::vector<scouter::InstanceState> ss;
-  for (int i = 0; i < states.length; ++i) {
-    ss.push_back(*(states.instanceStates[i]));
-  }
-
-  std::vector<scouter::Trackee> trs;
-  for (int i = 0; i < tLength; ++i) {
-    const Trackee& t = trackees[i];
-    scouter::Trackee trackee = {t.colorID, *(t.mvCandidate), t.interpolated != 0,
-      frameMap};
-    trs.push_back(trackee);
-  }
-
-  // drawing
-  std::vector<cv::Mat_<cv::Vec3b> > traj_plots =
-      iv->plot_trajectories(frameMap, ss, trs);
+MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv) {
+  std::vector<cv::Mat_<cv::Vec3b> > traj_plots = iv->plot_trajectories();
   // for (size_t i = 0; i < traj_plots.size(); ++i) {
   //   std::stringstream ss;
   //   ss << config_.output_key << ".result[" << i << "]";
@@ -78,7 +54,7 @@ MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv,
       cv::vconcat(rows, row, rows);
     }
   }
-  cv::Mat_<cv::Vec3b>* result = new cv::Mat_<cv::Vec3b>;
+  cv::Mat_<cv::Vec3b>* result = new cv::Mat_<cv::Vec3b>();
   if (rc == static_cast<float>(traj_plots.size()) / rc + 1) {
     float o = rc - 1;
     o /= rc;
@@ -86,6 +62,5 @@ MatVec3b InstancesVisualizer_Draw(InstancesVisualizer iv,
   } else {
     cv::resize(rows, *result, cv::Size(w, h));
   }
-
   return result;
 }

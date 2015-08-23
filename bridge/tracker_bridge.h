@@ -2,6 +2,7 @@
 #define _TRACKER_BRIDGE_H_
 
 #include "opencv_bridge.h"
+#include "frame_processor_bridge.h"
 #include "moving_matcher_bridge.h"
 
 #ifdef __cplusplus
@@ -34,8 +35,8 @@ void Tracker_Delete(Tracker tracker);
 
 void TrackingResult_Delete(TrackingResult trackingResult);
 
-void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
-  struct MVCandidates mvCandidates, unsigned long long timestamp);
+void Tracker_Push(Tracker tracker, struct ScouterFrame2* frames, int fLength,
+  MVCandidate* mvCandidates, int mvLength);
 struct TrackingResult Tracker_Track(Tracker tracker);
 int Tracker_Ready(Tracker tracker);
 

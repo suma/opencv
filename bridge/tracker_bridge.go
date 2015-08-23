@@ -40,31 +40,31 @@ type Trackee struct {
 }
 
 // Push frame and regions with the tracker.
-func (t *Tracker) Push(frames map[int]MatVec3b, mvRegions []MVCandidate,
-	timestamp uint64) {
+func (t *Tracker) Push(frames []ScouterFrame, mvRegions []MVCandidate) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	length := len(frames)
-	framesPtr := []C.struct_MatWithCameraID{}
-	for k, v := range frames {
-		matWithID := C.struct_MatWithCameraID{
-			cameraID: C.int(k),
-			mat:      v.p,
+	fLength := len(frames)
+	fs := []C.struct_ScouterFrame2{}
+	for _, v := range frames {
+		sf := C.struct_ScouterFrame2{
+			image:     v.Image.p,
+			offset_x:  C.int(v.OffsetX),
+			offset_y:  C.int(v.OffsetY),
+			timestamp: C.ulonglong(v.Timestamp),
+			camera_id: C.int(v.CameraID),
 		}
-		framesPtr = append(framesPtr, matWithID)
+		fs = append(fs, sf)
 	}
 
-	mvRegionsLen := len(mvRegions)
-	mvRegionsPtr := []C.MVCandidate{}
+	mvLength := len(mvRegions)
+	mvos := []C.MVCandidate{}
 	for _, r := range mvRegions {
-		mvRegionsPtr = append(mvRegionsPtr, r.p)
+		mvos = append(mvos, r.p)
 	}
-	mvCandidates := C.InvertMVCandidates(
-		(*C.MVCandidate)(&mvRegionsPtr[0]), C.int(mvRegionsLen))
 
-	C.Tracker_Push(t.p, (*C.MatWithCameraID)(&framesPtr[0]), C.int(length),
-		mvCandidates, C.ulonglong(timestamp))
+	C.Tracker_Push(t.p, (*C.struct_ScouterFrame2)(&fs[0]), C.int(fLength),
+		(*C.MVCandidate)(&mvos[0]), C.int(mvLength))
 }
 
 // Track returns Trackee array cached in the tracker.

@@ -41,53 +41,17 @@ func (v *InstancesVisualizer) UpdateCameraParameter(cameraID int, config string)
 	C.InstancesVisualizer_UpdateCameraParam(v.p, C.int(cameraID), cConfig)
 }
 
-// Draw instance states on image.
-func (v *InstancesVisualizer) Draw(frames map[int]MatVec3b, states []InstanceState,
-	trackees []Trackee) MatVec3b {
+// DrawWithStates draws image with instance states information
+func (v *InstancesVisualizer) DrawWithStates() MatVec3b {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
 
-	// MatMapPtr
-	fLength := len(frames)
-	framesPtr := []C.struct_MatWithCameraID{}
-	for k, v := range frames {
-		matWithID := C.struct_MatWithCameraID{
-			cameraID: C.int(k),
-			mat:      v.p,
-		}
-		framesPtr = append(framesPtr, matWithID)
-	}
+	return MatVec3b{p: C.InstancesVisualizer_Draw(v.p)}
+}
 
-	// C.InstanceStates
-	ss := []C.InstanceState{}
-	for _, is := range states {
-		ss = append(ss, is.p)
-	}
-	iss := C.struct_InstanceStates{
-		instanceStates: (*C.InstanceState)(&ss[0]),
-		length:         C.int(len(ss)),
-	}
-
-	// *C.Trackee
-	tLength := len(trackees)
-	trs := []C.struct_Trackee{}
-	for _, t := range trackees {
-		var interpo int
-		if t.Interpolated {
-			interpo = 1
-		} else {
-			interpo = 0
-		}
-		trackee := C.struct_Trackee{
-			colorID:      C.ulonglong(t.ColorID),
-			mvCandidate:  t.MVCandidate.p,
-			interpolated: C.int(interpo),
-		}
-
-		trs = append(trs, trackee)
-	}
-
-	img := C.InstancesVisualizer_Draw(v.p, (*C.MatWithCameraID)(&framesPtr[0]),
-		C.int(fLength), iss, (*C.Trackee)(&trs[0]), C.int(tLength))
-	return MatVec3b{p: img}
+// Draw instance states on image.
+func (v *InstancesVisualizer) Draw(frames map[int]MatVec3b, states []InstanceState,
+	trackees []Trackee) MatVec3b {
+	// TODO will be deleted
+	return MatVec3b{}
 }

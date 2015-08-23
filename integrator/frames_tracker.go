@@ -29,14 +29,14 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 	}
 
 	// timestamp
-	ts, err := t.Data.Get(sf.timestampFieldName)
-	if err != nil {
-		return err
-	}
-	frameTime, err := data.AsTimestamp(ts)
-	if err != nil {
-		return err
-	}
+	// ts, err := t.Data.Get(sf.timestampFieldName)
+	// if err != nil {
+	// 	return err
+	// }
+	// frameTime, err := data.AsTimestamp(ts)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// multi place frames
 	frames, err := t.Data.Get(sf.framesFieldName)
@@ -78,8 +78,9 @@ func (sf *framesTrackerUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
-	timestamp := time.Duration(frameTime.UnixNano()) / time.Microsecond
-	sf.tracker.Push(matMap, mvCans, uint64(timestamp))
+	// TODO delete
+	// timestamp := time.Duration(frameTime.UnixNano()) / time.Microsecond
+	// sf.tracker.Push(matMap, mvCans, uint64(timestamp))
 
 	if sf.tracker.Ready() {
 		trs := sf.tracker.Track()

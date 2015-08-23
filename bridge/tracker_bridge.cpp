@@ -15,35 +15,28 @@ void TrackingResult_Delete(TrackingResult trackingResult) {
   delete trackingResult.trackees;
 }
 
-void Tracker_Push(Tracker tracker, struct MatWithCameraID* frames, int length,
-  struct MVCandidates mvCandidates, unsigned long long timestamp) {
-  scouter::MatMapPtr ret(new scouter::MatMap);
-  for (int i = 0; i < length; ++i) {
-    ret->insert(std::make_pair(frames[i].cameraID, *(frames[i].mat)));
+void Tracker_Push(Tracker tracker, struct ScouterFrame2* frames, int fLength,
+  MVCandidate* mvCandidates, int mvLength) {
+
+  std::vector<scouter::Frame> frameVec;
+  for (int i = 0; i < fLength; ++i) {
+    ScouterFrame2 fs = frames[i];
+    scouter::FrameMeta fm = scouter::FrameMeta(fs.timestamp, fs.offset_x, fs.offset_y);
+    scouter::Frame f = scouter::Frame(fm, *(fs.image));
+
+    frameVec.push_back(f);
   }
 
-  std::vector<scouter::MVObjectCandidate> mvCans;
-  for (int i = 0; i < mvCandidates.length; ++i) {
-    mvCans.push_back(*(mvCandidates.mvCandidates[i]));
+  std::vector<scouter::MVObjectCandidate> mvos;
+  for (int i = 0; i < mvLength; ++i) {
+    mvos.push_back(*(mvCandidates[i]));
   }
 
-  tracker->push(ret, mvCans, timestamp);
+  tracker->push(scouter::make_frames(frameVec), mvos);
 }
 
 struct TrackingResult Tracker_Track(Tracker tracker) {
-  const scouter::TrackingResult& ret = tracker->track();
-
-  int length = int(ret.trackees.size());
-  struct Trackee* trackees = new Trackee[length];
-  for (int i = 0; i < length; ++i) {
-    const scouter::Trackee& t = ret.trackees[i];
-    scouter::MVObjectCandidate* o = new scouter::MVObjectCandidate(t.object);
-    int interpolated = t.interpolated ? 1 : 0;
-    Trackee trackee = {t.id, o, interpolated};
-    trackees[i] = trackee;
-  }
-
-  struct TrackingResult tr = {trackees, length, ret.timestamp};
+  struct TrackingResult tr = {};
   return tr;
 }
 

@@ -10,6 +10,66 @@ import (
 	"time"
 )
 
+// TrackInstanceStatesUDFCreator is a creator of tracking instance states UDF.
+type TrackInstanceStatesUDFCreator struct{}
+
+// CreateFunction returns tracking instance states.
+func (c *TrackInstanceStatesUDFCreator) CreateFunction() interface{} {
+	return getCurrentInstanceStates
+}
+
+// TypeName returns type name.
+func (c *TrackInstanceStatesUDFCreator) TypeName() string {
+	return "scouter_get_current_instance_states"
+}
+
+func getCurrentInstanceStates(ctx *core.Context, trackerParam string,
+	instanceManagerParam string, instanceVisualizerParam string) (data.Map, error) {
+
+	trackerState, err := lookupTrackerParamState(ctx, trackerParam)
+	if err != nil {
+		return nil, err
+	}
+
+	managerState, err := lookupInstanceManagerParamState(ctx, instanceManagerParam)
+	if err != nil {
+		return nil, err
+	}
+
+	states := managerState.m.TrackAndGetStates(trackerState.t)
+	if len(states) <= 0 {
+		ctx.Log().Info("instance states is empty")
+		return nil, nil
+	}
+	defer func() {
+		for _, s := range states {
+			s.Delete()
+		}
+	}()
+
+	statesByte := make(data.Array, len(states))
+	for i, s := range states {
+		statesByte[i] = data.Blob(s.Serialize())
+	}
+
+	m := data.Map{
+		"states": statesByte,
+	}
+
+	if instanceVisualizerParam != "" {
+		visualizerState, err := lookupInstanceVisualizerParamState(ctx,
+			instanceVisualizerParam)
+		if err != nil {
+			return nil, err
+		}
+		img := visualizerState.v.DrawWithStates()
+		defer img.Delete()
+		m["img"] = data.Blob(img.Serialize())
+	}
+
+	return m, nil
+}
+
 // TrackInstanceStatesUDSFCreator is a creator of tracking UDSF.
 type TrackInstanceStatesUDSFCreator struct{}
 

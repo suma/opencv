@@ -72,6 +72,32 @@ func (m *InstanceManager) Delete() {
 	m.p = nil
 }
 
+// TrackAndGetStates returns current states. First, tracker returns
+// `scouter::TrackingResult`. Second, instance manager returns instance states
+// using the tracking result.
+func (m *InstanceManager) TrackAndGetStates(tr Tracker) []InstanceState {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	iss := C.TrackAndGetStates(tr.p, m.p)
+	defer C.InstanceStates_Delete(iss)
+
+	cArray := iss.instanceStates
+	length := int(iss.length)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cArray)),
+		Len:  length,
+		Cap:  length,
+	}
+	goSlice := *(*[]C.InstanceState)(unsafe.Pointer(&hdr))
+
+	states := make([]InstanceState, length)
+	for i, s := range goSlice {
+		states[i] = InstanceState{p: s}
+	}
+	return states
+}
+
 // Update cached frames managed by instance manager.
 func (m *InstanceManager) Update(frames map[int]MatVec3b, trackees []Trackee,
 	timestamp uint64) {

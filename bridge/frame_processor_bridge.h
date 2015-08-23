@@ -14,6 +14,13 @@ typedef struct ScouterFrame {
   int offset_x;
   int offset_y;
 } ScouterFrame;
+typedef struct ScouterFrame2 {
+  cv::Mat_<cv::Vec3b>* image;
+  int offset_x;
+  int offset_y;
+  unsigned long long timestamp;
+  int camera_id;
+} ScouterFrame2;
 typedef scouter::FrameProcessor* FrameProcessor;
 #else
 typedef struct ScouterFrame {
@@ -21,6 +28,13 @@ typedef struct ScouterFrame {
   int offset_x;
   int offset_y;
 } ScouterFrame;
+typedef struct ScouterFrame2 {
+  MatVec3b image;
+  int offset_x;
+  int offset_y;
+  unsigned long long timestamp;
+  int camera_id;
+} ScouterFrame2;
 typedef void* FrameProcessor;
 #endif
 
