@@ -78,6 +78,8 @@ func (m *InstanceManager) Delete() {
 func (m *InstanceManager) TrackAndGetStates(tr Tracker) []InstanceState {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	tr.mu.Lock()
+	defer tr.mu.Unlock()
 
 	iss := C.TrackAndGetStates(tr.p, m.p)
 	defer C.InstanceStates_Delete(iss)

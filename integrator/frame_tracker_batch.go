@@ -72,7 +72,7 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 		imageByte, err := data.AsBlob(image)
 		x, err := data.AsInt(offsetX)
 		y, err := data.AsInt(offsetY)
-		ts, err := data.AsInt(timestamp)
+		ts, err := data.ToInt(timestamp)
 		cid, err := data.AsInt(cameraID)
 		if err != nil {
 			return nil, err
