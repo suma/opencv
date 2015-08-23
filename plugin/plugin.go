@@ -70,6 +70,8 @@ func init() {
 		&recog.CroppingAndPredictTagsBatchFuncCreator{},
 		&recog.DrawDeteciontResultFuncCreator{},
 		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
+		&integrator.FramesTrackerCacheUDFCreator{},
+		&integrator.TrackInstanceStatesUDFCreator{},
 		&integrator.InstanceStateConverterUDFCreator{},
 		&integrator.InstancesVisualizerFuncCreator{},
 	}
