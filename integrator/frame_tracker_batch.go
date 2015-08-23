@@ -12,6 +12,30 @@ type FramesTrackerCacheUDFCreator struct{}
 
 // CreateFunction creates multi placed regions tracker function, and the
 // function returns tracker is ready or not.
+//
+// Usage:
+//  `scouter_multi_region_cache([tracker_param], [frames], [moving_regions])`
+//  [tracker_param]
+//    * type: string
+//    * the state of  tracker parameter, detail: scouter_tracker_param
+//  [frames]
+//    * type: []data.Map
+//    * the set of image, offset(x, y), timestamp, camera id. required following
+//      map structure.
+//      map{
+//        "image": (projected) image,
+//        "offset_x":  offset x,
+//        "offset_y":  offset y,
+//        "timestamp": timestamp of create the frame,
+//        "camera_id": camera ID,
+//      }
+//  [moving_regions]
+//    * type: []data.Blob
+//    * moving detection results, using moving matcher UDF/UDSF
+//
+// Return:
+//  The function returns the tracker is ready or not. An acceptance length for
+//  moving tracker is set by tracker parameter.
 func (c *FramesTrackerCacheUDFCreator) CreateFunction() interface{} {
 	return pushToTracker
 }

@@ -14,6 +14,29 @@ import (
 type TrackInstanceStatesUDFCreator struct{}
 
 // CreateFunction returns tracking instance states.
+//
+// Usage:
+//  ```
+//  scouter_get_current_instance_states([tracker_param], [manager_param],
+//                                      [visualizer_param])
+//  ```
+//  [tracker_param]
+//    * type: string
+//    * the state of tracker parameter, detail: scouter_tracker_param
+//  [manager_param]
+//    * type: string
+//    * the state of instance manager parameter,
+//      detail: scouter_instance_manager_param
+//  [visualizer_param]
+//    * type: string
+//    * the state of instances visualizer parameter, if set empty then the
+//      function not create image with states.
+//      detail: scouter_instances_visualizer_param
+//
+// Return:
+//  The function returns `data.Map` including current states and image. Current
+//  states ate set with "states" key (type `[]data.Blob`). The image is draw
+//  with current states and set with "img" key.
 func (c *TrackInstanceStatesUDFCreator) CreateFunction() interface{} {
 	return getCurrentInstanceStates
 }
