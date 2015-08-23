@@ -66,8 +66,6 @@ func init() {
 		&detector.EstimateHeightMMBatchFuncCreator{},
 		&detector.FilterByMaskMMFuncCreator{},
 		&detector.EstimateHeightMMFuncCreator{},
-		&recog.RegionCropFuncCreator{},
-		&recog.PredictTagsFuncCreator{},
 		&recog.CroppingAndPredictTagsFuncCreator{},
 		&recog.CroppingAndPredictTagsBatchFuncCreator{},
 		&recog.DrawDeteciontResultFuncCreator{},

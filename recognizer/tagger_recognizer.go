@@ -6,53 +6,6 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-// PredictTagsFuncCreator is a creator of predicting tags UDF.
-type PredictTagsFuncCreator struct{}
-
-func predictTags(ctx *core.Context, taggerParam string, cropImg []byte,
-	region []byte) ([]byte, error) {
-	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
-	if err != nil {
-		return nil, err
-	}
-
-	croppedImg := bridge.DeserializeMatVec3b(cropImg)
-	defer croppedImg.Delete()
-	candidate := bridge.DeserializeCandidate(region)
-	defer candidate.Delete()
-
-	taggedRegion := s.tagger.PredictTags(candidate, croppedImg)
-	defer taggedRegion.Delete()
-
-	return taggedRegion.Serialize(), nil
-}
-
-// CreateFunction returns predict tags and tagged regions function. Tags
-// information is set in regions.
-//
-// Usage:
-//  scouter_predict_tags([tagger_param], [cropped_image], [region])`
-//  [tagger_param]
-//    * type: string
-//    * a parameter name of "scouter_image_tagger_caffe" state
-//  [image]
-//    * type: []byte
-//    * a cropped image created by cropped function.
-//  [region]
-//    * type: []byte
-//    * a detected region created by detected function.
-//
-// Return:
-//  The function will return a region with tags.
-func (c *PredictTagsFuncCreator) CreateFunction() interface{} {
-	return predictTags
-}
-
-// TypeName returns type name.
-func (c *PredictTagsFuncCreator) TypeName() string {
-	return "scouter_predict_tags"
-}
-
 // CroppingAndPredictTagsFuncCreator is a creator of cropping and predict tags
 // UDF.
 type CroppingAndPredictTagsFuncCreator struct{}
@@ -69,7 +22,7 @@ func croppingAndPredictTags(ctx *core.Context, taggerParam string, region []byte
 	candidate := bridge.DeserializeCandidate(region)
 	defer candidate.Delete()
 
-	taggedRegion := s.tagger.CroppingAndPredictTags(candidate, image)
+	taggedRegion := s.tagger.CropAndPredictTags(candidate, image)
 	defer taggedRegion.Delete()
 
 	return taggedRegion.Serialize(), nil

@@ -37,14 +37,6 @@ func (m *MatVec3b) Serialize() []byte {
 	return ToGoBytes(b)
 }
 
-func convertMatVec3bsToPointer(mats []MatVec3b) []C.MatVec3b {
-	imgPointers := make([]C.MatVec3b, len(mats))
-	for i, img := range mats {
-		imgPointers[i] = img.p
-	}
-	return imgPointers
-}
-
 // DeserializeMatVec3b deserializes object.
 func DeserializeMatVec3b(m []byte) MatVec3b {
 	b := toByteArray(m)

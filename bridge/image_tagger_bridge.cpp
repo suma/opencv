@@ -11,33 +11,23 @@ void ImageTaggerCaffe_Delete(ImageTaggerCaffe tagger) {
   delete tagger;
 }
 
-MatVec3b ImageTaggerCaffe_Crop(ImageTaggerCaffe tagger, Candidate candidate,
+Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger, Candidate candidate,
     MatVec3b image) {
-  cv::Mat_<cv::Vec3b> cropped = tagger->crop(*candidate, *image);
-  return new cv::Mat_<cv::Vec3b>(cropped);
-}
-
-Candidate ImageTaggerCaffe_PredictTags(ImageTaggerCaffe tagger, Candidate candidate,
-    MatVec3b croppedImg) {
   std::vector<scouter::ObjectCandidate> candidateVec;
-  std::vector<cv::Mat_<cv::Vec3b> > croppedVec;
   candidateVec.push_back(*candidate);
-  croppedVec.push_back(*croppedImg);
 
-  tagger->predict_tags_batch(candidateVec, croppedVec);
+  tagger->predict_tags_batch(candidateVec, *image);
   scouter::ObjectCandidate* ret = new scouter::ObjectCandidate(candidateVec[0]);
   return ret;
 }
 
-struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
-    Candidate* candidates, MatVec3b* croppedImages, int length) {
+struct Candidates ImageTaggerCaffe_CropAndPredictTagsBatch(ImageTaggerCaffe tagger,
+    Candidate* candidates, int length, MatVec3b image) {
   std::vector<scouter::ObjectCandidate> candidateVec;
-  std::vector<cv::Mat_<cv::Vec3b> > croppedVec;
   for (int i = 0; i < length; ++i) {
     candidateVec.push_back(*candidates[i]);
-    croppedVec.push_back(*croppedImages[i]);
   }
-  tagger->predict_tags_batch(candidateVec, croppedVec);
+  tagger->predict_tags_batch(candidateVec, *image);
   int l = (int)candidateVec.size();
   scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[l];
   for (size_t i = 0; i < l; ++i) {
@@ -45,10 +35,4 @@ struct Candidates ImageTaggerCaffe_PredictTagsBatch(ImageTaggerCaffe tagger,
   }
   Candidates cs = {ret, l};
   return cs;
-}
-
-Candidate ImageTaggerCaffe_CropAndPredictTags(ImageTaggerCaffe tagger,
-    Candidate candidate, MatVec3b image) {
-  cv::Mat_<cv::Vec3b>* cropped = ImageTaggerCaffe_Crop(tagger, candidate, image);
-  return ImageTaggerCaffe_PredictTags(tagger, candidate, cropped);
 }

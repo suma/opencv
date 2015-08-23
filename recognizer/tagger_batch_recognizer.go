@@ -1,7 +1,6 @@
 package recog
 
 import (
-	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/bql/udf"
@@ -10,59 +9,11 @@ import (
 	"time"
 )
 
-// RegionCropFuncCreator is a creator of cropping region from frame UDF.
-type RegionCropFuncCreator struct{}
-
-func crop(ctx *core.Context, taggerParam string, region []byte, image []byte) (
-	[]byte, error) {
-	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)
-	if err != nil {
-		return nil, err
-	}
-
-	r := bridge.DeserializeCandidate(region)
-	defer r.Delete()
-
-	img := bridge.DeserializeMatVec3b(image)
-	defer img.Delete()
-
-	cropped := s.tagger.Crop(r, img)
-	defer cropped.Delete()
-	return cropped.Serialize(), nil
-}
-
-// CreateFunction returns cropping region from frame function.
-//
-// Usage:
-//  `scouter_crop_region([tagger_param], [region], [image])`
-//  [tagger_param]
-//    * type: string
-//    * a parameter name of "scouter_image_tagger_caffe" state
-//  [region]
-//    * type: []byte
-//    * a detected region created by detector UDF
-//    * the region is detected from [image]
-//  [image]
-//    * type: []byte
-//    * a captured image
-//
-// Return:
-//  The function will return cropped imaged, the type is `[]byte`.
-func (c *RegionCropFuncCreator) CreateFunction() interface{} {
-	return crop
-}
-
-// TypeName returns type name.
-func (c *RegionCropFuncCreator) TypeName() string {
-	return "scouter_crop_region"
-}
-
 type predictTagsBatchUDSF struct {
-	predictTagsBatch func(
-		[]bridge.Candidate, []bridge.MatVec3b) []bridge.Candidate
+	predictTagsBatch func([]bridge.Candidate, bridge.MatVec3b) []bridge.Candidate
 	frameIDName      data.Path
 	regionsName      data.Path
-	croppedImageName data.Path
+	imageName        data.Path
 }
 
 // Process streams tagged regions, which is serialized from
@@ -90,28 +41,18 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 		return err
 	}
 
-	croppedImgsData, err := t.Data.Get(sf.croppedImageName)
+	imgData, err := t.Data.Get(sf.imageName)
 	if err != nil {
 		return err
 	}
-	croppedImgs, err := data.AsArray(croppedImgsData)
+	img, err := data.AsBlob(imgData)
 	if err != nil {
 		return err
-	}
-
-	if len(regions) != len(croppedImgs) {
-		return fmt.Errorf(
-			"region size and cropped image size must same [region: %d, cropped image: %d",
-			len(regions), len(croppedImgs))
 	}
 
 	candidates := make([]bridge.Candidate, len(regions))
-	cropps := make([]bridge.MatVec3b, len(croppedImgs))
 	defer func() {
 		for _, c := range candidates {
-			c.Delete()
-		}
-		for _, c := range cropps {
 			c.Delete()
 		}
 	}()
@@ -121,15 +62,12 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 			return err
 		}
 		candidates[i] = bridge.DeserializeCandidate(rb)
-
-		cb, err := data.AsBlob(croppedImgs[i])
-		if err != nil {
-			return err
-		}
-		cropps[i] = bridge.DeserializeMatVec3b(cb)
 	}
 
-	recognized := sf.predictTagsBatch(candidates, cropps)
+	imgPtr := bridge.DeserializeMatVec3b(img)
+	defer imgPtr.Delete()
+
+	recognized := sf.predictTagsBatch(candidates, imgPtr)
 	defer func() {
 		for _, r := range recognized {
 			r.Delete()
@@ -167,7 +105,7 @@ func (sf *predictTagsBatchUDSF) Terminate(ctx *core.Context) error {
 
 func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	taggerParam string, stream string, frameIDName string, regionsName string,
-	croppedImageName string) (udf.UDSF, error) {
+	imageName string) (udf.UDSF, error) {
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "scouter_predict_tags_batch_stream",
 	}); err != nil {
@@ -180,10 +118,10 @@ func createPredictTagsBatchUDSF(ctx *core.Context, decl udf.UDSFDeclarer,
 	}
 
 	return &predictTagsBatchUDSF{
-		predictTagsBatch: s.tagger.PredictTagsBatch,
+		predictTagsBatch: s.tagger.CropAndPredictTagsBatch,
 		frameIDName:      data.MustCompilePath(frameIDName),
 		regionsName:      data.MustCompilePath(regionsName),
-		croppedImageName: data.MustCompilePath(croppedImageName),
+		imageName:        data.MustCompilePath(imageName),
 	}, nil
 }
 
@@ -195,8 +133,8 @@ type PredictTagsBatchStreamFuncCreator struct{}
 //
 // Usage:
 //  ```
-//  scouter_predict_tags_batch_stream([tagger_param], [stream],
-//                                    [frame_id_name], [regions_name])
+//  scouter_predict_tags_batch_stream([tagger_param], [stream], [frame_id_name],
+//                                    [regions_name], [image_name])
 //  ```
 //  [tagger_param]
 //    * type: string
@@ -212,10 +150,15 @@ type PredictTagsBatchStreamFuncCreator struct{}
 //    * type: string
 //    * a field name of regions
 //    * if empty, then applied "regions"
+//  [image_name]
+//    * type: string
+//    * a file name of captured image
+//    * if empty, then applied "image"
 //
 // Input tuples are required to have following `data.Map` structures. The keys
 //  * "frame_id"
 //  * "regions"
+//  * "frame_name"
 //  could be addressed with UDSF's arguments. When the arguments are empty, this
 //  stream function applies default key name.
 //
@@ -223,6 +166,7 @@ type PredictTagsBatchStreamFuncCreator struct{}
 //  data.Map{
 //    "frame_id": [frame id] (`data.Int`),
 //    "regions" : [detected regions] (`[]data.Blob`)
+//    "image":    [captured image] (`data.Blob`)
 //  }
 func (c *PredictTagsBatchStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createPredictTagsBatchUDSF
@@ -279,7 +223,6 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 	defer image.Delete()
 
 	cans := make([]bridge.Candidate, len(regions))
-	cropped := make([]bridge.MatVec3b, len(regions))
 	for i, r := range regions {
 		regionByte, err := data.AsBlob(r)
 		if err != nil {
@@ -287,21 +230,15 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 		}
 		regionPtr := bridge.DeserializeCandidate(regionByte)
 		cans[i] = regionPtr
-
-		c := s.tagger.Crop(regionPtr, image)
-		cropped[i] = c
 	}
 
 	defer func() {
 		for _, c := range cans {
 			c.Delete()
 		}
-		for _, c := range cropped {
-			c.Delete()
-		}
 	}()
 
-	recognized := s.tagger.PredictTagsBatch(cans, cropped)
+	recognized := s.tagger.CropAndPredictTagsBatch(cans, image)
 
 	defer func() {
 		for _, r := range recognized {

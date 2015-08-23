@@ -33,43 +33,26 @@ func (t *ImageTaggerCaffe) Delete() {
 	t.p = nil
 }
 
-// Crop the image around the candidate (=region) information, and returns
-// image data.
-func (t *ImageTaggerCaffe) Crop(candidate Candidate, image MatVec3b) MatVec3b {
-	cropped := C.ImageTaggerCaffe_Crop(t.p, candidate.p, image.p)
-	return MatVec3b{p: cropped}
-}
-
-// PredictTags predicts attributes with caffe models at candidate information
-// and set tags in the candidate.
-func (t *ImageTaggerCaffe) PredictTags(candidate Candidate,
-	croppedImg MatVec3b) Candidate {
-
-	recognized := C.ImageTaggerCaffe_PredictTags(t.p, candidate.p, croppedImg.p)
-	return Candidate{p: recognized}
-}
-
-// PredictTagsBatch predicts attributes with caffe models at candidate
-// information and set tags int the candidates. The function executes to predict
-// attributes on batch.
-func (t *ImageTaggerCaffe) PredictTagsBatch(candidates []Candidate,
-	croppedImg []MatVec3b) []Candidate {
-
-	l := len(candidates)
-	candidatePointer := convertCandidatesToPointer(candidates)
-	imgPointer := convertMatVec3bsToPointer(croppedImg)
-	recognized := C.ImageTaggerCaffe_PredictTagsBatch(t.p,
-		(*C.Candidate)(&candidatePointer[0]), (*C.MatVec3b)(&imgPointer[0]), C.int(l))
-	defer C.Candidates_Delete(recognized)
-
-	return convertCandidatesToSlice(recognized)
-}
-
-// CroppingAndPredictTags crops image around the candidate and predict
+// CropAndPredictTags crops image around the candidate and predict
 // attributes with caffe models. The function executes these two tasks.
-func (t *ImageTaggerCaffe) CroppingAndPredictTags(candidate Candidate,
+func (t *ImageTaggerCaffe) CropAndPredictTags(candidate Candidate,
 	image MatVec3b) Candidate {
 
 	recognized := C.ImageTaggerCaffe_CropAndPredictTags(t.p, candidate.p, image.p)
 	return Candidate{p: recognized}
+}
+
+// CropAndPredictTagsBatch predicts attributes with caffe models at candidate
+// information and set tags int the candidates. The function executes to predict
+// attributes on batch.
+func (t *ImageTaggerCaffe) CropAndPredictTagsBatch(candidates []Candidate,
+	image MatVec3b) []Candidate {
+
+	l := len(candidates)
+	candidatePointer := convertCandidatesToPointer(candidates)
+	recognized := C.ImageTaggerCaffe_CropAndPredictTagsBatch(t.p,
+		(*C.Candidate)(&candidatePointer[0]), C.int(l), image.p)
+	defer C.Candidates_Delete(recognized)
+
+	return convertCandidatesToSlice(recognized)
 }
