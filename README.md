@@ -8,7 +8,10 @@ This plug-in is to use [scouter-core](https://github.pfidev.jp/ComputerVision/sc
     * ex) Mac OS X `brew install opencv --with-ffmpeg`
     * reference: [ComputerVision/pficv#OpenCVのインストール](https://github.pfidev.jp/ComputerVision/pficv#opencv%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB)
 * scouter-core
-    * [ComputerVision/scouter-core](https://github.pfidev.jp/ComputerVision/scouter-core)
+    * [ComputerVision/scouter-core](https://github.pfidev.jp/tanakad/scouter-core)
+        * branch: sensorbee-merge (default branch)
+        * this branch is customized for SensorBee, but the library can be used for kanohi-scouter, too
+        * [TODO] merge
     * scouter-core require
         * caffe
         * pficommon
@@ -36,7 +39,7 @@ import (
 
 ## Using from BQLs sample
 
-more details or other Sources / UDSs / UDFs / UDSFs / Sinks are written in wiki [TODO]
+These BQL samples are omitted joining several streams or aggregation tuples. More details or other Sources / UDSs / UDFs / UDSFs / Sinks are written in wiki [TODO].
 
 ### Capturing video source and streaming frames
 
@@ -81,6 +84,49 @@ CREATE STREAM tagging_regions AS SELECT ISTREAM
     FROM detected_regions [RANGE 10 TUPLES] AS dr;
 ```
 
+### Integrate multiple frames and tracking
+
+These BQLs are just one camera sample.
+
+```sql
+-- aggregate same time frames from multiple places
+CREATE STREAM agg_same_time_frames AS SELECT ISTREAM
+    [{
+        'camera_id': 0,
+        'img':       afr:frame_meta.projected_img,
+        'offset_x':  afr:frame_meta.offset_x,
+        'offset_y':  afr:frame_meta.offset_y,
+        'timestamp': afr:timestamp
+    }] AS frame_meta,
+    [{
+        'camera_id':0,
+        'regions':afr:regions
+    }] AS agg_regions
+    FROM agg_frame_and_tagging_regions [RANGE 1 TUPLES] AS afr;
+```
+
+```sql
+-- merge moving regions
+CREATE STREAM moving_matched_regions AS SELECT ISTREAM
+    scouter_multi_place_moving_matcher_batch(stf:agg_regions, 3.0) AS mv_regions
+    FROM agg_same_time_frames [RANGE 1 TUPLES] AS stf;
+```
+
+```sql
+-- tracking and get current instance states
+CREATE STATE tracker_param TYPE scouter_tracker_param WITH file='tracker_param.json';
+CREATE STATE instance_manager_param TYPE scouter_instance_manager_param
+    WITH file='instance_manager_param.json';
+CREATE STATE instances_visualizer TYPE scouter_instances_visualizer_param
+    WITH camera_ids=[0], camera_parameter_files=['camera1_param.json'],
+         instance_manager_param='instance_manager_param';
+CREATE STREAM current_states AS SELECT ISTREAM
+    scouter_get_current_instance_states('tracker_param', 'instance_manager_param',
+        'instances_visualizer') AS states
+    FROM agg_frames_and_mvregions [RANGE 1 TUPLES] AS fmv
+    WHERE scouter_multi_region_cache('tracker_param', fmv:frame_meta, fmv:mv_regions);
+```
+
 ### Monitoring detected images on browser
 
 ```sql
@@ -107,4 +153,3 @@ INSERT INTO recognized_avi SELECT ISTREAM
 # TODO
 
 * edit wiki and list up all Source / Sink / UDS / UDF / UDSF
-* add sample BQLs to integrate multiple placed cameras
