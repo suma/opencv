@@ -20,8 +20,8 @@ type InstanceStateConverterUDFCreator struct{}
 //    * type: int
 //    * the ID of floor to determine the camera.
 //  [timestamp]
-//    * type: uint64, in SensorBee, data.Int
-//    * timestamp[us]
+//    * type: data.Timestamp
+//    * captured timestamp, will be converted to [us] (uint64)
 //
 // Return:
 //  The JSON text.
@@ -35,14 +35,18 @@ func (c *InstanceStateConverterUDFCreator) TypeName() string {
 }
 
 func convertInstanceStatesToJSON(ctx *core.Context, states data.Array,
-	floorID int, timestamp int) (string, error) {
+	floorID int, timestamp data.Timestamp) (string, error) {
 
 	iss, err := convertToCStates(states)
 	if err != nil {
 		return "", err
 	}
 
-	json := bridge.ConvertInstanceStatesToJSON(iss, floorID, uint64(timestamp))
+	ts, err := data.ToInt(timestamp)
+	if err != nil {
+		return "", err
+	}
+	json := bridge.ConvertInstanceStatesToJSON(iss, floorID, uint64(ts))
 
 	return json, nil
 }
