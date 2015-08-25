@@ -18,7 +18,7 @@ func TestConvertObjectCandidateToJSON(t *testing.T) {
 
 		Convey("When call convert UDF", func() {
 
-			objMap, err := convertObjectCandidateToJSON(ctx, obByte)
+			objMap, err := convertObjectCandidateToMap(ctx, obByte)
 
 			Convey("Then process should get JSON string", func() {
 				So(err, ShouldBeNil)

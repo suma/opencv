@@ -6,13 +6,13 @@ import (
 	"pfi/sensorbee/sensorbee/data"
 )
 
-// InstanceStateConverterUDFCreator is a creator of converter UDF.
-type InstanceStateConverterUDFCreator struct{}
+// InstancesConvertForKanohiJSONUDFCreator is a creator of converter UDF.
+type InstancesConvertForKanohiJSONUDFCreator struct{}
 
-// CreateFunction returns JSON converter from instance states.
+// CreateFunction returns JSON converter from instance states, for kanohi tool.
 //
 // Usage:
-//  `scouter_convert_instance_states_to_json(states, floorID, timestamp)`
+//  `scouter_convert_instances_forkanohijson(states, floorID, timestamp)`
 //  [states]
 //    * type: []byte
 //    * instance states array
@@ -24,14 +24,14 @@ type InstanceStateConverterUDFCreator struct{}
 //    * captured timestamp, will be converted to [us] (uint64)
 //
 // Return:
-//  The JSON text.
-func (c *InstanceStateConverterUDFCreator) CreateFunction() interface{} {
+//  The JSON text for kanohi tool.
+func (c *InstancesConvertForKanohiJSONUDFCreator) CreateFunction() interface{} {
 	return convertInstanceStatesToJSON
 }
 
 // TypeName returns type name.
-func (c *InstanceStateConverterUDFCreator) TypeName() string {
-	return "scouter_convert_instance_states_to_json"
+func (c *InstancesConvertForKanohiJSONUDFCreator) TypeName() string {
+	return "scouter_convert_instances_forkanohijson"
 }
 
 func convertInstanceStatesToJSON(ctx *core.Context, states data.Array,

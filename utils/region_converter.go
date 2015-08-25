@@ -15,7 +15,7 @@ type ObjectCandidateConverterUDFCreator struct{}
 // CreateFunction returns JSON converter from `scouter::ObjectCandidate`. JSON
 // structure is flowed by scouter's msgpack packing structure.
 func (c *ObjectCandidateConverterUDFCreator) CreateFunction() interface{} {
-	return convertObjectCandidateToJSON
+	return convertObjectCandidateToMap
 }
 
 // TypeName returns type name.
@@ -23,7 +23,7 @@ func (c *ObjectCandidateConverterUDFCreator) TypeName() string {
 	return "scouter_convert_regions_to_json"
 }
 
-func convertObjectCandidateToJSON(ctx *core.Context, region []byte) (data.Map, error) {
+func convertObjectCandidateToMap(ctx *core.Context, region []byte) (data.Map, error) {
 	var raw []interface{}
 	dec := codec.NewDecoderBytes(region, msgpackHandle)
 	err := dec.Decode(&raw)

@@ -75,7 +75,7 @@ func init() {
 		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
 		&integrator.FramesTrackerCacheUDFCreator{},
 		&integrator.TrackInstanceStatesUDFCreator{},
-		&integrator.InstanceStateConverterUDFCreator{},
+		&integrator.InstancesConvertForKanohiJSONUDFCreator{},
 		&utils.ObjectCandidateConverterUDFCreator{},
 	}
 	for _, f := range udfuncs {
