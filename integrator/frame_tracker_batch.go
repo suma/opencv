@@ -84,19 +84,44 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		image, err := m.Get(utils.IMGPath)
+		if err != nil {
+			return nil, err
+		}
 		offsetX, err := m.Get(utils.OffsetXPath)
+		if err != nil {
+			return nil, err
+		}
 		offsetY, err := m.Get(utils.OffsetYPath)
+		if err != nil {
+			return nil, err
+		}
 		timestamp, err := m.Get(utils.TimestampPath)
+		if err != nil {
+			return nil, err
+		}
 		cameraID, err := m.Get(utils.CameraIDPath)
 		if err != nil {
 			return nil, err
 		}
 
 		imageByte, err := data.AsBlob(image)
+		if err != nil {
+			return nil, err
+		}
 		x, err := data.AsInt(offsetX)
+		if err != nil {
+			return nil, err
+		}
 		y, err := data.AsInt(offsetY)
+		if err != nil {
+			return nil, err
+		}
 		ts, err := data.ToInt(timestamp)
+		if err != nil {
+			return nil, err
+		}
 		cid, err := data.AsInt(cameraID)
 		if err != nil {
 			return nil, err
