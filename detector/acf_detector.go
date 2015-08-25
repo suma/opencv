@@ -256,6 +256,52 @@ func (c *EstimateHeightFuncCreator) TypeName() string {
 	return "scouter_estimate_height"
 }
 
+// PutFeatureUDFCreator is a creator of putting feature UDF.
+type PutFeatureUDFCreator struct{}
+
+func putFeature(ctx *core.Context, detectParam string, image []byte,
+	region []byte) ([]byte, error) {
+	s, err := lookupACFDetectParamState(ctx, detectParam)
+	if err != nil {
+		return nil, err
+	}
+
+	imgPtr := bridge.DeserializeMatVec3b(image)
+	defer imgPtr.Delete()
+
+	regionPtr := bridge.DeserializeCandidate(region)
+	defer regionPtr.Delete()
+	s.d.PutFeature(&regionPtr, imgPtr)
+	return regionPtr.Serialize(), nil
+}
+
+// CreateFunction creates a putting feature function for ACF detection.
+//
+// Usage:
+//  `scouter_put_feature([detect_param], [image],[ region])`
+//  [detect_param]
+//    * type: string
+//    * a parameter name of "scouter_acf_detection_param" state
+//  [image]
+//    * type: []byte
+//    * captured image
+//  [regions]
+//    * type: []byte
+//    * detected region, which are applied ACF detection.
+//    * the region is detected from [frame]
+//
+// return:
+//  The function will return a region which is set features, the type is
+//  `[]byte`.
+func (c *PutFeatureUDFCreator) CreateFunction() interface{} {
+	return putFeature
+}
+
+// TypeName returns type name.
+func (c *PutFeatureUDFCreator) TypeName() string {
+	return "scouter_put_feature"
+}
+
 // DrawDetectionResultFuncCreator is a creator of drawing regions on a frame UDF.
 type DrawDetectionResultFuncCreator struct{}
 

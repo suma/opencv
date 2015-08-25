@@ -186,3 +186,61 @@ func (c *EstimateHeightBatchFuncCreator) CreateFunction() interface{} {
 func (c *EstimateHeightBatchFuncCreator) TypeName() string {
 	return "scouter_estimate_height_batch"
 }
+
+// PutFeatureBatchUDFCreator is a creator of putting feature.
+type PutFeatureBatchUDFCreator struct{}
+
+func putFeatureBatch(ctx *core.Context, detectParam string, image []byte,
+	regions data.Array) (data.Array, error) {
+
+	s, err := lookupACFDetectParamState(ctx, detectParam)
+	if err != nil {
+		return nil, err
+	}
+
+	imgPtr := bridge.DeserializeMatVec3b(image)
+	defer imgPtr.Delete()
+
+	putFeatureCans := make(data.Array, len(regions))
+	for i, r := range regions {
+		regionByte, err := data.AsBlob(r)
+		if err != nil {
+			return nil, err
+		}
+		regionPtr := bridge.DeserializeCandidate(regionByte)
+		func() {
+			defer regionPtr.Delete()
+			s.d.PutFeature(&regionPtr, imgPtr)
+			putFeatureCans[i] = data.Blob(regionPtr.Serialize())
+		}()
+	}
+
+	return putFeatureCans, nil
+}
+
+// CreateFunction create a putting feature function for ACF detection.
+//
+// Usage:
+//  `scouter_put_feature_batch([detect_param], [image], [regions])`
+//  [detect_param]
+//    * type: string
+//    * a parameter name of "scouter_acf_detection_param" state
+//  [image]
+//    * type: []byte
+//    * captured image
+//  [regions]
+//    * type: []data.Blob
+//    * detected regions, which are applied ACF detection.
+//    * these regions are detected from [frame]
+//
+// return:
+//  The function will return regions array which regions is set features, the
+//  type is `[]data.Blob`
+func (c *PutFeatureBatchUDFCreator) CreateFunction() interface{} {
+	return putFeatureBatch
+}
+
+// TypeName returns type name
+func (c *PutFeatureBatchUDFCreator) TypeName() string {
+	return "scouter_put_feature_batch"
+}
