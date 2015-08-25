@@ -27,7 +27,7 @@ func TestConvertObjectCandidateToMap(t *testing.T) {
 				exObcan, err := data.NewMap(expectedObjectCandidate)
 				So(err, ShouldBeNil)
 
-				// should be check deep equal but not look up pointer
+				// should be check deep equal but not look up all element in go
 				SkipSo(reflect.DeepEqual(objMap, exObcan), ShouldBeTrue)
 				So(len(objMap), ShouldEqual, len(exObcan))
 				So(len(objMap.String()), ShouldEqual, len(exObcan.String()))
