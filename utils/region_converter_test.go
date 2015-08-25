@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestConvertObjectCandidateToJSON(t *testing.T) {
+func TestConvertObjectCandidateToMap(t *testing.T) {
 
 	Convey("Given a object_candidate byte", t, func() {
 		ctx := &core.Context{}
@@ -20,7 +20,7 @@ func TestConvertObjectCandidateToJSON(t *testing.T) {
 
 			objMap, err := convertObjectCandidateToMap(ctx, obByte)
 
-			Convey("Then process should get JSON string", func() {
+			Convey("Then process should get map", func() {
 				So(err, ShouldBeNil)
 				So(objMap, ShouldNotBeNil)
 

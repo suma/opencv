@@ -9,18 +9,18 @@ import (
 var msgpackHandle = &codec.MsgpackHandle{}
 
 // ObjectCandidateConverterUDFCreator is a creator of `scouter::ObjectCandidate`
-// converter to JSON UDF.
+// converter to map UDF.
 type ObjectCandidateConverterUDFCreator struct{}
 
-// CreateFunction returns JSON converter from `scouter::ObjectCandidate`. JSON
-// structure is flowed by scouter's msgpack packing structure.
+// CreateFunction returns map converter from `scouter::ObjectCandidate`. Map
+// structure is followed by scouter's msgpack packing structure.
 func (c *ObjectCandidateConverterUDFCreator) CreateFunction() interface{} {
 	return convertObjectCandidateToMap
 }
 
 // TypeName returns type name.
 func (c *ObjectCandidateConverterUDFCreator) TypeName() string {
-	return "scouter_convert_regions_to_json"
+	return "scouter_convert_regions_to_map"
 }
 
 func convertObjectCandidateToMap(ctx *core.Context, region []byte) (data.Map, error) {
