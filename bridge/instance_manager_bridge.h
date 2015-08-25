@@ -35,12 +35,6 @@ void InstanceManager_Delete(InstanceManager instanceManager);
 
 struct InstanceStates TrackAndGetStates(Tracker tracker, InstanceManager im);
 
-void InstanceManager_Update(InstanceManager instanceManager,
-  struct MatWithCameraID* frames, int fLength, struct Trackee* trackees,
-  int tLength, unsigned long long timestamp);
-struct InstanceStates InstanceManager_GetCurrentStates(
-  InstanceManager instanceManager);
-
 #ifdef __cplusplus
 }
 #endif

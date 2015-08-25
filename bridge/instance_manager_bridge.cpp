@@ -86,14 +86,3 @@ struct InstanceStates TrackAndGetStates(Tracker tracker, InstanceManager im) {
   InstanceStates iss = {ret, (int)states.size()};
   return iss;
 }
-
-void InstanceManager_Update(InstanceManager instanceManager,
-    struct MatWithCameraID* frames, int fLength, struct Trackee* trackees,
-    int tLength, unsigned long long timestamp) {
-}
-
-struct InstanceStates InstanceManager_GetCurrentStates(
-    InstanceManager instanceManager) {
-  InstanceStates ret = {};
-  return ret;
-}

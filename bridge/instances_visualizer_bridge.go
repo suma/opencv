@@ -48,10 +48,3 @@ func (v *InstancesVisualizer) DrawWithStates() MatVec3b {
 
 	return MatVec3b{p: C.InstancesVisualizer_Draw(v.p)}
 }
-
-// Draw instance states on image.
-func (v *InstancesVisualizer) Draw(frames map[int]MatVec3b, states []InstanceState,
-	trackees []Trackee) MatVec3b {
-	// TODO will be deleted
-	return MatVec3b{}
-}

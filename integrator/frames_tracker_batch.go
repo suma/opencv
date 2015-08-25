@@ -1,6 +1,7 @@
 package integrator
 
 import (
+	"fmt"
 	"pfi/sensorbee/scouter/bridge"
 	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/sensorbee/core"
@@ -147,4 +148,18 @@ func convertToMVCandidates(mvRegions data.Array) ([]bridge.MVCandidate, error) {
 		mr[i] = bridge.DeserializeMVCandidate(b)
 	}
 	return mr, nil
+}
+
+func lookupTrackerParamState(ctx *core.Context, trackerParam string) (
+	*TrackerParamState, error) {
+	st, err := ctx.SharedStates.Get(trackerParam)
+	if err != nil {
+		return nil, err
+	}
+
+	if s, ok := st.(*TrackerParamState); ok {
+		return s, nil
+	}
+	return nil, fmt.Errorf(
+		"state '%v' cannot be converted to tracker_param.state", trackerParam)
 }

@@ -11,10 +11,6 @@ void Tracker_Delete(Tracker tracker) {
   delete tracker;
 }
 
-void TrackingResult_Delete(TrackingResult trackingResult) {
-  delete trackingResult.trackees;
-}
-
 void Tracker_Push(Tracker tracker, struct ScouterFrame2* frames, int fLength,
   MVCandidate* mvCandidates, int mvLength) {
 
@@ -33,11 +29,6 @@ void Tracker_Push(Tracker tracker, struct ScouterFrame2* frames, int fLength,
   }
 
   tracker->push(scouter::make_frames(frameVec), mvos);
-}
-
-struct TrackingResult Tracker_Track(Tracker tracker) {
-  struct TrackingResult tr = {};
-  return tr;
 }
 
 int Tracker_Ready(Tracker tracker) {

@@ -73,7 +73,6 @@ func init() {
 		&integrator.FramesTrackerCacheUDFCreator{},
 		&integrator.TrackInstanceStatesUDFCreator{},
 		&integrator.InstanceStateConverterUDFCreator{},
-		&integrator.InstancesVisualizerFuncCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),
@@ -86,8 +85,6 @@ func init() {
 		&detector.MMDetectRegionStreamFuncCreator{},
 		&recog.PredictTagsBatchStreamFuncCreator{},
 		&integrator.MultiPlacesMovingMatcherUDSFCreator{},
-		&integrator.FramesTrackerStreamFuncCreator{},
-		&integrator.TrackInstanceStatesUDSFCreator{},
 	}
 	for _, f := range udsfuncs {
 		udf.MustRegisterGlobalUDSFCreator(f.TypeName(),

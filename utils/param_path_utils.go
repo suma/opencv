@@ -36,13 +36,7 @@ var (
 	CameraParameterFilesPath = data.MustCompilePath("camera_parameter_files")
 	InstanceManagerParamPath = data.MustCompilePath("instance_manager_param")
 	RegionsPath              = data.MustCompilePath("regions")
-
-	/* integrator trackee structure */
-
-	ColorIDPath        = data.MustCompilePath("color_id")
-	MovingDetectedPath = data.MustCompilePath("moving_detected")
-	InterpolatedPath   = data.MustCompilePath("interpolated")
-	TimestampPath      = data.MustCompilePath("timestamp")
+	TimestampPath            = data.MustCompilePath("timestamp")
 
 	/* writer */
 

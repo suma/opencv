@@ -7,7 +7,6 @@ package bridge
 */
 import "C"
 import (
-	"reflect"
 	"sync"
 	"unsafe"
 )
@@ -29,14 +28,6 @@ func NewTracker(config string) Tracker {
 func (t *Tracker) Delete() {
 	C.Tracker_Delete(t.p)
 	t.p = nil
-}
-
-// Trackee is a utility structure, as scouter-core Tracke structure.
-type Trackee struct {
-	ColorID      uint64
-	MVCandidate  MVCandidate
-	Interpolated bool
-	Timestamp    uint64 // should placed in TrackingResult
 }
 
 // Push frame and regions with the tracker.
@@ -65,34 +56,6 @@ func (t *Tracker) Push(frames []ScouterFrame, mvRegions []MVCandidate) {
 
 	C.Tracker_Push(t.p, (*C.struct_ScouterFrame2)(&fs[0]), C.int(fLength),
 		(*C.MVCandidate)(&mvos[0]), C.int(mvLength))
-}
-
-// Track returns Trackee array cached in the tracker.
-func (t *Tracker) Track() []Trackee {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	tr := C.Tracker_Track(t.p)
-	defer C.TrackingResult_Delete(tr)
-
-	cArray := tr.trackees
-	length := int(tr.length)
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(cArray)),
-		Len:  length,
-		Cap:  length,
-	}
-	goSlice := *(*[]C.Trackee)(unsafe.Pointer(&hdr))
-	trs := make([]Trackee, length)
-	for i, t := range goSlice {
-		trs[i] = Trackee{
-			ColorID:      uint64(t.colorID),
-			MVCandidate:  MVCandidate{p: t.mvCandidate},
-			Interpolated: int(t.interpolated) != 0,
-			Timestamp:    uint64(tr.timestamp),
-		}
-	}
-	return trs
 }
 
 // Ready return the tracker could start tracking by acceptance value of tracking
