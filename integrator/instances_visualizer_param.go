@@ -130,7 +130,9 @@ func (s *InstancesVisualizerParamState) Terminate(ctx *core.Context) error {
 
 // Update the state to reload the JSON file without global lock. User can update
 // projection parameter using camera parameter JSON file with camera ID.
-func (s *InstancesVisualizerParamState) Update(params data.Map) error {
+func (s *InstancesVisualizerParamState) Update(ctx *core.Context,
+	params data.Map) error {
+
 	var cameraID int
 	if id, err := params.Get(utils.CameraIDPath); err != nil {
 		return err

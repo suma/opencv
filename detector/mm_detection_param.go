@@ -122,7 +122,7 @@ func (s *MMDetectionParamState) Terminate(ctx *core.Context) error {
 // Usage of WITH parameters:
 //  camera_parameter_file: The camera parameter file path. Returns an error when
 //                         cannot read the file.
-func (s *MMDetectionParamState) Update(params data.Map) error {
+func (s *MMDetectionParamState) Update(ctx *core.Context, params data.Map) error {
 	p, err := params.Get(utils.CameraParameterFilePath)
 	if err != nil {
 		return err

@@ -122,7 +122,7 @@ func (s *ACFDetectionParamState) Terminate(ctx *core.Context) error {
 // Usage of WITH parameters:
 //  camera_parameter_file: The camera parameter file path. Returns an error when
 //                         cannot read the file.
-func (s *ACFDetectionParamState) Update(params data.Map) error {
+func (s *ACFDetectionParamState) Update(ctx *core.Context, params data.Map) error {
 	p, err := params.Get(utils.CameraParameterFilePath)
 	if err != nil {
 		return err

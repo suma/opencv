@@ -98,14 +98,14 @@ func TestUpdateFrameProcessorParamState(t *testing.T) {
 				"camera_parameter_file": data.String("camera_param_test.json"),
 			}
 			Convey("Then the state should update and occur no error", func() {
-				err := cs.Update(params2)
+				err := cs.Update(ctx, params2)
 				So(err, ShouldBeNil)
 			})
 		})
 		Convey("When the state is updated with invalid param", func() {
 			params2 := data.Map{}
 			Convey("Then an error should be occur", func() {
-				err := cs.Update(params2)
+				err := cs.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
 		})
@@ -114,7 +114,7 @@ func TestUpdateFrameProcessorParamState(t *testing.T) {
 				"camera_parameter_file": data.Null{},
 			}
 			Convey("Then an error should be occur", func() {
-				err := cs.Update(params2)
+				err := cs.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
 		})
@@ -123,7 +123,7 @@ func TestUpdateFrameProcessorParamState(t *testing.T) {
 				"camera_parameter_file": data.String("not_exist.json"),
 			}
 			Convey("Then an error should be occur", func() {
-				err := cs.Update(params2)
+				err := cs.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
 		})
