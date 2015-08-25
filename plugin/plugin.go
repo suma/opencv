@@ -5,6 +5,7 @@ import (
 	"pfi/sensorbee/scouter/detector"
 	"pfi/sensorbee/scouter/integrator"
 	"pfi/sensorbee/scouter/recognizer"
+	"pfi/sensorbee/scouter/utils"
 	"pfi/sensorbee/scouter/writer"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/bql/udf"
@@ -75,6 +76,7 @@ func init() {
 		&integrator.FramesTrackerCacheUDFCreator{},
 		&integrator.TrackInstanceStatesUDFCreator{},
 		&integrator.InstanceStateConverterUDFCreator{},
+		&utils.ObjectCandidateConverterUDFCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),
