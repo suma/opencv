@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/ugorji/go/codec"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -39,7 +38,6 @@ func convertInstanceToMap(ctx *core.Context, state []byte) (data.Map, error) {
 	detections := data.Array{}
 	obcansRaw := raw[5].([]interface{})
 	for _, v := range obcansRaw {
-		fmt.Println(v)
 		obcanRaw := v.([]interface{})
 		can := convertCandidate(obcanRaw)
 		detections = append(detections, can)
