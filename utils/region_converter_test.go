@@ -18,7 +18,7 @@ func TestConvertObjectCandidateToMap(t *testing.T) {
 
 		Convey("When call convert UDF", func() {
 
-			objMapArray, err := convertObjectCandidateToMap(ctx, obByte)
+			objMapArray, err := convertObjectCandidateToMap(ctx, data.Array{data.Blob(obByte)})
 
 			Convey("Then process should get map", func() {
 				So(err, ShouldBeNil)

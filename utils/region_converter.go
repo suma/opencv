@@ -24,13 +24,17 @@ func (c *ObjectCandidateConverterUDFCreator) TypeName() string {
 }
 
 // TODO catch cast error
-func convertObjectCandidateToMap(ctx *core.Context, regions ...[]byte) (data.Array,
+func convertObjectCandidateToMap(ctx *core.Context, regions data.Array) (data.Array,
 	error) {
 	mapArray := make(data.Array, len(regions))
 	for i, region := range regions {
+		b, err := data.AsBlob(region)
+		if err != nil {
+			return nil, err
+		}
 		var raw []interface{}
-		dec := codec.NewDecoderBytes(region, msgpackHandle)
-		err := dec.Decode(&raw)
+		dec := codec.NewDecoderBytes(b, msgpackHandle)
+		err = dec.Decode(&raw)
 		if err != nil {
 			return nil, err
 		}
