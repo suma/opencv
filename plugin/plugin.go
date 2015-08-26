@@ -92,6 +92,7 @@ func init() {
 		&recog.PredictTagsBatchStreamFuncCreator{},
 		&integrator.MultiPlacesMovingMatcherUDSFCreator{},
 		&utils.ArrayToStreamUDSFCreator{},
+		&utils.ExpandSubMapUDSFCreator{},
 	}
 	for _, f := range udsfuncs {
 		udf.MustRegisterGlobalUDSFCreator(f.TypeName(),
