@@ -30,6 +30,10 @@ func convertInstanceToMap(ctx *core.Context, state []byte) (data.Map, error) {
 		return nil, err
 	}
 
+	return convertState(raw), nil
+}
+
+func convertState(raw []interface{}) data.Map {
 	tagRaw := raw[1].([]interface{})
 	tags := convertTags(tagRaw)
 
@@ -43,12 +47,10 @@ func convertInstanceToMap(ctx *core.Context, state []byte) (data.Map, error) {
 		detections = append(detections, can)
 	}
 
-	instance := data.Map{
+	return data.Map{
 		"id":         data.Int(raw[0].(uint64)),
 		"tags":       tags,
 		"position":   position,
 		"detections": detections,
 	}
-
-	return instance, nil
 }

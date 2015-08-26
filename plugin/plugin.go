@@ -76,9 +76,9 @@ func init() {
 		&integrator.MultiPlacesMovingMatcherBatchUDFCreator{},
 		&integrator.FramesTrackerCacheUDFCreator{},
 		&integrator.TrackInstanceStatesUDFCreator{},
-		&integrator.InstancesConvertForKanohiJSONUDFCreator{},
 		&utils.ObjectCandidateConverterUDFCreator{},
 		&utils.InstanceStateConverterUDFCreator{},
+		&utils.InstancesConvertForKanohiMapUDFCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),

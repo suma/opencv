@@ -10,7 +10,7 @@ import (
 )
 
 func TestConvertInstanceStateToMap(t *testing.T) {
-	Convey("Given a instance state byte", t, func() {
+	Convey("Given an instance state byte", t, func() {
 		ctx := &core.Context{}
 		isByte, err := ioutil.ReadFile("_test_state0")
 		So(err, ShouldBeNil)
