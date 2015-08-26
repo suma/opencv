@@ -162,6 +162,7 @@ func TestJPEGWriterCreatorCreatesSink(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
 				defer sink.Close(ctx)
+				defer removeTestDummyDir()
 				js, ok := sink.(*jpegWriterSink)
 				So(ok, ShouldBeTrue)
 				So(js.outputDir, ShouldEqual, "dummy")
@@ -182,4 +183,11 @@ func TestJPEGWriterCreatorCreatesSink(t *testing.T) {
 			})
 		})
 	})
+}
+
+func removeTestDummyDir() {
+	_, err := os.Stat("dummy")
+	if !os.IsNotExist(err) {
+		os.Remove("dummy")
+	}
 }
