@@ -18,11 +18,15 @@ func TestConvertObjectCandidateToMap(t *testing.T) {
 
 		Convey("When call convert UDF", func() {
 
-			objMap, err := convertObjectCandidateToMap(ctx, obByte)
+			objMapArray, err := convertObjectCandidateToMap(ctx, obByte)
 
 			Convey("Then process should get map", func() {
 				So(err, ShouldBeNil)
-				So(objMap, ShouldNotBeNil)
+				So(len(objMapArray), ShouldEqual, 1)
+				objMapValue := objMapArray[0]
+				So(objMapValue, ShouldNotBeNil)
+				objMap, err := data.AsMap(objMapValue)
+				So(err, ShouldBeNil)
 
 				exObcan, err := data.NewMap(expectedObjectCandidate)
 				So(err, ShouldBeNil)

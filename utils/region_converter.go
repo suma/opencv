@@ -24,17 +24,21 @@ func (c *ObjectCandidateConverterUDFCreator) TypeName() string {
 }
 
 // TODO catch cast error
-func convertObjectCandidateToMap(ctx *core.Context, region []byte) (data.Map, error) {
-	var raw []interface{}
-	dec := codec.NewDecoderBytes(region, msgpackHandle)
-	err := dec.Decode(&raw)
-	if err != nil {
-		return nil, err
+func convertObjectCandidateToMap(ctx *core.Context, regions ...[]byte) (data.Array,
+	error) {
+	mapArray := make(data.Array, len(regions))
+	for i, region := range regions {
+		var raw []interface{}
+		dec := codec.NewDecoderBytes(region, msgpackHandle)
+		err := dec.Decode(&raw)
+		if err != nil {
+			return nil, err
+		}
+
+		obcan := convertCandidate(raw)
+		mapArray[i] = obcan
 	}
-
-	obcan := convertCandidate(raw)
-
-	return obcan, nil
+	return mapArray, nil
 }
 
 func convertCandidate(raw []interface{}) data.Map {
