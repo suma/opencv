@@ -25,10 +25,7 @@ struct ByteArray InstanceState_Serialize(InstanceState s);
 InstanceState InstanceState_Deserialize(struct ByteArray src);
 void InstanceState_Delete(InstanceState s);
 
-struct InstanceStates InvertInstanceStates(InstanceState* obj, int length);
 void InstanceStates_Delete(struct InstanceStates instanceStates);
-String InstanceState_ToJSON(struct InstanceStates instanceStates, int floorID,
-  unsigned long long timestamp);
 
 InstanceManager InstanceManager_New(const char *config);
 void InstanceManager_Delete(InstanceManager instanceManager);

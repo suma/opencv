@@ -36,23 +36,6 @@ func (s InstanceState) Delete() {
 	s.p = nil
 }
 
-// ConvertInstanceStatesToJSON converts instance state object to JSON style text.
-func ConvertInstanceStatesToJSON(iss []InstanceState, floorID int,
-	timestamp uint64) string {
-
-	issPtr := []C.InstanceState{}
-	for _, is := range iss {
-		issPtr = append(issPtr, is.p)
-	}
-	cIssPtr := C.InvertInstanceStates((*C.InstanceState)(&issPtr[0]),
-		C.int(len(iss)))
-	defer C.InstanceStates_Delete(cIssPtr)
-
-	cJSON := C.InstanceState_ToJSON(cIssPtr, C.int(floorID),
-		C.ulonglong(timestamp))
-	return C.GoStringN(cJSON.str, cJSON.length)
-}
-
 // InstanceManager is a bind of `scouter::InstanceManager`.
 type InstanceManager struct {
 	mu sync.RWMutex
