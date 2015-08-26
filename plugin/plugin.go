@@ -34,6 +34,7 @@ func init() {
 		&writer.JPEGWriterCreator{},
 		&writer.VideoWiterCreator{},
 		&writer.BufferedFileWriterCreator{},
+		&writer.HTTPDataSenderCreator{},
 	}
 	for _, sink := range sinks {
 		bql.MustRegisterGlobalSinkCreator(sink.TypeName(), sink)

@@ -38,7 +38,7 @@ func TestConvertInstanceStateToKanohiMap(t *testing.T) {
 	})
 }
 
-func getExpectedInstanceForKanohi(now time.Time, floorID int) data.Array {
+func getExpectedInstanceForKanohi(now time.Time, floorID int) data.Map {
 	instance := data.Map{
 		"id": data.Int(377617671258112),
 		"location": data.Map{
@@ -51,9 +51,9 @@ func getExpectedInstanceForKanohi(now time.Time, floorID int) data.Array {
 
 	ts, _ := data.ToInt(data.Timestamp(now))
 	ret := data.Map{
-		"instances": instance,
+		"instances": data.Array{instance},
 		"time":      data.Int(ts),
 	}
 
-	return data.Array{ret}
+	return ret
 }
