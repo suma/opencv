@@ -62,7 +62,7 @@ func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 	if err != nil {
 		return empty, err
 	}
-	cameraID, err := data.AsInt(id)
+	cameraID, err := data.ToInt(id)
 	if err != nil {
 		return empty, err
 	}
@@ -78,7 +78,7 @@ func lookupRegions(regions data.Map) (bridge.RegionsWithCameraID, error) {
 
 	cans := []bridge.Candidate{}
 	for _, r := range rArray {
-		b, err := data.AsBlob(r)
+		b, err := data.ToBlob(r)
 		if err != nil {
 			return empty, err
 		}

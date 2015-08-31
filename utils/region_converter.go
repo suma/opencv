@@ -28,7 +28,7 @@ func convertObjectCandidateToMap(ctx *core.Context, regions data.Array) (data.Ar
 	error) {
 	mapArray := make(data.Array, len(regions))
 	for i, region := range regions {
-		b, err := data.AsBlob(region)
+		b, err := data.ToBlob(region)
 		if err != nil {
 			return nil, err
 		}

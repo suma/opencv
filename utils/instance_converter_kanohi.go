@@ -39,7 +39,7 @@ func convertInstanceStatesToKanohiMap(ctx *core.Context, states data.Array,
 
 	stateArray := make(data.Array, len(states))
 	for i, v := range states {
-		b, err := data.AsBlob(v)
+		b, err := data.ToBlob(v)
 		if err != nil {
 			return nil, err
 		}

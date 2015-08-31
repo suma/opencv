@@ -107,7 +107,7 @@ func (sf *multiPlacesMovingMatcherUDSF) lookupRegions(regions data.Map) (
 	if err != nil {
 		return empty, err
 	}
-	cameraID, err := data.AsInt(id)
+	cameraID, err := data.ToInt(id)
 	if err != nil {
 		return empty, err
 	}
@@ -123,7 +123,7 @@ func (sf *multiPlacesMovingMatcherUDSF) lookupRegions(regions data.Map) (
 
 	cans := []bridge.Candidate{}
 	for _, r := range rArray {
-		b, err := data.AsBlob(r)
+		b, err := data.ToBlob(r)
 		if err != nil {
 			return empty, err
 		}

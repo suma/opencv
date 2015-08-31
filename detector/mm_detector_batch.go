@@ -85,7 +85,7 @@ func filterByMaskMMBatch(ctx *core.Context, detectParam string, regions data.Arr
 	// filterCans size is not same as len(regions), and not use make()
 	filteredCans := data.Array{}
 	for _, r := range regions {
-		regionByte, err := data.AsBlob(r)
+		regionByte, err := data.ToBlob(r)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 
 	estimatedCans := make(data.Array, len(regions))
 	for i, r := range regions {
-		regionByte, err := data.AsBlob(r)
+		regionByte, err := data.ToBlob(r)
 		if err != nil {
 			return nil, err
 		}

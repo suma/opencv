@@ -45,7 +45,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	if err != nil {
 		return err
 	}
-	img, err := data.AsBlob(imgData)
+	img, err := data.ToBlob(imgData)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 		}
 	}()
 	for i, r := range regions {
-		rb, err := data.AsBlob(r)
+		rb, err := data.ToBlob(r)
 		if err != nil {
 			return err
 		}
@@ -224,7 +224,7 @@ func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 
 	cans := make([]bridge.Candidate, len(regions))
 	for i, r := range regions {
-		regionByte, err := data.AsBlob(r)
+		regionByte, err := data.ToBlob(r)
 		if err != nil {
 			return nil, err
 		}

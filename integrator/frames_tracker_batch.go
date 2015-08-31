@@ -107,15 +107,15 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 			return nil, err
 		}
 
-		imageByte, err := data.AsBlob(image)
+		imageByte, err := data.ToBlob(image)
 		if err != nil {
 			return nil, err
 		}
-		x, err := data.AsInt(offsetX)
+		x, err := data.ToInt(offsetX)
 		if err != nil {
 			return nil, err
 		}
-		y, err := data.AsInt(offsetY)
+		y, err := data.ToInt(offsetY)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 		if err != nil {
 			return nil, err
 		}
-		cid, err := data.AsInt(cameraID)
+		cid, err := data.ToInt(cameraID)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 func convertToMVCandidates(mvRegions data.Array) ([]bridge.MVCandidate, error) {
 	mr := make([]bridge.MVCandidate, len(mvRegions))
 	for i := 0; i < len(mvRegions); i++ {
-		b, err := data.AsBlob(mvRegions[i])
+		b, err := data.ToBlob(mvRegions[i])
 		if err != nil {
 			return nil, err
 		}

@@ -40,7 +40,7 @@ func lookupFrameData(frame data.Map) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	image, err := data.AsBlob(img)
+	image, err := data.ToBlob(img)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -53,7 +53,7 @@ func lookupOffsets(frame data.Map) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	offsetX, err := data.AsInt(ox)
+	offsetX, err := data.ToInt(ox)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -62,7 +62,7 @@ func lookupOffsets(frame data.Map) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	offsetY, err := data.AsInt(oy)
+	offsetY, err := data.ToInt(oy)
 	if err != nil {
 		return 0, 0, err
 	}

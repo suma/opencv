@@ -11,7 +11,7 @@ import (
 type FrameApplierFuncCreator struct{}
 
 func frameApplier(ctx *core.Context, fpParam string, capture []byte) (
-	data.Value, error) {
+	data.Map, error) {
 	s, err := lookupFPParamState(ctx, fpParam)
 	if err != nil {
 		return nil, err

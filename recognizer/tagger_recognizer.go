@@ -67,7 +67,7 @@ func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) (
 
 	canObjs := make([]bridge.Candidate, len(regions))
 	for i, c := range regions {
-		b, err := data.AsBlob(c)
+		b, err := data.ToBlob(c)
 		if err != nil {
 			return nil, err
 		}

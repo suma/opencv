@@ -116,7 +116,7 @@ func (m *mjpegServ) Write(ctx *core.Context, t *core.Tuple) error {
 	if err != nil {
 		return err
 	}
-	imgByte, err := data.AsBlob(img)
+	imgByte, err := data.ToBlob(img)
 	if err != nil {
 		return err
 	}
