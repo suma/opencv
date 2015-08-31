@@ -31,6 +31,7 @@ func (c *FromURICreator) TypeName() string {
 //  next_frame_error: When this source cannot read a new frame, occur error or
 //                    not decided by the flag. If the flag set `true` then
 //                    return error. Default value is true.
+//  rewind:           If set `true` then user can use `REWIND SOURCE` query.
 func (c *FromURICreator) CreateSource(ctx *core.Context,
 	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
@@ -38,7 +39,17 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 	if err != nil {
 		return nil, err
 	}
-	return core.NewRewindableSource(cs), nil
+
+	rewindFlag := false
+	if rf, err := params.Get(utils.RewindPath); err == nil {
+		if rewindFlag, err = data.AsBool(rf); err != nil {
+			return nil, err
+		}
+	}
+	if rewindFlag {
+		return core.NewRewindableSource(cs), nil
+	}
+	return cs, nil
 }
 
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (

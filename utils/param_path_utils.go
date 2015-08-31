@@ -16,6 +16,7 @@ var (
 	WidthPath          = data.MustCompilePath("width")
 	HeightPath         = data.MustCompilePath("height")
 	FPSPath            = data.MustCompilePath("fps")
+	RewindPath         = data.MustCompilePath("rewind")
 
 	/* detector */
 

@@ -118,5 +118,20 @@ func TestGetURISourceCreator(t *testing.T) {
 				})
 			}
 		})
+
+		Convey("When create source with only uri and rewindable", func() {
+			params := data.Map{
+				"uri":    data.String("/data/file.avi"),
+				"rewind": data.True,
+			}
+			Convey("Then rewindable capture should be created", func() {
+				c := FromURICreator{}
+				s, err := c.CreateSource(ctx, ioParams, params)
+				So(err, ShouldBeNil)
+				So(s, ShouldNotBeNil)
+				rs, ok := s.(core.RewindableSource)
+				So(ok, ShouldBeTrue)
+			})
+		})
 	})
 }
