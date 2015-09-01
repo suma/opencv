@@ -129,7 +129,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				s, err := c.CreateSource(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(s, ShouldNotBeNil)
-				rs, ok := s.(core.RewindableSource)
+				_, ok := s.(core.RewindableSource)
 				So(ok, ShouldBeTrue)
 			})
 		})
