@@ -80,6 +80,7 @@ func init() {
 		&utils.ObjectCandidateConverterUDFCreator{},
 		&utils.InstanceStateConverterUDFCreator{},
 		&utils.InstancesConvertForKanohiMapUDFCreator{},
+		&utils.ToMSTimeUDFCreator{},
 	}
 	for _, f := range udfuncs {
 		udf.MustRegisterGlobalUDF(f.TypeName(),
