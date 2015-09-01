@@ -66,7 +66,7 @@ func convertInstanceStatesToKanohiMap(ctx *core.Context, states data.Array,
 	}
 
 	return data.Map{
-		"time":      data.Int(ts),
+		"time":      data.Int(ts / 1e3), // to convert [ms]
 		"instances": stateArray,
 	}, nil
 }

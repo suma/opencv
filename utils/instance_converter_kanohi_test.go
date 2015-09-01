@@ -52,7 +52,7 @@ func getExpectedInstanceForKanohi(now time.Time, floorID int) data.Map {
 	ts, _ := data.ToInt(data.Timestamp(now))
 	ret := data.Map{
 		"instances": data.Array{instance},
-		"time":      data.Int(ts),
+		"time":      data.Int(ts / 1e3),
 	}
 
 	return ret
