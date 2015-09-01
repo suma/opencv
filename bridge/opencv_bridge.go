@@ -139,6 +139,13 @@ func (vw *VideoWriter) Open(name string, fps float64, width int, height int) {
 	C.VideoWriter_Open(vw.p, cName, C.double(fps), C.int(width), C.int(height))
 }
 
+// OpenWithMat opens video writer.
+func (vw *VideoWriter) OpenWithMat(name string, fps float64, img MatVec3b) {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	C.VideoWriter_OpenWithMat(vw.p, cName, C.double(fps), img.p)
+}
+
 // IsOpened returns the video writer opens a file or not.
 func (vw *VideoWriter) IsOpened() bool {
 	isOpend := C.VideoWriter_IsOpened(vw.p)

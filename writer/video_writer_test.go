@@ -3,6 +3,7 @@ package writer
 import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"io/ioutil"
 	"os"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
@@ -47,6 +48,24 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 				So(sink, ShouldBeNil)
 			})
 		})
+		Convey("When parameter have only height", func() {
+			params["file_name"] = data.String("dummy")
+			params["height"] = data.Int(1480)
+			Convey("Then sink should not be created", func() {
+				sink, err := vc.CreateSink(ctx, ioParams, params)
+				So(err, ShouldNotBeNil)
+				So(sink, ShouldBeNil)
+			})
+		})
+		Convey("When parameter have only width", func() {
+			params["file_name"] = data.String("dummy")
+			params["width"] = data.Int(1920)
+			Convey("Then sink should not be created", func() {
+				sink, err := vc.CreateSink(ctx, ioParams, params)
+				So(err, ShouldNotBeNil)
+				So(sink, ShouldBeNil)
+			})
+		})
 		Convey("When parameter have invalid vlaues", func() {
 			params["file_name"] = data.String("dummy")
 			testMap := data.Map{
@@ -67,31 +86,39 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 
 		Convey("When parameters have only file name", func() {
 			params["file_name"] = data.String("dummy")
-			Convey("Then sink should be created and other parameters are set default",
-				func() {
-					sink, err := vc.CreateSink(ctx, ioParams, params)
-					defer removeTestAVIFile()
+			Convey("Then sink should be created and other parameters are set default", func() {
+				sink, err := vc.CreateSink(ctx, ioParams, params)
+				defer removeTestAVIFile()
+				So(err, ShouldBeNil)
+				So(sink, ShouldNotBeNil)
+				defer sink.Close(ctx)
+				vs, ok := sink.(*videoWriterSink)
+				So(ok, ShouldBeTrue)
+				So(vs.vw, ShouldNotBeNil)
+				_, err = os.Stat("dummy.avi")
+				So(os.IsNotExist(err), ShouldBeTrue)
+
+				Convey("And when the sink is written an image", func() {
+					img, err := ioutil.ReadFile("test_cvmat")
 					So(err, ShouldBeNil)
-					So(sink, ShouldNotBeNil)
-					defer sink.Close(ctx)
-					vs, ok := sink.(*videoWriterSink)
-					So(ok, ShouldBeTrue)
-					So(vs.vw, ShouldNotBeNil)
-					_, err = os.Stat("dummy.avi")
-					So(os.IsNotExist(err), ShouldBeFalse)
-					Convey("And when create another sink with the same file name",
-						func() {
-							sink2, err := vc.CreateSink(ctx, ioParams, params)
-							Convey("Then should not occur an error", func() {
-								So(err, ShouldBeNil)
-								So(sink2, ShouldNotBeNil)
-								defer sink.Close(ctx)
-								vs2, ok := sink2.(*videoWriterSink)
-								So(ok, ShouldBeTrue)
-								So(vs2.vw, ShouldNotBeNil)
-							})
+					tu := &core.Tuple{
+						Data: data.Map{
+							"img": data.Blob(img),
+						},
+					}
+					err = sink.Write(ctx, tu)
+					So(err, ShouldBeNil)
+					Convey("Then should create dummy.avi", func() {
+						_, err = os.Stat("dummy.avi")
+						So(os.IsNotExist(err), ShouldBeFalse)
+
+						Convey("And when another tuple is written", func() {
+							err = sink.Write(ctx, tu)
+							So(err, ShouldBeNil)
 						})
+					})
 				})
+			})
 		})
 	})
 }

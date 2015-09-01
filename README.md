@@ -143,8 +143,8 @@ INSERT INTO mjpeg_server SELECT ISTREAM
 
 ```sql
 -- make AVI-style video file, created in "./video/recognize" directory
-CREATE SINK recognized_avi TYPE scouter_avi_writer WITH file_name='video/recognize',
-    fps=5, width=1920, height=1080;
+CREATE SINK recognized_avi TYPE scouter_avi_writer
+    WITH file_name='video/recognize', fps=5;
 INSERT INTO recognized_avi SELECT ISTREAM
     scouter_draw_regions_with_tags(tr:img, tr:regions) AS img
     FROM tagging_regions [RANGE 1 TUPLES] AS tr;

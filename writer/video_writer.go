@@ -9,6 +9,7 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"sync"
 )
 
 // VideoWiterCreator is a creator of VideoWriter.
@@ -20,8 +21,10 @@ type VideoWiterCreator struct{}
 // Usage of WITH parameters:
 //  file_name: [required] AVI filename, will be created [file_name].avi.
 //  fps:       FPS, if empty then set 1.0.
-//  width:     Width of output video file, if empty then set 480.
-//  height:    Height of output video file, if empty then set 320.
+//  width:     Width of output video file, if empty then the video writer
+//             will initialize with the first image.
+//  height:    Height of output video file, if empty then the video writer
+//             will initialize with the first image
 //
 // Example:
 //  when a creation query is
@@ -51,42 +54,40 @@ func (c *VideoWiterCreator) CreateSink(ctx *core.Context, ioParams *bql.IOParams
 		os.MkdirAll(dirPath, 0755)
 	}
 
-	fps, err := params.Get(utils.FPSPath)
-	if err != nil {
-		fps = data.Float(1.0)
-	}
-	fpsRate, err := data.ToFloat(fps)
-	if err != nil {
-		return nil, err
+	fps := float64(1.0)
+	if f, err := params.Get(utils.FPSPath); err == nil {
+		if fps, err = data.ToFloat(f); err != nil {
+			return nil, err
+		}
 	}
 
-	w, err := params.Get(utils.WidthPath)
-	if err != nil {
-		w = data.Int(480)
+	width := int64(0)
+	widthFlag := false
+	height := int64(0)
+	heightFlag := false
+	if w, err := params.Get(utils.WidthPath); err == nil {
+		if width, err = data.ToInt(w); err != nil {
+			return nil, err
+		}
+		widthFlag = true
 	}
-	width, err := data.ToInt(w)
-	if err != nil {
-		return nil, err
+	if h, err := params.Get(utils.HeightPath); err == nil {
+		if height, err = data.ToInt(h); err != nil {
+			return nil, err
+		}
+		heightFlag = true
 	}
-
-	h, err := params.Get(utils.HeightPath)
-	if err != nil {
-		h = data.Int(320)
-	}
-	height, err := data.ToInt(h)
-	if err != nil {
-		return nil, err
-	}
-
-	vw := bridge.NewVideoWriter()
-	vw.Open(name, fpsRate, int(width), int(height))
-	if !vw.IsOpened() {
-		return nil, fmt.Errorf("cannot video writer open: %v", name)
+	if widthFlag != heightFlag {
+		return nil, fmt.Errorf("both width and height must be set up")
 	}
 
-	s := &videoWriterSink{}
-	s.vw = vw
-	return s, nil
+	return &videoWriterSink{
+		name:   name,
+		fps:    fps,
+		width:  int(width),
+		height: int(height),
+		vw:     bridge.NewVideoWriter(),
+	}, nil
 }
 
 // TypeName returns type name.
@@ -95,7 +96,12 @@ func (c *VideoWiterCreator) TypeName() string {
 }
 
 type videoWriterSink struct {
-	vw bridge.VideoWriter
+	name   string
+	fps    float64
+	width  int
+	height int
+	vw     bridge.VideoWriter
+	mu     sync.RWMutex
 }
 
 // Write input images and add to a video file which have been created when the
@@ -120,7 +126,28 @@ func (s *videoWriterSink) Write(ctx *core.Context, t *core.Tuple) error {
 	imgp := bridge.DeserializeMatVec3b(imgByte)
 	defer imgp.Delete()
 
+	if !s.vw.IsOpened() {
+		if err := s.open(imgp); err != nil {
+			return err
+		}
+	}
+
 	s.vw.Write(imgp)
+	return nil
+}
+
+func (s *videoWriterSink) open(img bridge.MatVec3b) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.width != 0 {
+		s.vw.Open(s.name, s.fps, s.width, s.height)
+	} else {
+		s.vw.OpenWithMat(s.name, s.fps, img)
+	}
+	if !s.vw.IsOpened() {
+		return fmt.Errorf("cannot video writer open: %v", s.name)
+	}
 	return nil
 }
 
