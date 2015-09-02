@@ -131,7 +131,7 @@ func convertToScouterFrames(frames data.Array) ([]bridge.ScouterFrame, error) {
 			Image:     bridge.DeserializeMatVec3b(imageByte),
 			OffsetX:   int(x),
 			OffsetY:   int(y),
-			Timestamp: uint64(ts),
+			Timestamp: uint64(ts / 1e3), // to change [us] to [ms]
 			CameraID:  int(cid),
 		}
 	}
