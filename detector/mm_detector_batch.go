@@ -12,7 +12,7 @@ type MMDetectBatchFuncCreator struct{}
 // CreateFunction returns Multi Model Detection function.
 //
 // Usage:
-//  `scouter_mm_detector_batch([detect_param], [frame])`
+//  `scouter_mm_detector_batch([detect_param], [frame], [camera_id])`
 //  [detect_param]
 //    * type: string
 //    * a parameter name of "scouter_mm_detection_param" state
@@ -25,6 +25,9 @@ type MMDetectBatchFuncCreator struct{}
 //        "offset_x":      [frame offset x] (`data.Int`)
 //        "offset_y":      [frame offset y] (`data.Int`)
 //      }
+//  [camera ID]
+//    * type: int
+//    * camera ID, to use for detection result, not use for detection.
 //
 // Return:
 //  The function will return detected regions array, the type is `[]data.Blob`.
@@ -37,8 +40,8 @@ func (c *MMDetectBatchFuncCreator) TypeName() string {
 	return "scouter_mm_detector_batch"
 }
 
-func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
-	data.Array, error) {
+func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map,
+	cameraID int) (data.Array, error) {
 
 	s, err := lookupMMDetectParamState(ctx, detectParam)
 	if err != nil {
@@ -56,7 +59,7 @@ func mmDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
 
 	imgPtr := bridge.DeserializeMatVec3b(img)
 	defer imgPtr.Delete()
-	candidates := s.d.MMDetect(imgPtr, offsetX, offsetY)
+	candidates := s.d.MMDetect(imgPtr, offsetX, offsetY, cameraID)
 	defer func() {
 		for _, c := range candidates {
 			c.Delete()

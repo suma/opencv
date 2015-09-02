@@ -12,7 +12,7 @@ type ACFDetectBatchFuncCreator struct{}
 // CreateFunction returns ACF Detection function.
 //
 // Usage:
-//  `scouter_acf_detector_batch([detect_param], [frame])`
+//  `scouter_acf_detector_batch([detect_param], [frame], [camera_id])`
 //  [detect_param]
 //    * type: string
 //    * a parameter name of "scouter_acf_detection_param" state
@@ -25,6 +25,9 @@ type ACFDetectBatchFuncCreator struct{}
 //        "offset_x":      [frame offset x] (`data.Int`)
 //        "offset_y":      [frame offset y] (`data.Int`)
 //      }
+//  [camera ID]
+//    * type: int
+//    * camera ID, to use for detection result, not use for detection.
 //
 // Return:
 //  The function will return detected regions array, the type is `[]data.Blob`.
@@ -37,8 +40,8 @@ func (c *ACFDetectBatchFuncCreator) TypeName() string {
 	return "scouter_acf_detector_batch"
 }
 
-func acfDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
-	data.Array, error) {
+func acfDetectBatch(ctx *core.Context, detectParam string, frame data.Map,
+	cameraID int) (data.Array, error) {
 
 	s, err := lookupACFDetectParamState(ctx, detectParam)
 	if err != nil {
@@ -56,7 +59,7 @@ func acfDetectBatch(ctx *core.Context, detectParam string, frame data.Map) (
 
 	imgPtr := bridge.DeserializeMatVec3b(img)
 	defer imgPtr.Delete()
-	candidates := s.d.ACFDetect(imgPtr, offsetX, offsetY)
+	candidates := s.d.ACFDetect(imgPtr, offsetX, offsetY, cameraID)
 	defer func() {
 		for _, c := range candidates {
 			c.Delete()

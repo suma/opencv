@@ -100,11 +100,13 @@ func (d *Detector) UpdateCameraParameter(config string) {
 }
 
 // ACFDetect detects with detection parameters and returns ObjectCandidate array.
-func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+func (d *Detector) ACFDetect(img MatVec3b, offsetX int, offsetY int,
+	cameraID int) []Candidate {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	candidates := C.Detector_ACFDetect(d.p, img.p, C.int(offsetX), C.int(offsetY),
+		C.int(cameraID))
 	defer C.Candidates_Delete(candidates)
 
 	return convertCandidatesToSlice(candidates)
@@ -167,11 +169,13 @@ func (d *MMDetector) UpdateCameraParameter(config string) {
 }
 
 // MMDetect detects with detection parameters and returns ObjectCandidates array.
-func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int) []Candidate {
+func (d *MMDetector) MMDetect(img MatVec3b, offsetX int, offsetY int,
+	cameraID int) []Candidate {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	candidates := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY))
+	candidates := C.MMDetector_MMDetect(d.p, img.p, C.int(offsetX), C.int(offsetY),
+		C.int(cameraID))
 	defer C.Candidates_Delete(candidates)
 
 	return convertCandidatesToSlice(candidates)

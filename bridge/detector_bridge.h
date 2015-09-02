@@ -34,7 +34,7 @@ void Detector_Delete(Detector detector);
 
 void Detector_UpdateCameraParameter(Detector detector, const char *config);
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image,
-  int offsetX, int offsetY);
+  int offsetX, int offsetY, int cameraID);
 int Detector_FilterByMask(Detector detector, Candidate candidate);
 void Detector_EstimateHeight(Detector detector, Candidate candidate,
   int offsetX, int offsetY);
@@ -45,7 +45,7 @@ void MMDetector_Delete(MMDetector detector);
 
 void MMDetector_UpdateCameraParameter(MMDetector detector, const char *config);
 struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image,
-  int offsetX, int offsetY);
+  int offsetX, int offsetY, int cameraID);
 int MMDetector_FilterByMask(MMDetector detector, Candidate candidate);
 void MMDetector_EstimateHeight(MMDetector detector, Candidate candidate,
   int offsetX, int offsetY);

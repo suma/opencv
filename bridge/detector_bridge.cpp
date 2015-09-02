@@ -34,9 +34,9 @@ void Detector_UpdateCameraParameter(Detector detector, const char *config) {
 }
 
 struct Candidates Detector_ACFDetect(Detector detector, MatVec3b image,
-    int offsetX, int offsetY) {
+    int offsetX, int offsetY, int cameraID) {
   const std::vector<scouter::ObjectCandidate>& candidates =
-    detector->acf_detect(*image, offsetX, offsetY);
+    detector->acf_detect(*image, offsetX, offsetY, cameraID);
   scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
     ret[i] = new scouter::ObjectCandidate(candidates[i]);
@@ -74,9 +74,9 @@ void MMDetector_UpdateCameraParameter(MMDetector detector, const char *config) {
 }
 
 struct Candidates MMDetector_MMDetect(MMDetector detector, MatVec3b image,
-    int offsetX, int offsetY) {
+    int offsetX, int offsetY, int cameraID) {
   const std::vector<scouter::ObjectCandidate>& candidates =
-    detector->mm_detect(*image, offsetX, offsetY);
+    detector->mm_detect(*image, offsetX, offsetY, cameraID);
   scouter::ObjectCandidate** ret = new scouter::ObjectCandidate*[candidates.size()];
   for (size_t i = 0; i < candidates.size(); ++i) {
     ret[i] = new scouter::ObjectCandidate(candidates[i]);

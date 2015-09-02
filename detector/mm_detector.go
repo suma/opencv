@@ -9,9 +9,10 @@ import (
 )
 
 type mmDetectUDSF struct {
-	mmDetect    func(bridge.MatVec3b, int, int) []bridge.Candidate
-	frameIDName data.Path
-	frameName   data.Path
+	mmDetect     func(bridge.MatVec3b, int, int, int) []bridge.Candidate
+	frameIDName  data.Path
+	frameName    data.Path
+	cameraIDName data.Path
 }
 
 // Process streams detected regions. which is serialized from
@@ -47,9 +48,18 @@ func (sf *mmDetectUDSF) Process(ctx *core.Context, t *core.Tuple, w core.Writer)
 		return err
 	}
 
+	cameraID := 0
+	if id, err := t.Data.Get(sf.cameraIDName); err == nil {
+		cid, err := data.ToInt(id)
+		if err != nil {
+			return err
+		}
+		cameraID = int(cid)
+	}
+
 	imgP := bridge.DeserializeMatVec3b(img)
 	defer imgP.Delete()
-	candidates := sf.mmDetect(imgP, offsetX, offsetY)
+	candidates := sf.mmDetect(imgP, offsetX, offsetY, cameraID)
 	defer func() {
 		for _, c := range candidates {
 			c.Delete()
@@ -86,7 +96,8 @@ func (sf *mmDetectUDSF) Terminate(ctx *core.Context) error {
 }
 
 func createMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam string,
-	stream string, frameIDName string, frameName string) (udf.UDSF, error) {
+	stream string, frameIDName string, frameName string, cameraIDName string) (
+	udf.UDSF, error) {
 
 	if err := decl.Input(stream, &udf.UDSFInputConfig{
 		InputName: "scouter_mm_detector_stream",
@@ -105,11 +116,15 @@ func createMMDetectUDSF(ctx *core.Context, decl udf.UDSFDeclarer, detectParam st
 	if frameName == "" {
 		frameName = "frame"
 	}
+	if cameraIDName == "" {
+		cameraIDName = "camera_id"
+	}
 
 	return &mmDetectUDSF{
-		mmDetect:    s.d.MMDetect,
-		frameIDName: data.MustCompilePath(frameIDName),
-		frameName:   data.MustCompilePath(frameName),
+		mmDetect:     s.d.MMDetect,
+		frameIDName:  data.MustCompilePath(frameIDName),
+		frameName:    data.MustCompilePath(frameName),
+		cameraIDName: data.MustCompilePath(cameraIDName),
 	}, nil
 }
 
@@ -122,7 +137,7 @@ type MMDetectRegionStreamFuncCreator struct{}
 // Usage:
 //  ```
 //  scouter_mm_detector_stream([detect_param], [stream],
-//                             [frame_id_name], [frame_name])
+//                             [frame_id_name], [frame_name], [camera_id])
 //  ```
 //  [detect_param]
 //    * type: string
@@ -138,11 +153,17 @@ type MMDetectRegionStreamFuncCreator struct{}
 //    * type: string
 //    * a field name of frame
 //    * if empty then applied "frame"
+//  [camera_id]
+//    * type: string
+//    * a field name of camera ID
+//    * if empty then applied "camera_id"
+//    * to use for detection result, not use for detection.
 //
 // Input tuples are required to have following `data.Map` structure. The two
 // keys
 //   * "frame_id"
 //   * "frame"
+//   * "camera_id"
 // could be addressed with UDSF's arguments. When the arguments are empty,
 // this stream function applies default key name.
 //
@@ -153,7 +174,8 @@ type MMDetectRegionStreamFuncCreator struct{}
 //      "projected_img": [image binary] (`data.Blob`),
 //      "offset_x":      [frame offset x] (`data.Int`),
 //      "offset_y":      [frame offset y] (`data.Int`),
-//    }
+//    },
+//    "camer_id": [camera id] (`data.Int`),
 //  }
 func (c *MMDetectRegionStreamFuncCreator) CreateStreamFunction() interface{} {
 	return createMMDetectUDSF
