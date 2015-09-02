@@ -53,21 +53,21 @@ func convertCandidate(raw []interface{}) data.Map {
 		x1 = int(x1o)
 	}
 	var y1 int
-	if y1u, ok := raw[0].(uint64); ok {
+	if y1u, ok := raw[1].(uint64); ok {
 		y1 = int(y1u)
-	} else if y1o, ok := raw[0].(int64); ok {
+	} else if y1o, ok := raw[1].(int64); ok {
 		y1 = int(y1o)
 	}
 	var x2 int
-	if x2u, ok := raw[0].(uint64); ok {
+	if x2u, ok := raw[2].(uint64); ok {
 		x2 = int(x2u)
-	} else if x2o, ok := raw[0].(int64); ok {
+	} else if x2o, ok := raw[2].(int64); ok {
 		x2 = int(x2o)
 	}
 	var y2 int
-	if y2u, ok := raw[0].(uint64); ok {
+	if y2u, ok := raw[3].(uint64); ok {
 		y2 = int(y2u)
-	} else if y2o, ok := raw[0].(int64); ok {
+	} else if y2o, ok := raw[3].(int64); ok {
 		y2 = int(y2o)
 	}
 	bbox := data.Map{
