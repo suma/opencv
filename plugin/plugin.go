@@ -79,6 +79,7 @@ func init() {
 		&integrator.TrackInstanceStatesUDFCreator{},
 		&utils.ObjectCandidateConverterUDFCreator{},
 		&utils.InstanceStateConverterUDFCreator{},
+		&utils.InstanceStatesConverterUDFCreator{},
 		&utils.InstancesConvertForKanohiMapUDFCreator{},
 		&utils.ToMSTimeUDFCreator{},
 	}

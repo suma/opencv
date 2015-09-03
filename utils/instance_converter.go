@@ -54,3 +54,39 @@ func convertState(raw []interface{}) data.Map {
 		"detections": detections,
 	}
 }
+
+// InstanceStatesConverterUDFCreator is a creator of `scouter::InstanceState`
+// converter to map UDF.
+type InstanceStatesConverterUDFCreator struct{}
+
+// CreateFunction returns map converter from `scouter::IsntanceState`. Map
+// structure is followed by scouter's msgpack packing structure.
+func (c *InstanceStatesConverterUDFCreator) CreateFunction() interface{} {
+	return convertInstancesToMap
+}
+
+// TypeName returns type name.
+func (c *InstanceStatesConverterUDFCreator) TypeName() string {
+	return "scouter_convert_instances_to_map"
+}
+
+// TODO catch cast error
+func convertInstancesToMap(ctx *core.Context, states data.Array) (data.Array, error) {
+	convertedArray := data.Array{}
+	for _, s := range states {
+		b, err := data.ToBlob(s)
+		if err != nil {
+			return nil, err
+		}
+
+		var raw []interface{}
+		dec := codec.NewDecoderBytes(b, msgpackHandle)
+		err = dec.Decode(&raw)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedArray = append(convertedArray, convertState(raw))
+	}
+	return convertedArray, nil
+}

@@ -35,6 +35,33 @@ func TestConvertInstanceStateToMap(t *testing.T) {
 	})
 }
 
+func TestConvertInstancesStateToMap(t *testing.T) {
+	Convey("Given an instance states array", t, func() {
+		ctx := &core.Context{}
+		isByte, err := ioutil.ReadFile("_test_state0")
+		So(err, ShouldBeNil)
+
+		Convey("When call array convert UDF", func() {
+			isByteArray := data.Array{data.Blob(isByte)}
+			isArray, err := convertInstancesToMap(ctx, isByteArray)
+
+			Convey("Then process should get map array", func() {
+				So(err, ShouldBeNil)
+				So(isArray, ShouldNotBeNil)
+
+				exInstance, err := data.NewMap(expectedInstanceState)
+				So(err, ShouldBeNil)
+
+				actualMap, err := data.AsMap(isArray[0])
+				So(err, ShouldBeNil)
+				SkipSo(reflect.DeepEqual(actualMap, exInstance), ShouldBeTrue)
+				So(len(actualMap), ShouldEqual, len(exInstance))
+				So(len(actualMap.String()), ShouldEqual, len(exInstance.String()))
+			})
+		})
+	})
+}
+
 var expectedInstanceState = map[string]interface{}{
 	"detections": []interface{}{
 		map[string]interface{}{
