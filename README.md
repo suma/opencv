@@ -8,10 +8,10 @@ This plug-in is to use [scouter-core](https://github.pfidev.jp/ComputerVision/sc
     * ex) Mac OS X `brew install opencv --with-ffmpeg`
     * reference: [ComputerVision/pficv#OpenCVのインストール](https://github.pfidev.jp/ComputerVision/pficv#opencv%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB)
 * scouter-core
-    * [ComputerVision/scouter-core](https://github.pfidev.jp/ComputerVision/scouter-core/tree/sensorbee-merge)
+    * [ComputerVision/scouter-core](https://github.pfidev.jp/ComputerVision/scouter-core)
         * branch: sensorbee-merge
         * this branch is customized for SensorBee, but the library can be used for kanohi-scouter, too
-        * [TODO] merge
+        * later v1.2
     * scouter-core require
         * caffe
         * pficommon
@@ -23,7 +23,7 @@ This plug-in is to use [scouter-core](https://github.pfidev.jp/ComputerVision/sc
     * [ComputerVision/scouter-core-conf](https://github.pfidev.jp/ComputerVision/scouter-core-conf)
 * SensorBee
     * [sensorbee/sensorbee](https://github.pfidev.jp/sensorbee/sensorbee)
-    * later v0.2.0
+    * later v0.3.0
 
 # Usage
 
