@@ -67,9 +67,9 @@ var expectedInstanceState = map[string]interface{}{
 		map[string]interface{}{
 			"bbox": map[string]interface{}{
 				"x1": 117,
-				"x2": 117,
-				"y1": 117,
-				"y2": 117,
+				"x2": 233,
+				"y1": 462,
+				"y2": 695,
 			},
 			"camera_id":  0,
 			"confidence": 0.574550211429596,
