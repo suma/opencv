@@ -1,15 +1,13 @@
 package writer
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/client"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
+	"strings"
 )
 
 // HTTPDataSenderCreator is a creator of sending data using HTTP client.
@@ -66,6 +64,10 @@ type httpDataSenderSink struct {
 
 func (s *httpDataSenderSink) Write(ctx *core.Context, t *core.Tuple) error {
 	str := t.Data.String()
+	if str == "" {
+		ctx.Log().Debug("tuple's data is empty")
+		return nil
+	}
 	req, err := s.newRequest(str)
 	if err != nil {
 		return err
@@ -80,24 +82,15 @@ func (s *httpDataSenderSink) Write(ctx *core.Context, t *core.Tuple) error {
 	if res.IsError() {
 		resErr, err := res.Error()
 		if err != nil {
-			return err
+			return fmt.Errorf("response error: %v, %v", res.Raw.Status, err)
 		}
 		return fmt.Errorf("response error: %v", resErr.Message)
 	}
 	return nil
 }
 
-func (s *httpDataSenderSink) newRequest(bodyJSON interface{}) (*http.Request, error) {
-	var body io.Reader
-	if bodyJSON == nil {
-		body = nil
-	} else {
-		bd, err := json.Marshal(bodyJSON)
-		if err != nil {
-			return nil, err
-		}
-		body = bytes.NewReader(bd)
-	}
+func (s *httpDataSenderSink) newRequest(bodyStr string) (*http.Request, error) {
+	body := strings.NewReader(bodyStr)
 
 	req, err := http.NewRequest("POST", s.url, body)
 	if err != nil {
