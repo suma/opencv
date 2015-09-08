@@ -23,6 +23,9 @@ func (c *InstanceStateConverterUDFCreator) TypeName() string {
 
 // TODO catch cast error
 func convertInstanceToMap(ctx *core.Context, state []byte) (data.Map, error) {
+	if state == nil || len(state) == 0 {
+		return data.Map{}, nil
+	}
 	var raw []interface{}
 	dec := codec.NewDecoderBytes(state, msgpackHandle)
 	err := dec.Decode(&raw)
@@ -77,6 +80,9 @@ func convertInstancesToMap(ctx *core.Context, states data.Array) (data.Array, er
 		b, err := data.ToBlob(s)
 		if err != nil {
 			return nil, err
+		}
+		if b == nil || len(b) == 0 {
+			continue
 		}
 
 		var raw []interface{}

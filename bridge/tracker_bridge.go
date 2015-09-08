@@ -53,6 +53,11 @@ func (t *Tracker) Push(frames []ScouterFrame, mvRegions []MVCandidate) {
 	for _, r := range mvRegions {
 		mvos = append(mvos, r.p)
 	}
+	if len(mvos) == 0 {
+		C.Tracker_Push(t.p, (*C.struct_ScouterFrame2)(&fs[0]), C.int(fLength),
+			nil, C.int(0))
+		return
+	}
 
 	C.Tracker_Push(t.p, (*C.struct_ScouterFrame2)(&fs[0]), C.int(fLength),
 		(*C.MVCandidate)(&mvos[0]), C.int(mvLength))

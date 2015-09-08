@@ -56,23 +56,23 @@ func getCurrentInstanceStates(ctx *core.Context, trackerParam string,
 	}
 
 	states := managerState.m.TrackAndGetStates(trackerState.t)
+	m := data.Map{}
 	if len(states) <= 0 {
 		ctx.Log().Info("instance states is empty")
-		return nil, nil
-	}
-	defer func() {
-		for _, s := range states {
-			s.Delete()
+		m["states"] = data.Array{data.Blob([]byte{})}
+	} else {
+		defer func() {
+			for _, s := range states {
+				s.Delete()
+			}
+		}()
+
+		statesByte := make(data.Array, len(states))
+		for i, s := range states {
+			statesByte[i] = data.Blob(s.Serialize())
 		}
-	}()
 
-	statesByte := make(data.Array, len(states))
-	for i, s := range states {
-		statesByte[i] = data.Blob(s.Serialize())
-	}
-
-	m := data.Map{
-		"states": statesByte,
+		m["states"] = statesByte
 	}
 
 	if instanceVisualizerParam != "" {
