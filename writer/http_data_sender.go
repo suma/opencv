@@ -99,7 +99,7 @@ func (s *httpDataSenderSink) newRequest(bodyJSON interface{}) (*http.Request, er
 		body = bytes.NewReader(bd)
 	}
 
-	req, err := http.NewRequest("post", s.url, body)
+	req, err := http.NewRequest("POST", s.url, body)
 	if err != nil {
 		return nil, err
 	}
