@@ -118,7 +118,7 @@ func filterByMaskMMBatch(ctx *core.Context, detectParam string, regions data.Arr
 // Returns:
 //  The function will return filtered regions array, the type is `[]data.Blob`.
 func (c *FilterByMaskMMBatchFuncCreator) CreateFunction() interface{} {
-	return filterByMaskBatch
+	return filterByMaskMMBatch
 }
 
 // TypeName returns type name.
@@ -182,7 +182,7 @@ func estimateHeightMMBatch(ctx *core.Context, detectParam string, frame data.Map
 // Return:
 //   The function will return estimate regions array, the type is `[]data.Blob`.
 func (c *EstimateHeightMMBatchFuncCreator) CreateFunction() interface{} {
-	return estimateHeightBatch
+	return estimateHeightMMBatch
 }
 
 // TypeName returns type name.
