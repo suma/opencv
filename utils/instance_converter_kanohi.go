@@ -37,8 +37,8 @@ func (c *InstancesConvertForKanohiMapUDFCreator) TypeName() string {
 func convertInstanceStatesToKanohiMap(ctx *core.Context, states data.Array,
 	floorID int, timestamp data.Timestamp) (data.Map, error) {
 
-	stateArray := make(data.Array, len(states))
-	for i, v := range states {
+	stateArray := data.Array{}
+	for _, v := range states {
 		b, err := data.ToBlob(v)
 		if err != nil {
 			return nil, err
@@ -60,7 +60,7 @@ func convertInstanceStatesToKanohiMap(ctx *core.Context, states data.Array,
 			return nil, err
 		}
 
-		stateArray[i] = ismap
+		stateArray = append(stateArray, ismap)
 	}
 
 	ts, err := data.ToInt(timestamp)
