@@ -40,6 +40,9 @@ func (sf *predictTagsBatchUDSF) Process(ctx *core.Context, t *core.Tuple,
 	if err != nil {
 		return err
 	}
+	if len(regions) == 0 {
+		return nil
+	}
 
 	imgData, err := t.Data.Get(sf.imageName)
 	if err != nil {
@@ -212,6 +215,9 @@ func (c *CroppingAndPredictTagsBatchFuncCreator) TypeName() string {
 
 func croppingAndPredictTagsBatch(ctx *core.Context, taggerParam string,
 	regions data.Array, img []byte) (data.Array, error) {
+	if len(regions) == 0 {
+		return data.Array{}, nil
+	}
 	defer utils.LogElapseTime(ctx, "croppingAndPredictTagsBatch", time.Now())
 
 	s, err := lookupImageTaggerCaffeParamState(ctx, taggerParam)

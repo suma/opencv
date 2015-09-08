@@ -62,6 +62,9 @@ type DrawDeteciontResultFuncCreator struct{}
 
 func drawDetectionResult(ctx *core.Context, frame []byte, regions data.Array) (
 	[]byte, error) {
+	if len(regions) == 0 {
+		return frame, nil
+	}
 	img := bridge.DeserializeMatVec3b(frame)
 	defer img.Delete()
 
