@@ -43,6 +43,9 @@ func convertInstanceStatesToKanohiMap(ctx *core.Context, states data.Array,
 		if err != nil {
 			return nil, err
 		}
+		if b == nil || len(b) == 0 {
+			continue
+		}
 
 		var raw []interface{}
 		dec := codec.NewDecoderBytes(b, msgpackHandle)
