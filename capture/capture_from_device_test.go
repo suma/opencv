@@ -109,6 +109,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"camera_id": data.String("#"),
 			}
 			for k, v := range testMap {
+				v := v
 				msg := fmt.Sprintf("with %v error", k)
 				Convey("Then creator should occur a parse error on option parameters "+msg,
 					func() {

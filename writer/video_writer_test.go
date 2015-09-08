@@ -74,6 +74,7 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 				"height": data.String("$"),
 			}
 			for k, v := range testMap {
+				v := v
 				msg := fmt.Sprintf("%v error", k)
 				Convey("Then sink should not be created because of "+msg, func() {
 					params[k] = v
