@@ -58,7 +58,7 @@ func getCurrentInstanceStates(ctx *core.Context, trackerParam string,
 	states := managerState.m.TrackAndGetStates(trackerState.t)
 	m := data.Map{}
 	if len(states) <= 0 {
-		ctx.Log().Info("instance states is empty")
+		ctx.Log().Debug("instance states is empty")
 		m["states"] = data.Array{data.Blob([]byte{})}
 	} else {
 		defer func() {
