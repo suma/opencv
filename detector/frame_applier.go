@@ -20,6 +20,7 @@ func frameApplier(ctx *core.Context, fpParam string, capture []byte) (
 	bufp := bridge.DeserializeMatVec3b(capture)
 	defer bufp.Delete()
 	img, offsetX, offsetY := s.fp.Projection(bufp)
+	defer img.Delete()
 
 	m := data.Map{
 		"projected_img": data.Blob(img.Serialize()),

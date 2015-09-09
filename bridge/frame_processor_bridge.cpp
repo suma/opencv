@@ -18,11 +18,11 @@ void FrameProcessor_UpdateConfig(FrameProcessor fp, const char *config) {
 
 struct ScouterFrame FrameProcessor_Projection(FrameProcessor fp, MatVec3b buf) {
   scouter::FrameMeta meta = scouter::FrameMeta();
-  scouter::Frame* frame = new scouter::Frame(fp->apply(*buf, meta));
+  const scouter::Frame& frame = fp->apply(*buf, meta);
   ScouterFrame result = {
-    &(frame->image),
-    frame->meta.offset_x,
-    frame->meta.offset_y,
+    new cv::Mat_<cv::Vec3b>(frame.image),
+    frame.meta.offset_x,
+    frame.meta.offset_y,
   };
   return result;
 }
