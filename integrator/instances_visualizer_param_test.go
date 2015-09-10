@@ -20,10 +20,12 @@ func TestNewVisualizerParamState(t *testing.T) {
 			Convey("Then the state should be initialized", func() {
 				state, err := createInstancesVisualizerParamState(ctx, params)
 				So(err, ShouldBeNil)
-				defer state.Terminate(ctx)
 				ivs, ok := state.(*InstancesVisualizerParamState)
 				So(ok, ShouldBeTrue)
 				So(ivs.v, ShouldNotBeNil)
+				Reset(func() {
+					state.Terminate(ctx)
+				})
 			})
 		})
 
@@ -32,10 +34,12 @@ func TestNewVisualizerParamState(t *testing.T) {
 			Convey("Then the state should be initialized with empty parameter", func() {
 				state, err := createInstancesVisualizerParamState(ctx, params)
 				So(err, ShouldBeNil)
-				defer state.Terminate(ctx)
 				ivs, ok := state.(*InstancesVisualizerParamState)
 				So(ok, ShouldBeTrue)
 				So(ivs.v, ShouldNotBeNil)
+				Reset(func() {
+					state.Terminate(ctx)
+				})
 			})
 		})
 
@@ -119,7 +123,6 @@ func TestInstancesVisualizerUpdateCameraParam(t *testing.T) {
 		So(err, ShouldBeNil)
 		vs, ok := state.(*InstancesVisualizerParamState)
 		So(ok, ShouldBeTrue)
-		defer vs.Terminate(ctx)
 		Convey("When the state is updated with valid config json", func() {
 			params2 := data.Map{
 				"camera_id":             data.Int(0),
@@ -167,6 +170,9 @@ func TestInstancesVisualizerUpdateCameraParam(t *testing.T) {
 				err := vs.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
+		})
+		Reset(func() {
+			state.Terminate(ctx)
 		})
 	})
 }

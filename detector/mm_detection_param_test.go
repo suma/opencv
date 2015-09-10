@@ -131,7 +131,6 @@ func TestMMDetectorUpdateCameraParamState(t *testing.T) {
 		So(err, ShouldBeNil)
 		ds, ok := state.(*MMDetectionParamState)
 		So(ok, ShouldBeTrue)
-		defer ds.d.Delete()
 		Convey("When the state is updated with valid config json", func() {
 			params2 := data.Map{
 				"camera_parameter_file": data.String("camera_param_test.json"),
@@ -165,6 +164,9 @@ func TestMMDetectorUpdateCameraParamState(t *testing.T) {
 				err := ds.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
+		})
+		Reset(func() {
+			ds.d.Delete()
 		})
 	})
 }

@@ -89,10 +89,8 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 			params["file_name"] = data.String("dummy")
 			Convey("Then sink should be created and other parameters are set default", func() {
 				sink, err := vc.CreateSink(ctx, ioParams, params)
-				defer removeTestAVIFile()
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 				vs, ok := sink.(*videoWriterSink)
 				So(ok, ShouldBeTrue)
 				So(vs.vw, ShouldNotBeNil)
@@ -118,6 +116,10 @@ func TestVideoWriterCreatorCreatesSink(t *testing.T) {
 							So(err, ShouldBeNil)
 						})
 					})
+				})
+				Reset(func() {
+					removeTestAVIFile()
+					sink.Close(ctx)
 				})
 			})
 		})

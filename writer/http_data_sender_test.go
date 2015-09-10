@@ -43,7 +43,6 @@ func TestHttpDataSenderCreatorCreate(t *testing.T) {
 				fmt.Fprintf(w, "test server handle")
 			})
 			ts := httptest.NewServer(dummyHandler)
-			defer ts.Close()
 			portstr := strings.Split(ts.URL, ":")[2]
 			port, _ := strconv.Atoi(portstr)
 			params["port"] = data.Int(port)
@@ -52,7 +51,6 @@ func TestHttpDataSenderCreatorCreate(t *testing.T) {
 				sink, err := sc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 
 				ds, ok := sink.(*httpDataSenderSink)
 				So(ok, ShouldBeTrue)
@@ -73,7 +71,13 @@ func TestHttpDataSenderCreatorCreate(t *testing.T) {
 						So(err, ShouldBeNil)
 					})
 				})
+				Reset(func() {
+					sink.Close(ctx)
+				})
 
+			})
+			Reset(func() {
+				ts.Close()
 			})
 		})
 	})

@@ -30,7 +30,6 @@ func TestMJPEGServWrite(t *testing.T) {
 		sink, err := mc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
 		So(sink, ShouldNotBeNil)
-		defer sink.Close(ctx)
 		Convey("When passes a tuple", func() {
 			m := data.Map{
 				"name": data.String("dummy_img_manem"),
@@ -43,6 +42,9 @@ func TestMJPEGServWrite(t *testing.T) {
 				err := sink.Write(ctx, tu)
 				So(err, ShouldBeNil)
 			})
+		})
+		Reset(func() {
+			sink.Close(ctx)
 		})
 	})
 }
@@ -58,7 +60,6 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 		sink, err := mc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
 		So(sink, ShouldNotBeNil)
-		defer sink.Close(ctx)
 		Convey("When passes no name tuple", func() {
 			m := data.Map{
 				"img": data.Blob([]byte{}),
@@ -109,6 +110,9 @@ func TestMJPEGServWriteWithInvalidTuple(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 		})
+		Reset(func() {
+			sink.Close(ctx)
+		})
 	})
 }
 
@@ -127,11 +131,13 @@ func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 				sink, err := mc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 				m, ok := sink.(*mjpegServ)
 				So(ok, ShouldBeTrue)
 				So(m.port, ShouldEqual, 10090)
 				So(m.quality, ShouldEqual, 50)
+				Reset(func() {
+					sink.Close(ctx)
+				})
 			})
 		})
 		Convey("When parameters have invalid port", func() {
@@ -157,11 +163,13 @@ func TestMJPEGServCreatorCreatesSink(t *testing.T) {
 				sink, err := mc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 				m, ok := sink.(*mjpegServ)
 				So(ok, ShouldBeTrue)
 				So(m.port, ShouldEqual, 8097)
 				So(m.quality, ShouldEqual, 75)
+				Reset(func() {
+					sink.Close(ctx)
+				})
 			})
 		})
 	})

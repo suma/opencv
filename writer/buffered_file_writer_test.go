@@ -39,10 +39,8 @@ func TestBufferedFileWriterCreatorCreatesSink(t *testing.T) {
 			params["file_name"] = data.String("_buffertest/dummy.jsons")
 			Convey("Then sink should be created", func() {
 				sink, err := bwc.CreateSink(ctx, ioParams, params)
-				defer removeTestJSONSFile()
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 
 				bw, ok := sink.(*bufferedFileSink)
 				So(ok, ShouldBeTrue)
@@ -86,6 +84,10 @@ func TestBufferedFileWriterCreatorCreatesSink(t *testing.T) {
 							})
 						})
 					})
+				})
+				Reset(func() {
+					removeTestJSONSFile()
+					sink.Close(ctx)
 				})
 			})
 		})

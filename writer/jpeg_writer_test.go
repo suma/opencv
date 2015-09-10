@@ -30,7 +30,6 @@ func TestJPEGWiterWrite(t *testing.T) {
 		sink, err := jwc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
 		So(sink, ShouldNotBeNil)
-		defer sink.Close(ctx)
 		Convey("When passes a tuple", func() {
 			m := data.Map{
 				"name": data.String("test_jpeg"),
@@ -41,11 +40,16 @@ func TestJPEGWiterWrite(t *testing.T) {
 			}
 			Convey("Then the tuple should pass through the JPEG writer", func() {
 				err := sink.Write(ctx, tu)
-				defer removeTestJPEGFile()
 				So(err, ShouldBeNil)
 				_, err = os.Stat("test_jpeg.jpg")
 				So(os.IsNotExist(err), ShouldBeFalse)
+				Reset(func() {
+					removeTestJPEGFile()
+				})
 			})
+		})
+		Reset(func() {
+			sink.Close(ctx)
 		})
 	})
 }
@@ -66,7 +70,6 @@ func TestJPEGWriterWithInvalidTuple(t *testing.T) {
 		sink, err := jwc.CreateSink(ctx, ioParams, params)
 		So(err, ShouldBeNil)
 		So(sink, ShouldNotBeNil)
-		defer sink.Close(ctx)
 		Convey("When passes no name tuple", func() {
 			m := data.Map{
 				"img": data.Blob([]byte{}),
@@ -118,6 +121,9 @@ func TestJPEGWriterWithInvalidTuple(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 		})
+		Reset(func() {
+			sink.Close(ctx)
+		})
 	})
 }
 
@@ -132,11 +138,13 @@ func TestJPEGWriterCreatorCreatesSink(t *testing.T) {
 				sink, err := jwc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 				js, ok := sink.(*jpegWriterSink)
 				So(ok, ShouldBeTrue)
 				So(js.outputDir, ShouldEqual, ".")
 				So(js.jpegQuality, ShouldEqual, 50)
+				Reset(func() {
+					sink.Close(ctx)
+				})
 			})
 		})
 		Convey("When parameters have invalid directory name", func() {
@@ -161,12 +169,14 @@ func TestJPEGWriterCreatorCreatesSink(t *testing.T) {
 				sink, err := jwc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
-				defer removeTestDummyDir()
 				js, ok := sink.(*jpegWriterSink)
 				So(ok, ShouldBeTrue)
 				So(js.outputDir, ShouldEqual, "dummy")
 				So(js.jpegQuality, ShouldEqual, 50)
+				Reset(func() {
+					sink.Close(ctx)
+					removeTestDummyDir()
+				})
 			})
 		})
 		Convey("When parameters set JPEG quality", func() {
@@ -175,11 +185,13 @@ func TestJPEGWriterCreatorCreatesSink(t *testing.T) {
 				sink, err := jwc.CreateSink(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				So(sink, ShouldNotBeNil)
-				defer sink.Close(ctx)
 				js, ok := sink.(*jpegWriterSink)
 				So(ok, ShouldBeTrue)
 				So(js.outputDir, ShouldEqual, ".")
 				So(js.jpegQuality, ShouldEqual, 75)
+				Reset(func() {
+					sink.Close(ctx)
+				})
 			})
 		})
 	})

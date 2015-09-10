@@ -17,10 +17,12 @@ func TestNewFrameProcessorParamState(t *testing.T) {
 				state, err := createFrameProcessorParamState(ctx, params)
 				So(err, ShouldBeNil)
 				So(state, ShouldNotBeNil)
-				defer state.Terminate(ctx)
 				cs, ok := state.(*FrameProcessorParamState)
 				So(ok, ShouldBeTrue)
 				So(cs.fp, ShouldNotBeNil)
+				Reset(func() {
+					state.Terminate(ctx)
+				})
 			})
 		})
 
@@ -31,10 +33,12 @@ func TestNewFrameProcessorParamState(t *testing.T) {
 				state, err := createFrameProcessorParamState(ctx, params)
 				So(err, ShouldBeNil)
 				So(state, ShouldNotBeNil)
-				defer state.Terminate(ctx)
 				cs, ok := state.(*FrameProcessorParamState)
 				So(ok, ShouldBeTrue)
 				So(cs.fp, ShouldNotBeNil)
+				Reset(func() {
+					state.Terminate(ctx)
+				})
 			})
 		})
 
@@ -44,10 +48,12 @@ func TestNewFrameProcessorParamState(t *testing.T) {
 				state, err := createFrameProcessorParamState(ctx, params)
 				So(err, ShouldBeNil)
 				So(state, ShouldNotBeNil)
-				defer state.Terminate(ctx)
 				cs, ok := state.(*FrameProcessorParamState)
 				So(ok, ShouldBeTrue)
 				So(cs.fp, ShouldNotBeNil)
+				Reset(func() {
+					state.Terminate(ctx)
+				})
 			})
 		})
 
@@ -92,7 +98,6 @@ func TestUpdateFrameProcessorParamState(t *testing.T) {
 		So(err, ShouldBeNil)
 		cs, ok := state.(*FrameProcessorParamState)
 		So(ok, ShouldBeTrue)
-		defer cs.fp.Delete()
 		Convey("When the state is updated with valid config json", func() {
 			params2 := data.Map{
 				"camera_parameter_file": data.String("camera_param_test.json"),
@@ -126,6 +131,9 @@ func TestUpdateFrameProcessorParamState(t *testing.T) {
 				err := cs.Update(ctx, params2)
 				So(err, ShouldNotBeNil)
 			})
+		})
+		Reset(func() {
+			cs.fp.Delete()
 		})
 	})
 }
