@@ -1,9 +1,8 @@
-package capture
+package opencv
 
 import (
 	"fmt"
-	"pfi/sensorbee/scouter/bridge"
-	"pfi/sensorbee/scouter/utils"
+	"pfi/sensorbee/opencv/bridge"
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
@@ -18,6 +17,14 @@ type FromURICreator struct{}
 func (c *FromURICreator) TypeName() string {
 	return "scouter_capture_from_uri"
 }
+
+var (
+	uriPath            = data.MustCompilePath("uri")
+	frameSkipPath      = data.MustCompilePath("frame_skip")
+	cameraIDPath       = data.MustCompilePath("camera_id")
+	nextFrameErrorPath = data.MustCompilePath("next_frame_error")
+	rewindPath         = data.MustCompilePath("rewind")
+)
 
 // CreateSource creates a frame generator using OpenCV video capture.
 // URI can be set HTTP address or file path.
@@ -41,7 +48,7 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 	}
 
 	rewindFlag := false
-	if rf, err := params.Get(utils.RewindPath); err == nil {
+	if rf, err := params.Get(rewindPath); err == nil {
 		if rewindFlag, err = data.AsBool(rf); err != nil {
 			return nil, err
 		}
@@ -55,7 +62,7 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
 	core.Source, error) {
 
-	uri, err := params.Get(utils.URIPath)
+	uri, err := params.Get(uriPath)
 	if err != nil {
 		return nil, fmt.Errorf("capture source needs URI")
 	}
@@ -64,7 +71,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	fs, err := params.Get(utils.FrameSkipPath)
+	fs, err := params.Get(frameSkipPath)
 	if err != nil {
 		fs = data.Int(0) // will be ignored
 	}
@@ -73,7 +80,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	cid, err := params.Get(utils.CameraIDPath)
+	cid, err := params.Get(cameraIDPath)
 	if err != nil {
 		cid = data.Int(0)
 	}
@@ -82,7 +89,7 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	endErrFlag, err := params.Get(utils.NextFrameErrorPath)
+	endErrFlag, err := params.Get(nextFrameErrorPath)
 	if err != nil {
 		endErrFlag = data.True
 	}

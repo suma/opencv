@@ -13,6 +13,15 @@ import (
 	"unsafe"
 )
 
+const (
+	// CvCapPropFrameWidth is OpenCV parameter of Frame Width
+	CvCapPropFrameWidth = 3
+	// CvCapPropFrameHeight is OpenCV parameter of Frame Height
+	CvCapPropFrameHeight = 4
+	// CvCapPropFps is OpenCV parameter of FPS
+	CvCapPropFps = 5
+)
+
 // MatVec3b is a bind of `cv::Mat_<cv::Vec3b>`
 type MatVec3b struct {
 	p C.MatVec3b
