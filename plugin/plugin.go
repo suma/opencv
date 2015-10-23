@@ -13,12 +13,8 @@ import (
 //  )
 //
 func init() {
-	// sources
-	sources := []SourceCreator{
-		&opencv.FromURICreator{},
-		&opencv.FromDeviceCreator{},
-	}
-	for _, source := range sources {
-		bql.MustRegisterGlobalSourceCreator(source.TypeName(), source)
-	}
+	bql.MustRegisterGlobalSourceCreator("opencv_capture_from_uri",
+		&opencv.FromURICreator{})
+	bql.MustRegisterGlobalSourceCreator("opencv_capture_from_device",
+		&opencv.FromDeviceCreator{})
 }

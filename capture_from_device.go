@@ -13,11 +13,6 @@ import (
 // FromDeviceCreator is a creator of a capture from device.
 type FromDeviceCreator struct{}
 
-// TypeName returns type name.
-func (c *FromDeviceCreator) TypeName() string {
-	return "scouter_capture_from_device"
-}
-
 var (
 	deviceIDPath = data.MustCompilePath("device_id")
 	widthPath    = data.MustCompilePath("width")

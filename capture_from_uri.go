@@ -13,11 +13,6 @@ import (
 // FromURICreator is a creator of a capture from URI.
 type FromURICreator struct{}
 
-// TypeName returns type name.
-func (c *FromURICreator) TypeName() string {
-	return "scouter_capture_from_uri"
-}
-
 var (
 	uriPath            = data.MustCompilePath("uri")
 	frameSkipPath      = data.MustCompilePath("frame_skip")
