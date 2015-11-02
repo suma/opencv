@@ -31,7 +31,7 @@ import (
 
 ```sql
 -- capturing
-CREATE PAUSED SOURCE camera1_avi TYPE open_capture_from_uri WITH
+CREATE PAUSED SOURCE camera1_avi TYPE opencv_capture_from_uri WITH
     uri='video/camera1.avi',
     frame_skip=4, next_frame_error=false;
 ```
