@@ -1,8 +1,8 @@
 package bridge
 
 /*
-#cgo linux pkg-config: opencv
-#cgo darwin pkg-config: opencv
+#cgo linux pkg-config: opencv pficommon
+#cgo darwin pkg-config: opencv pficommon
 #include <stdlib.h>
 #include "util.h"
 #include "opencv_bridge.h"
