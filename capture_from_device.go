@@ -88,6 +88,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 type captureFromDevice struct {
 	vcap   bridge.VideoCapture
 	finish bool
+	rwm    sync.RWMutex
 
 	deviceID int64
 	width    int64
@@ -122,35 +123,38 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 	}
 
 	// read camera frames
-	mu := sync.RWMutex{}
 	rootBuf := bridge.NewMatVec3b()
 	defer rootBuf.Delete()
-	var rootBufErr error
-	errChan := make(chan error)
-	go func(rootBuf bridge.MatVec3b) {
+	type ret struct {
+		buf *bridge.MatVec3b
+		err error
+	}
+	ch := make(chan *ret, 10)
+	go func(buf *bridge.MatVec3b) {
 		for {
-			c.grab(rootBuf, &mu, errChan)
-			select {
-			case err := <-errChan:
-				if err != nil {
-					rootBufErr = err
-					break
-				}
+			err := c.grab(buf)
+			ch <- &ret{buf, err}
+			if err != nil {
+				return
 			}
 		}
-	}(rootBuf)
+	}(&rootBuf)
 
 	// streaming, capture from rootBuf
 	buf := bridge.NewMatVec3b()
 	defer buf.Delete()
 	c.finish = false
+	ctx.Log().Infof("start reading camera device: %v", c.deviceID)
 	for !c.finish {
-		if rootBufErr != nil {
-			return rootBufErr
+		res := <-ch
+		if res.err != nil {
+			return res.err
 		}
-		mu.RLock()
-		rootBuf.CopyTo(buf)
-		mu.RUnlock()
+		func() {
+			c.rwm.RLock()
+			defer c.rwm.RUnlock()
+			res.buf.CopyTo(&buf)
+		}()
 		if buf.Empty() {
 			continue
 		}
@@ -172,24 +176,21 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 	return nil
 }
 
-func (c *captureFromDevice) grab(buf bridge.MatVec3b, mu *sync.RWMutex,
-	errChan chan error) {
-
+func (c *captureFromDevice) grab(buf *bridge.MatVec3b) error {
 	if !c.vcap.IsOpened() {
-		errChan <- fmt.Errorf("video stream or file closed, device no: %d)",
+		return fmt.Errorf("video stream or file closed, device no: %d)",
 			c.deviceID)
-		return
 	}
 	tmpBuf := bridge.NewMatVec3b()
 	defer tmpBuf.Delete()
 	if ok := c.vcap.Read(tmpBuf); !ok {
-		errChan <- fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
-		return
+		return fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	c.rwm.Lock()
+	defer c.rwm.Unlock()
 	tmpBuf.CopyTo(buf)
+	return nil
 }
 
 func (c *captureFromDevice) Stop(ctx *core.Context) error {

@@ -59,7 +59,7 @@ func (m *MatVec3b) Delete() {
 }
 
 // CopyTo copies MatVec3b.
-func (m *MatVec3b) CopyTo(dst MatVec3b) {
+func (m *MatVec3b) CopyTo(dst *MatVec3b) {
 	C.MatVec3b_CopyTo(m.p, dst.p)
 }
 
