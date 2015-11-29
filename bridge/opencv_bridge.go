@@ -49,14 +49,14 @@ func NewMatVec3bWithCPointer(p CMatVec3b) MatVec3b {
 func (m *MatVec3b) ToJpegData(quality int) []byte {
 	b := C.MatVec3b_ToJpegData(m.p, C.int(quality))
 	defer C.ByteArray_Release(b)
-	return ToGoBytes(b)
+	return toGoBytes(b)
 }
 
 // Serialize object.
 func (m *MatVec3b) Serialize() []byte {
 	b := C.MatVec3b_Serialize(m.p)
 	defer C.ByteArray_Release(b)
-	return ToGoBytes(b)
+	return toGoBytes(b)
 }
 
 // DeserializeMatVec3b deserializes object.

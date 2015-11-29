@@ -1,5 +1,5 @@
-#ifndef _BRIDGE_UTIL_H_
-#define _BRIDGE_UTIL_H_
+#ifndef _OPENCV_BRIDGE_UTIL_H_
+#define _OPENCV_BRIDGE_UTIL_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,15 +9,16 @@ typedef struct String {
   const char* str;
   int length;
 } String;
-struct ByteArray{
+typedef struct ByteArray{
   char *data;
   int length;
-};
+} ByteArray;
 
+struct ByteArray toByteArray(const char* buf, int len);
 void ByteArray_Release(struct ByteArray buf);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //_BRIDGE_UTIL_H_
+#endif //_OPENCV_BRIDGE_UTIL_H_
