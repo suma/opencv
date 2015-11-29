@@ -22,14 +22,27 @@ const (
 	CvCapPropFps = 5
 )
 
+// CMatVec3b is an alias for C pointer.
+type CMatVec3b C.MatVec3b
+
 // MatVec3b is a bind of `cv::Mat_<cv::Vec3b>`
 type MatVec3b struct {
 	p C.MatVec3b
 }
 
+// GetCPointer returns C pointer of MatVec3b.
+func (m *MatVec3b) GetCPointer() C.MatVec3b {
+	return m.p
+}
+
 // NewMatVec3b returns a new MatVec3b.
 func NewMatVec3b() MatVec3b {
 	return MatVec3b{p: C.MatVec3b_New()}
+}
+
+// NewMatVec3bWithCPointer return a new MatVec3b with argument C pointer.
+func NewMatVec3bWithCPointer(p CMatVec3b) MatVec3b {
+	return MatVec3b{p: C.MatVec3b(p)}
 }
 
 // ToJpegData convert to JPEG data.
