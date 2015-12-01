@@ -1,5 +1,5 @@
 #include "util.h"
-#include "string.h"
+#include <string.h>
 #include <cstdlib>
 
 void ByteArray_Release(struct ByteArray buf) {
