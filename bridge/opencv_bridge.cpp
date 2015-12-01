@@ -1,5 +1,4 @@
 #include "opencv_bridge.h"
-#include "util.hpp"
 
 #include <string.h>
 #include <msgpack.hpp>
