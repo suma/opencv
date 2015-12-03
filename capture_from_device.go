@@ -76,12 +76,13 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	cs := &captureFromDevice{}
-	cs.deviceID = deviceID
-	cs.width = width
-	cs.height = height
-	cs.fps = fps
-	cs.cameraID = cameraID
+	cs := &captureFromDevice{
+		deviceID: deviceID,
+		width:    width,
+		height:   height,
+		fps:      fps,
+		cameraID: cameraID,
+	}
 	// Use ImplementSourceStop helper that can enable this source to stop
 	// thread-safe.
 	return core.ImplementSourceStop(cs), nil
