@@ -6,7 +6,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-	"sync/atomic"
 	"time"
 )
 
@@ -48,10 +47,12 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 			return nil, err
 		}
 	}
+	// Use Rewindable and ImplementSourceStop helpers that can enable this
+	// source to stop thread-safe.
 	if rewindFlag {
 		return core.NewRewindableSource(cs), nil
 	}
-	return cs, nil
+	return core.ImplementSourceStop(cs), nil
 }
 
 func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
@@ -94,7 +95,6 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 	}
 
 	cs := &captureFromURI{}
-	atomic.StoreInt32(&(cs.stop), int32(1))
 	cs.uri = uriStr
 	cs.frameSkip = frameSkip
 	cs.cameraID = cameraID
@@ -103,11 +103,6 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 }
 
 type captureFromURI struct {
-	vcap bridge.VideoCapture
-	// stop is used as atomic bool
-	// stop set 0 then means false, set other then means true
-	stop int32
-
 	uri        string
 	frameSkip  int64
 	cameraID   int64
@@ -132,16 +127,9 @@ type captureFromURI struct {
 // error will not be occurred, User can also count the number of total frame to
 // confirm complete of read file. The number of count is logged.
 func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
-	if atomic.LoadInt32(&(c.stop)) == 0 {
-		atomic.StoreInt32(&(c.stop), int32(1))
-		ctx.Log().Infof("interrupt reading video stream or file and reset: %v",
-			c.uri)
-		c.vcap.Release()
-		c.vcap.Delete()
-	}
-
-	c.vcap = bridge.NewVideoCapture()
-	if ok := c.vcap.Open(c.uri); !ok {
+	vcap := bridge.NewVideoCapture()
+	defer vcap.Delete()
+	if ok := vcap.Open(c.uri); !ok {
 		return fmt.Errorf("error opening video stream or file: %v", c.uri)
 	}
 
@@ -150,11 +138,9 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 
 	cnt := 0
 	ctx.Log().Infof("start reading video stream of file: %v", c.uri)
-	atomic.StoreInt32(&(c.stop), int32(0))
-	defer atomic.StoreInt32(&(c.stop), int32(1))
-	for atomic.LoadInt32(&(c.stop)) == 0 {
+	for {
 		cnt++
-		if ok := c.vcap.Read(buf); !ok {
+		if ok := vcap.Read(buf); !ok {
 			ctx.Log().Infof("total read frames count is %d", cnt-1)
 			if c.endErrFlag {
 				return fmt.Errorf("cannot reed a new frame")
@@ -162,7 +148,7 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			break
 		}
 		if c.frameSkip > 0 {
-			c.vcap.Grab(int(c.frameSkip))
+			vcap.Grab(int(c.frameSkip))
 		}
 
 		now := time.Now()
@@ -177,8 +163,7 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 			ProcTimestamp: now,
 			Trace:         []core.TraceEvent{},
 		}
-		err := w.Write(ctx, &t)
-		if err == core.ErrSourceRewound || err == core.ErrSourceStopped {
+		if err := w.Write(ctx, &t); err != nil {
 			return err
 		}
 	}
@@ -186,7 +171,5 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 }
 
 func (c *captureFromURI) Stop(ctx *core.Context) error {
-	atomic.StoreInt32(&(c.stop), int32(1))
-	c.vcap.Delete()
 	return nil
 }
