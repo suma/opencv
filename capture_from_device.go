@@ -30,6 +30,18 @@ var (
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
+	cs, err := createCaptureFromDevice(ctx, ioParams, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use ImplementSourceStop helper that can enable this source to stop
+	// thread-safe.
+	return core.ImplementSourceStop(cs), nil
+}
+
+func createCaptureFromDevice(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
+	core.Source, error) {
 	did, err := params.Get(deviceIDPath)
 	if err != nil {
 		return nil, err
@@ -82,9 +94,7 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		fps:      fps,
 		cameraID: cameraID,
 	}
-	// Use ImplementSourceStop helper that can enable this source to stop
-	// thread-safe.
-	return core.ImplementSourceStop(cs), nil
+	return cs, nil
 }
 
 type captureFromDevice struct {

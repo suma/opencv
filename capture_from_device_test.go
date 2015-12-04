@@ -44,7 +44,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"camera_id": data.Int(101),
 			}
 			Convey("Then creator should initialize capture source", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromDevice(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromDevice)
 				So(ok, ShouldBeTrue)
@@ -75,7 +75,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"device_id": data.Int(0),
 			}
 			Convey("Then capture should set default values", func() {
-				s, err := sc.CreateSource(ctx, ioParams, params)
+				s, err := createCaptureFromDevice(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromDevice)
 				So(ok, ShouldBeTrue)
