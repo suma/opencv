@@ -6,7 +6,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-	"sync"
 	"time"
 )
 
@@ -31,6 +30,18 @@ var (
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
+	cs, err := createCaptureFromDevice(ctx, ioParams, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use ImplementSourceStop helper that can enable this source to stop
+	// thread-safe.
+	return core.ImplementSourceStop(cs), nil
+}
+
+func createCaptureFromDevice(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
+	core.Source, error) {
 	did, err := params.Get(deviceIDPath)
 	if err != nil {
 		return nil, err
@@ -76,20 +87,17 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 		return nil, err
 	}
 
-	cs := &captureFromDevice{}
-	cs.deviceID = deviceID
-	cs.width = width
-	cs.height = height
-	cs.fps = fps
-	cs.cameraID = cameraID
+	cs := &captureFromDevice{
+		deviceID: deviceID,
+		width:    width,
+		height:   height,
+		fps:      fps,
+		cameraID: cameraID,
+	}
 	return cs, nil
 }
 
 type captureFromDevice struct {
-	vcap   bridge.VideoCapture
-	finish bool
-	rwm    sync.RWMutex
-
 	deviceID int64
 	width    int64
 	height   int64
@@ -106,55 +114,32 @@ type captureFromDevice struct {
 //  camera_id: The camera ID.
 //  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
-	c.vcap = bridge.NewVideoCapture()
-	if ok := c.vcap.OpenDevice(int(c.deviceID)); !ok {
+	vcap := bridge.NewVideoCapture()
+	defer vcap.Delete()
+
+	if ok := vcap.OpenDevice(int(c.deviceID)); !ok {
 		return fmt.Errorf("error opening device: %v", c.deviceID)
 	}
 
 	// OpenCV video capture configuration
 	if c.width > 0 {
-		c.vcap.Set(bridge.CvCapPropFrameWidth, int(c.width))
+		vcap.Set(bridge.CvCapPropFrameWidth, int(c.width))
 	}
 	if c.height > 0 {
-		c.vcap.Set(bridge.CvCapPropFrameHeight, int(c.height))
+		vcap.Set(bridge.CvCapPropFrameHeight, int(c.height))
 	}
 	if c.fps > 0 {
-		c.vcap.Set(bridge.CvCapPropFps, int(c.fps))
+		vcap.Set(bridge.CvCapPropFps, int(c.fps))
 	}
 
-	// read camera frames
-	rootBuf := bridge.NewMatVec3b()
-	defer rootBuf.Delete()
-	type ret struct {
-		buf *bridge.MatVec3b
-		err error
-	}
-	ch := make(chan *ret, 10)
-	go func(buf *bridge.MatVec3b) {
-		for {
-			err := c.grab(buf)
-			ch <- &ret{buf, err}
-			if err != nil {
-				return
-			}
-		}
-	}(&rootBuf)
-
-	// streaming, capture from rootBuf
+	// streaming, capture from vcap
 	buf := bridge.NewMatVec3b()
 	defer buf.Delete()
-	c.finish = false
 	ctx.Log().Infof("start reading camera device: %v", c.deviceID)
-	for !c.finish {
-		res := <-ch
-		if res.err != nil {
-			return res.err
+	for {
+		if ok := vcap.Read(buf); !ok {
+			return fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
 		}
-		func() {
-			c.rwm.RLock()
-			defer c.rwm.RUnlock()
-			res.buf.CopyTo(&buf)
-		}()
 		if buf.Empty() {
 			continue
 		}
@@ -171,30 +156,13 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 			ProcTimestamp: now,
 			Trace:         []core.TraceEvent{},
 		}
-		w.Write(ctx, &t)
+		if err := w.Write(ctx, &t); err != nil {
+			return err
+		}
 	}
-	return nil
-}
-
-func (c *captureFromDevice) grab(buf *bridge.MatVec3b) error {
-	if !c.vcap.IsOpened() {
-		return fmt.Errorf("video stream or file closed, device no: %d)",
-			c.deviceID)
-	}
-	tmpBuf := bridge.NewMatVec3b()
-	defer tmpBuf.Delete()
-	if ok := c.vcap.Read(tmpBuf); !ok {
-		return fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
-	}
-
-	c.rwm.Lock()
-	defer c.rwm.Unlock()
-	tmpBuf.CopyTo(buf)
 	return nil
 }
 
 func (c *captureFromDevice) Stop(ctx *core.Context) error {
-	c.finish = true
-	c.vcap.Delete()
 	return nil
 }
