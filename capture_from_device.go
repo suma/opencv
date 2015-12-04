@@ -6,7 +6,6 @@ import (
 	"pfi/sensorbee/sensorbee/bql"
 	"pfi/sensorbee/sensorbee/core"
 	"pfi/sensorbee/sensorbee/data"
-	"sync"
 	"time"
 )
 
@@ -89,8 +88,6 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 }
 
 type captureFromDevice struct {
-	rwm sync.RWMutex
-
 	deviceID int64
 	width    int64
 	height   int64
@@ -107,19 +104,12 @@ type captureFromDevice struct {
 //  camera_id: The camera ID.
 //  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
-	grabQuit := make(chan struct{}, 1)
-	stopped := make(chan struct{}, 1)
 	vcap := bridge.NewVideoCapture()
-	rootBuf := bridge.NewMatVec3b()
 	defer func() {
-		grabQuit <- struct{}{}
-		<-stopped
 		vcap.Delete()
-		rootBuf.Delete()
 	}()
 
 	if ok := vcap.OpenDevice(int(c.deviceID)); !ok {
-		stopped <- struct{}{}
 		return fmt.Errorf("error opening device: %v", c.deviceID)
 	}
 
@@ -134,42 +124,14 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 		vcap.Set(bridge.CvCapPropFps, int(c.fps))
 	}
 
-	// read camera frames
-	type ret struct {
-		buf *bridge.MatVec3b
-		err error
-	}
-	ch := make(chan *ret, 10)
-	go func(buf *bridge.MatVec3b) {
-		for {
-			err := c.grab(&vcap, buf)
-			select {
-			case <-grabQuit:
-				stopped <- struct{}{}
-				return
-			case ch <- &ret{buf, err}:
-			}
-			if err != nil {
-				stopped <- struct{}{}
-				return
-			}
-		}
-	}(&rootBuf)
-
-	// streaming, capture from rootBuf
+	// streaming, capture from vcap
 	buf := bridge.NewMatVec3b()
 	defer buf.Delete()
 	ctx.Log().Infof("start reading camera device: %v", c.deviceID)
 	for {
-		res := <-ch
-		if res.err != nil {
-			return res.err
+		if ok := vcap.Read(buf); !ok {
+			return fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
 		}
-		func() {
-			c.rwm.RLock()
-			defer c.rwm.RUnlock()
-			res.buf.CopyTo(&buf)
-		}()
 		if buf.Empty() {
 			continue
 		}
@@ -190,23 +152,6 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 			return err
 		}
 	}
-	return nil
-}
-
-func (c *captureFromDevice) grab(vcap *bridge.VideoCapture, buf *bridge.MatVec3b) error {
-	if !vcap.IsOpened() {
-		return fmt.Errorf("video stream or file closed, device no: %d)",
-			c.deviceID)
-	}
-	tmpBuf := bridge.NewMatVec3b()
-	defer tmpBuf.Delete()
-	if ok := vcap.Read(tmpBuf); !ok {
-		return fmt.Errorf("cannot read a new file (device no: %d)", c.deviceID)
-	}
-
-	c.rwm.Lock()
-	defer c.rwm.Unlock()
-	tmpBuf.CopyTo(buf)
 	return nil
 }
 
