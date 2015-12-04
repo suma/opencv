@@ -115,9 +115,7 @@ type captureFromDevice struct {
 //  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
 	vcap := bridge.NewVideoCapture()
-	defer func() {
-		vcap.Delete()
-	}()
+	defer vcap.Delete()
 
 	if ok := vcap.OpenDevice(int(c.deviceID)); !ok {
 		return fmt.Errorf("error opening device: %v", c.deviceID)
