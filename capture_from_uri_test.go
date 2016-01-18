@@ -36,19 +36,39 @@ func (w *dummyWriter) Write(ctx *core.Context, t *core.Tuple) error {
 	return nil
 }
 
+func TestGetURISourceCreatorWithRawMode(t *testing.T) {
+	ctx := &core.Context{}
+	ioParams := &bql.IOParams{}
+	Convey("Given a raw mode enabled capture source creator", t, func() {
+		sc := FromURICreator{RawMode: true}
+		Convey("When create source with not supported format", func() {
+			params := data.Map{
+				"uri":    data.String("/data/file.avi"),
+				"format": data.String("4k"),
+			}
+			_, err := sc.createCaptureFromURI(ctx, ioParams, params)
+			Convey("Then capture should return an error", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
 func TestGetURISourceCreator(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromURI creator", t, func() {
+		sc := FromURICreator{RawMode: false}
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
 				"uri":              data.String("/data/file.avi"),
+				"format":           data.String("cvmat"),
 				"frame_skip":       data.Int(5),
 				"camera_id":        data.Int(1),
 				"next_frame_error": data.False,
 			}
 			Convey("Then creator should initialize capture source", func() {
-				s, err := createCaptureFromURI(ctx, ioParams, params)
+				s, err := sc.createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromURI)
 				So(ok, ShouldBeTrue)
@@ -66,7 +86,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"next_frame_error": data.False,
 			}
 			Convey("Then creator should occur an error", func() {
-				s, err := createCaptureFromURI(ctx, ioParams, params)
+				s, err := sc.createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldBeNil)
 			})
@@ -77,7 +97,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.String("/data/file.avi"),
 			}
 			Convey("Then capture should set default values", func() {
-				s, err := createCaptureFromURI(ctx, ioParams, params)
+				s, err := sc.createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromURI)
 				So(ok, ShouldBeTrue)
@@ -93,7 +113,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.Null{},
 			}
 			Convey("Then create should occur an error", func() {
-				s, err := createCaptureFromURI(ctx, ioParams, params)
+				s, err := sc.createCaptureFromURI(ctx, ioParams, params)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldBeNil)
 			})
@@ -104,6 +124,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				"uri": data.String("/data/file.avi"),
 			}
 			testMap := data.Map{
+				"format":           data.True,
 				"frame_skip":       data.String("@"),
 				"camera_id":        data.String("全角"),
 				"next_frame_error": data.String("True"),
@@ -113,7 +134,7 @@ func TestGetURISourceCreator(t *testing.T) {
 				msg := fmt.Sprintf("with %v error", k)
 				Convey("Then creator should occur a parse error on option parameters"+msg, func() {
 					params[k] = v
-					s, err := createCaptureFromURI(ctx, ioParams, params)
+					s, err := sc.createCaptureFromURI(ctx, ioParams, params)
 					So(err, ShouldNotBeNil)
 					So(s, ShouldBeNil)
 				})

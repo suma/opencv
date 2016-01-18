@@ -56,6 +56,24 @@ int MatVec3b_Empty(MatVec3b m) {
   return m->empty();
 }
 
+struct RawData MatVec3b_ToRawData(MatVec3b m) {
+  int width = m->cols;
+  int height = m->rows;
+  int size = width * height * 3;
+  char* data = reinterpret_cast<char*>(m->data);
+  ByteArray byteData = toByteArray(data, size);
+  RawData raw = {width, height, byteData};
+  return raw;
+}
+
+MatVec3b RawData_ToMatVec3b(struct RawData r) {
+  int rows = r.height;
+  int cols = r.width;
+  cv::Mat_<cv::Vec3b>* mat = new cv::Mat_<cv::Vec3b>(rows, cols);
+  memcpy(mat->data, r.data.data, r.data.length);
+  return mat;
+}
+
 VideoCapture VideoCapture_New() {
   return new cv::VideoCapture();
 }

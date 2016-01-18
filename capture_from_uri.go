@@ -10,10 +10,13 @@ import (
 )
 
 // FromURICreator is a creator of a capture from URI.
-type FromURICreator struct{}
+type FromURICreator struct {
+	RawMode bool
+}
 
 var (
 	uriPath            = data.MustCompilePath("uri")
+	formatPath         = data.MustCompilePath("format")
 	frameSkipPath      = data.MustCompilePath("frame_skip")
 	cameraIDPath       = data.MustCompilePath("camera_id")
 	nextFrameErrorPath = data.MustCompilePath("next_frame_error")
@@ -25,6 +28,7 @@ var (
 //
 // Usage of WITH parameters:
 //  uri:              [required] A capture data's URI (e.g. /data/test.avi).
+//  format:           output format style, default is "cvmat".
 //  frame_skip:       The number of frame skip, if set empty or "0" then read
 //                    all frames. FPS is depended on the URI's file (or device).
 //  camera_id:        The unique ID of this source if set empty then the ID will
@@ -36,7 +40,7 @@ var (
 func (c *FromURICreator) CreateSource(ctx *core.Context,
 	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
-	cs, err := createCaptureFromURI(ctx, ioParams, params)
+	cs, err := c.createCaptureFromURI(ctx, ioParams, params)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +59,8 @@ func (c *FromURICreator) CreateSource(ctx *core.Context,
 	return core.ImplementSourceStop(cs), nil
 }
 
-func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
-	core.Source, error) {
+func (c *FromURICreator) createCaptureFromURI(ctx *core.Context,
+	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
 	uri, err := params.Get(uriPath)
 	if err != nil {
@@ -65,6 +69,13 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 	uriStr, err := data.AsString(uri)
 	if err != nil {
 		return nil, err
+	}
+
+	format := "cvmat"
+	if fm, err := params.Get(formatPath); err == nil {
+		if format, err = data.AsString(fm); err != nil {
+			return nil, err
+		}
 	}
 
 	fs, err := params.Get(frameSkipPath)
@@ -94,11 +105,21 @@ func createCaptureFromURI(ctx *core.Context, ioParams *bql.IOParams, params data
 		return nil, err
 	}
 
-	cs := &captureFromURI{}
-	cs.uri = uriStr
-	cs.frameSkip = frameSkip
-	cs.cameraID = cameraID
-	cs.endErrFlag = endErr
+	cs := &captureFromURI{
+		uri:        uriStr,
+		frameSkip:  frameSkip,
+		cameraID:   cameraID,
+		endErrFlag: endErr,
+	}
+	if c.RawMode {
+		if format == "cvmat" {
+			cs.foramtFunc = toRawMap
+		} else {
+			return nil, fmt.Errorf("'%v' format is not supported", format)
+		}
+	} else {
+		cs.foramtFunc = toSerializedMap
+	}
 	return cs, nil
 }
 
@@ -107,15 +128,25 @@ type captureFromURI struct {
 	frameSkip  int64
 	cameraID   int64
 	endErrFlag bool
+	foramtFunc func(m *bridge.MatVec3b) data.Map
 }
 
-// GenerateStream streams video capture datum. OpenCV video capture read
-// frames from URI, user can control frame streaming frequency using
-// FrameSkip.This source is rewindable.
+// GenerateStream streams video capture data. OpenCV video capture read frames
+// from URI, user can control frame streaming frequency using FrameSkip. This
+// source is rewindable.
 //
 // Output:
 //  capture:   The frame image binary data ('data.Blob'), serialized from
 //             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
+//  camera_id: The camera ID.
+//  timestamp: The timestamp of capturing. (reed below details)
+//
+// Output (raw mode):
+//  format:    The frame's format style, ex) "cvmat", "jpeg",...
+//  mode:      The frame's format mode, ex) "BGR", "RGBA",...
+//  width:     The frame's width.
+//  height:    The frame's height.
+//  image:     The binary data of frame image.
 //  camera_id: The camera ID.
 //  timestamp: The timestamp of capturing. (reed below details)
 //
@@ -125,7 +156,7 @@ type captureFromURI struct {
 // And when complete to read the file's all frames, video capture cannot read a
 // new frame. If the key "next_frame_error" set `false` then a no new frame
 // error will not be occurred, User can also count the number of total frame to
-// confirm complete of read file. The number of count is logged.
+// confirm complete of read file. The number of frames is logged.
 func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error {
 	vcap := bridge.NewVideoCapture()
 	defer vcap.Delete()
@@ -152,11 +183,9 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 		}
 
 		now := time.Now()
-		var m = data.Map{
-			"capture":   data.Blob(buf.Serialize()),
-			"camera_id": data.Int(c.cameraID),
-			"timestamp": data.Timestamp(now),
-		}
+		m := c.foramtFunc(&buf)
+		m["camera_id"] = data.Int(c.cameraID)
+		m["timestamp"] = data.Timestamp(now)
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,
@@ -168,6 +197,23 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 		}
 	}
 	return nil
+}
+
+func toSerializedMap(m *bridge.MatVec3b) data.Map {
+	return data.Map{
+		"capture": data.Blob(m.Serialize()),
+	}
+}
+
+func toRawMap(m *bridge.MatVec3b) data.Map {
+	r := m.ToRawData()
+	return data.Map{
+		"mode":   data.String("BGR"),   // FIXME: "mode" supposed as PNG alpha, for example
+		"format": data.String("cvmat"), // FIXME: "cvmat" is not general format name
+		"width":  data.Int(r.Width),
+		"height": data.Int(r.Height),
+		"image":  data.Blob(r.Data),
+	}
 }
 
 func (c *captureFromURI) Stop(ctx *core.Context) error {

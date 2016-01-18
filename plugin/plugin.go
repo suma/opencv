@@ -14,7 +14,10 @@ import (
 //
 func init() {
 	bql.MustRegisterGlobalSourceCreator("opencv_capture_from_uri",
-		&opencv.FromURICreator{})
+		&opencv.FromURICreator{RawMode: false})
 	bql.MustRegisterGlobalSourceCreator("opencv_capture_from_device",
 		&opencv.FromDeviceCreator{})
+
+	bql.MustRegisterGlobalSourceCreator("opencv_capture_from_uri_raw",
+		&opencv.FromURICreator{RawMode: true})
 }
