@@ -10,7 +10,9 @@ import (
 )
 
 // FromDeviceCreator is a creator of a capture from device.
-type FromDeviceCreator struct{}
+type FromDeviceCreator struct {
+	RawMode bool
+}
 
 var (
 	deviceIDPath = data.MustCompilePath("device_id")
@@ -24,13 +26,14 @@ var (
 //
 // Usage of WITH parameters:
 //  device_id: [required] The ID of associated device.
+//  format:    output format style, default is "cvmat".
 //  width:     Frame width, if set empty or "0" then will be ignore.
 //  height:    Frame height, if set empty or "0" then will be ignore.
 //  fps:       Frame per second, if set empty or "0" then will be ignore.
 //  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
-	cs, err := createCaptureFromDevice(ctx, ioParams, params)
+	cs, err := c.createCaptureFromDevice(ctx, ioParams, params)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +43,8 @@ func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOPara
 	return core.ImplementSourceStop(cs), nil
 }
 
-func createCaptureFromDevice(ctx *core.Context, ioParams *bql.IOParams, params data.Map) (
-	core.Source, error) {
+func (c *FromDeviceCreator) createCaptureFromDevice(ctx *core.Context,
+	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 	did, err := params.Get(deviceIDPath)
 	if err != nil {
 		return nil, err
@@ -49,6 +52,13 @@ func createCaptureFromDevice(ctx *core.Context, ioParams *bql.IOParams, params d
 	deviceID, err := data.AsInt(did)
 	if err != nil {
 		return nil, err
+	}
+
+	format := "cvmat"
+	if fm, err := params.Get(formatPath); err == nil {
+		if format, err = data.AsString(fm); err != nil {
+			return nil, err
+		}
 	}
 
 	w, err := params.Get(widthPath)
@@ -94,23 +104,42 @@ func createCaptureFromDevice(ctx *core.Context, ioParams *bql.IOParams, params d
 		fps:      fps,
 		cameraID: cameraID,
 	}
+	if c.RawMode {
+		if format == "cvmat" {
+			cs.formatFunc = toRawMap
+		} else {
+			return nil, fmt.Errorf("'%v' format is not supported", format)
+		}
+	} else {
+		cs.formatFunc = toSerializedMap
+	}
 	return cs, nil
 }
 
 type captureFromDevice struct {
-	deviceID int64
-	width    int64
-	height   int64
-	fps      int64
-	cameraID int64
+	deviceID   int64
+	width      int64
+	height     int64
+	fps        int64
+	cameraID   int64
+	formatFunc func(m *bridge.MatVec3b) data.Map
 }
 
-// GenerateStream streams video capture datum. OpenCV parameters
+// GenerateStream streams video capture data. OpenCV parameters
 // (e.g width, height...) are set when the source is initialized.
 //
 // Output:
 //  capture:   The frame image binary data ('data.Blob'), serialized from
 //             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
+//  camera_id: The camera ID.
+//  timestamp: The timestamp of capturing. (reed below details)
+//
+// Output (raw mode):
+//  format:    The frame's format style, ex) "cvmat", "jpeg",...
+//  mode:      The frame's format mode, ex) "BGR", "RGBA",...
+//  width:     The frame's width.
+//  height:    The frame's height.
+//  image:     The binary data of frame image.
 //  camera_id: The camera ID.
 //  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
@@ -145,11 +174,9 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 		}
 
 		now := time.Now()
-		var m = data.Map{
-			"capture":   data.Blob(buf.Serialize()),
-			"cameraID":  data.Int(c.cameraID),
-			"timestamp": data.Timestamp(now),
-		}
+		m := c.formatFunc(&buf)
+		m["camera_id"] = data.Int(c.cameraID)
+		m["timestamp"] = data.Timestamp(now)
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,

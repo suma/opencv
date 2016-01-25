@@ -38,13 +38,14 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
 				"device_id": data.Int(0),
+				"format":    data.String("cvmat"),
 				"width":     data.Int(500),
 				"height":    data.Int(600),
 				"fps":       data.Int(25),
 				"camera_id": data.Int(101),
 			}
 			Convey("Then creator should initialize capture source", func() {
-				s, err := createCaptureFromDevice(ctx, ioParams, params)
+				s, err := sc.createCaptureFromDevice(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromDevice)
 				So(ok, ShouldBeTrue)
@@ -75,7 +76,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"device_id": data.Int(0),
 			}
 			Convey("Then capture should set default values", func() {
-				s, err := createCaptureFromDevice(ctx, ioParams, params)
+				s, err := sc.createCaptureFromDevice(ctx, ioParams, params)
 				So(err, ShouldBeNil)
 				capture, ok := s.(*captureFromDevice)
 				So(ok, ShouldBeTrue)
@@ -103,6 +104,7 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"device_id": data.Int(0),
 			}
 			testMap := data.Map{
+				"format":    data.False,
 				"width":     data.String("a"),
 				"height":    data.String("b"),
 				"fps":       data.String("@"),
@@ -119,6 +121,24 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 						So(s, ShouldBeNil)
 					})
 			}
+		})
+	})
+}
+
+func TestGetDeviceSourceCreatorWithRawMode(t *testing.T) {
+	ctx := &core.Context{}
+	ioParams := &bql.IOParams{}
+	Convey("Given a raw mode enabled capture source creator", t, func() {
+		sc := FromDeviceCreator{RawMode: true}
+		Convey("When create source with not supported format", func() {
+			params := data.Map{
+				"device_id": data.Int(0),
+				"format":    data.String("4k"),
+			}
+			_, err := sc.createCaptureFromDevice(ctx, ioParams, params)
+			Convey("Then capture should return an error", func() {
+				So(err, ShouldNotBeNil)
+			})
 		})
 	})
 }
