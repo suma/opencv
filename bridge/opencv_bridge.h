@@ -8,6 +8,12 @@
 extern "C" {
 #endif
 
+typedef struct RawData {
+  int width;
+  int height;
+  struct ByteArray data;
+} RawData;
+
 #ifdef __cplusplus
 typedef cv::Mat_<cv::Vec3b>* MatVec3b;
 typedef cv::VideoCapture* VideoCapture;
@@ -25,6 +31,8 @@ MatVec3b MatVec3b_Deserialize(struct ByteArray src);
 void MatVec3b_Delete(MatVec3b m);
 void MatVec3b_CopyTo(MatVec3b src, MatVec3b dst);
 int MatVec3b_Empty(MatVec3b m);
+struct RawData MatVec3b_ToRawData(MatVec3b m);
+MatVec3b RawData_ToMatVec3b(struct RawData r);
 
 VideoCapture VideoCapture_New();
 void VideoCapture_Delete(VideoCapture v);
