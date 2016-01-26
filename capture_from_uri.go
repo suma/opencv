@@ -208,8 +208,7 @@ func toSerializedMap(m *bridge.MatVec3b) data.Map {
 func toRawMap(m *bridge.MatVec3b) data.Map {
 	r := m.ToRawData()
 	return data.Map{
-		"mode":   data.String("BGR"),   // FIXME: "mode" supposed as PNG alpha, for example
-		"format": data.String("cvmat"), // FIXME: "cvmat" is not general format name
+		"format": data.String("cvmat"), // = cv::Mat_<cv::Vec3b>
 		"width":  data.Int(r.Width),
 		"height": data.Int(r.Height),
 		"image":  data.Blob(r.Data),
