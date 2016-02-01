@@ -10,9 +10,7 @@ import (
 )
 
 // FromURICreator is a creator of a capture from URI.
-type FromURICreator struct {
-	RawMode bool
-}
+type FromURICreator struct{}
 
 var (
 	uriPath            = data.MustCompilePath("uri")
@@ -25,15 +23,20 @@ var (
 // CreateSource creates a frame generator using OpenCV video capture.
 // URI can be set HTTP address or file path.
 //
-// Usage of WITH parameters:
-//  uri:              [required] A capture data's URI (e.g. /data/test.avi).
-//  format:           output format style, default is "cvmat".
-//  frame_skip:       The number of frame skip, if set empty or "0" then read
-//                    all frames. FPS is depended on the URI's file (or device).
-//  next_frame_error: When this source cannot read a new frame, occur error or
-//                    not decided by the flag. If the flag set `true` then
-//                    return error. Default value is true.
-//  rewind:           If set `true` then user can use `REWIND SOURCE` query.
+// WITH parameters.
+//
+// uri: [required] A capture data's URI (e.g. /data/test.avi).
+//
+// format: Output format style, default is "cvmat".
+//
+// frame_skip: The number of frame skip, if set empty or "0" then read all
+// frames. FPS is depended on the URI's file (or device).
+//
+// next_frame_error: When this source cannot read a new frame, occur error or
+// not decided by the flag. If the flag set `true` then return error. Default
+// value is true.
+//
+// rewind: If set `true` then user can use `REWIND SOURCE` query.
 func (c *FromURICreator) CreateSource(ctx *core.Context,
 	ioParams *bql.IOParams, params data.Map) (core.Source, error) {
 
@@ -98,14 +101,10 @@ func (c *FromURICreator) createCaptureFromURI(ctx *core.Context,
 		frameSkip:  frameSkip,
 		endErrFlag: endErr,
 	}
-	if c.RawMode {
-		if format == "cvmat" {
-			cs.foramtFunc = toRawMap
-		} else {
-			return nil, fmt.Errorf("'%v' format is not supported", format)
-		}
+	if format == "cvmat" {
+		cs.foramtFunc = toRawMap
 	} else {
-		cs.foramtFunc = toSerializedMap
+		return nil, fmt.Errorf("'%v' format is not supported", format)
 	}
 	return cs, nil
 }
@@ -121,16 +120,17 @@ type captureFromURI struct {
 // from URI, user can control frame streaming frequency using FrameSkip. This
 // source is rewindable.
 //
-// Output:
-//  capture:   The frame image binary data ('data.Blob'), serialized from
-//             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
+// Output
 //
-// Output (raw mode):
-//  format:    The frame's format style, ex) "cvmat", "jpeg",...
-//  mode:      The frame's format mode, ex) "BGR", "RGBA",...
-//  width:     The frame's width.
-//  height:    The frame's height.
-//  image:     The binary data of frame image.
+// format: The frame's format style, ex) "cvmat", "jpeg",...
+//
+// mode: The frame's format mode, ex) "BGR", "RGBA",...
+//
+// width: The frame's width.
+//
+// height: The frame's height.
+//
+// image: The binary data of frame image.
 //
 // When a capture source is a file-style (e.g. AVI file), tuples' timestamp is
 // NOT correspond with the file created time. The timestamp value is the time
@@ -177,22 +177,6 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 		}
 	}
 	return nil
-}
-
-func toSerializedMap(m *bridge.MatVec3b) data.Map {
-	return data.Map{
-		"capture": data.Blob(m.Serialize()),
-	}
-}
-
-func toRawMap(m *bridge.MatVec3b) data.Map {
-	r := m.ToRawData()
-	return data.Map{
-		"format": data.String("cvmat"), // = cv::Mat_<cv::Vec3b>
-		"width":  data.Int(r.Width),
-		"height": data.Int(r.Height),
-		"image":  data.Blob(r.Data),
-	}
 }
 
 func (c *captureFromURI) Stop(ctx *core.Context) error {

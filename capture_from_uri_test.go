@@ -40,7 +40,7 @@ func TestGetURISourceCreatorWithRawMode(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a raw mode enabled capture source creator", t, func() {
-		sc := FromURICreator{RawMode: true}
+		sc := FromURICreator{}
 		Convey("When create source with not supported format", func() {
 			params := data.Map{
 				"uri":    data.String("/data/file.avi"),
@@ -58,7 +58,7 @@ func TestGetURISourceCreator(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a CaptureFromURI creator", t, func() {
-		sc := FromURICreator{RawMode: false}
+		sc := FromURICreator{}
 		Convey("When create source with full parameters", func() {
 			params := data.Map{
 				"uri":              data.String("/data/file.avi"),

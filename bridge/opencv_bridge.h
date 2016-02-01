@@ -26,8 +26,6 @@ typedef void* VideoWriter;
 
 MatVec3b MatVec3b_New();
 struct ByteArray MatVec3b_ToJpegData(MatVec3b m, int quality);
-struct ByteArray MatVec3b_Serialize(MatVec3b m);
-MatVec3b MatVec3b_Deserialize(struct ByteArray src);
 void MatVec3b_Delete(MatVec3b m);
 void MatVec3b_CopyTo(MatVec3b src, MatVec3b dst);
 int MatVec3b_Empty(MatVec3b m);

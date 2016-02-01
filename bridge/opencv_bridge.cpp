@@ -16,34 +16,6 @@ struct ByteArray MatVec3b_ToJpegData(MatVec3b m, int quality){
   return toByteArray(reinterpret_cast<const char*>(&data[0]), data.size());
 }
 
-struct ByteArray MatVec3b_Serialize(MatVec3b m) {
-  msgpack::sbuffer buf;
-  msgpack::packer<msgpack::sbuffer> pk(&buf);
-  pk.pack_array(3);
-  pk.pack(m->rows);
-  pk.pack(m->cols);
-  int size = m->rows * m->cols * 3;
-  pk.pack_raw(size);
-  assert(m->isContinuous());
-  pk.pack_raw_body(reinterpret_cast<char*>(m->data), size);
-  return toByteArray(buf.data(), buf.size());
-}
-
-MatVec3b MatVec3b_Deserialize(struct ByteArray src) {
-  msgpack::unpacked msg;
-  msgpack::unpack(&msg, src.data, src.length);
-  msgpack::object obj = msg.get();
-
-  msgpack::object_array obj_array = obj.via.array;
-  assert(obj_array.size == 3);
-  int rows, cols;
-  obj_array.ptr[0] >> rows;
-  obj_array.ptr[1] >> cols;
-  cv::Mat_<cv::Vec3b>* mat = new cv::Mat_<cv::Vec3b>(rows, cols);
-  memcpy(mat->data, obj_array.ptr[2].via.raw.ptr, obj_array.ptr[2].via.raw.size);
-  return mat;
-}
-
 void MatVec3b_Delete(MatVec3b m) {
   delete m;
 }

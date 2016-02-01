@@ -9,9 +9,6 @@ package bridge
 */
 import "C"
 import (
-	"bytes"
-	"image"
-	"image/jpeg"
 	"sync"
 	"unsafe"
 )
@@ -55,19 +52,6 @@ func (m *MatVec3b) ToJpegData(quality int) []byte {
 	return toGoBytes(b)
 }
 
-// Serialize object.
-func (m *MatVec3b) Serialize() []byte {
-	b := C.MatVec3b_Serialize(m.p)
-	defer C.ByteArray_Release(b)
-	return toGoBytes(b)
-}
-
-// DeserializeMatVec3b deserializes object.
-func DeserializeMatVec3b(m []byte) MatVec3b {
-	b := toByteArray(m)
-	return MatVec3b{p: C.MatVec3b_Deserialize(b)}
-}
-
 // Delete object.
 func (m *MatVec3b) Delete() {
 	C.MatVec3b_Delete(m.p)
@@ -85,47 +69,21 @@ func (m *MatVec3b) Empty() bool {
 	return isEmpty != 0
 }
 
-// RawData is represented of `cv::Mat_<cv::Vec3b>` structure.
-type RawData struct {
-	Width  int
-	Height int
-	Data   []byte
-}
-
 // ToRawData converts MatVec3b to RawData.
-func (m *MatVec3b) ToRawData() RawData {
+func (m *MatVec3b) ToRawData() (int, int, []byte) {
 	r := C.MatVec3b_ToRawData(m.p)
-	return RawData{
-		Width:  int(r.width),
-		Height: int(r.height),
-		Data:   toGoBytes(r.data),
-	}
+	return int(r.width), int(r.height), toGoBytes(r.data)
 }
 
 // ToMatVec3b converts RawData to MatVec3b. Returned MatVec3b is required to
 // delete after using.
-func (r *RawData) ToMatVec3b() MatVec3b {
+func ToMatVec3b(width int, height int, data []byte) MatVec3b {
 	cr := C.struct_RawData{
-		width:  C.int(r.Width),
-		height: C.int(r.Height),
-		data:   toByteArray(r.Data),
+		width:  C.int(width),
+		height: C.int(height),
+		data:   toByteArray(data),
 	}
 	return MatVec3b{p: C.RawData_ToMatVec3b(cr)}
-}
-
-// ToJpegData convert JPGE format image bytes.
-func (r *RawData) ToJpegData(quality int) ([]byte, error) {
-	// BGR to RGB
-	rgba := image.NewRGBA(image.Rect(0, 0, r.Width, r.Height))
-	for i, j := 0, 0; i < len(rgba.Pix); i, j = i+4, j+3 {
-		rgba.Pix[i+0] = r.Data[j+2]
-		rgba.Pix[i+1] = r.Data[j+1]
-		rgba.Pix[i+2] = r.Data[j+0]
-		rgba.Pix[i+3] = 0xFF
-	}
-	w := bytes.NewBuffer([]byte{})
-	err := jpeg.Encode(w, rgba, &jpeg.Options{Quality: quality})
-	return w.Bytes(), err
 }
 
 // VideoCapture is a bind of `cv::VideoCapture`.
