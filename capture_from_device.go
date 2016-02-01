@@ -30,7 +30,6 @@ var (
 //  width:     Frame width, if set empty or "0" then will be ignore.
 //  height:    Frame height, if set empty or "0" then will be ignore.
 //  fps:       Frame per second, if set empty or "0" then will be ignore.
-//  camera_id: The unique ID of this source if set empty then the ID will be 0.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
 	cs, err := c.createCaptureFromDevice(ctx, ioParams, params)
@@ -88,21 +87,11 @@ func (c *FromDeviceCreator) createCaptureFromDevice(ctx *core.Context,
 		return nil, err
 	}
 
-	cid, err := params.Get(cameraIDPath)
-	if err != nil {
-		cid = data.Int(0)
-	}
-	cameraID, err := data.AsInt(cid)
-	if err != nil {
-		return nil, err
-	}
-
 	cs := &captureFromDevice{
 		deviceID: deviceID,
 		width:    width,
 		height:   height,
 		fps:      fps,
-		cameraID: cameraID,
 	}
 	if c.RawMode {
 		if format == "cvmat" {
@@ -121,7 +110,6 @@ type captureFromDevice struct {
 	width      int64
 	height     int64
 	fps        int64
-	cameraID   int64
 	formatFunc func(m *bridge.MatVec3b) data.Map
 }
 
@@ -131,8 +119,6 @@ type captureFromDevice struct {
 // Output:
 //  capture:   The frame image binary data ('data.Blob'), serialized from
 //             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
-//  camera_id: The camera ID.
-//  timestamp: The timestamp of capturing. (reed below details)
 //
 // Output (raw mode):
 //  format:    The frame's format style, ex) "cvmat", "jpeg",...
@@ -140,8 +126,6 @@ type captureFromDevice struct {
 //  width:     The frame's width.
 //  height:    The frame's height.
 //  image:     The binary data of frame image.
-//  camera_id: The camera ID.
-//  timestamp: The timestamp of capturing. (reed below details)
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
 	vcap := bridge.NewVideoCapture()
 	defer vcap.Delete()
@@ -175,8 +159,6 @@ func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) err
 
 		now := time.Now()
 		m := c.formatFunc(&buf)
-		m["camera_id"] = data.Int(c.cameraID)
-		m["timestamp"] = data.Timestamp(now)
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,

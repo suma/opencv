@@ -42,7 +42,6 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"width":     data.Int(500),
 				"height":    data.Int(600),
 				"fps":       data.Int(25),
-				"camera_id": data.Int(101),
 			}
 			Convey("Then creator should initialize capture source", func() {
 				s, err := sc.createCaptureFromDevice(ctx, ioParams, params)
@@ -53,16 +52,14 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				So(capture.width, ShouldEqual, 500)
 				So(capture.height, ShouldEqual, 600)
 				So(capture.fps, ShouldEqual, 25)
-				So(capture.cameraID, ShouldEqual, 101)
 			})
 		})
 
 		Convey("When create source with empty device ID", func() {
 			params := data.Map{
-				"width":     data.Int(500),
-				"height":    data.Int(600),
-				"fps":       data.Int(25),
-				"camera_id": data.Int(101),
+				"width":  data.Int(500),
+				"height": data.Int(600),
+				"fps":    data.Int(25),
 			}
 			Convey("Then creator should occur an error", func() {
 				s, err := sc.CreateSource(ctx, ioParams, params)
@@ -84,7 +81,6 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				So(capture.width, ShouldEqual, 0)
 				So(capture.height, ShouldEqual, 0)
 				So(capture.fps, ShouldEqual, 0)
-				So(capture.cameraID, ShouldEqual, 0)
 			})
 		})
 
@@ -104,11 +100,10 @@ func TestGetDeviceSourceCreator(t *testing.T) {
 				"device_id": data.Int(0),
 			}
 			testMap := data.Map{
-				"format":    data.False,
-				"width":     data.String("a"),
-				"height":    data.String("b"),
-				"fps":       data.String("@"),
-				"camera_id": data.String("#"),
+				"format": data.False,
+				"width":  data.String("a"),
+				"height": data.String("b"),
+				"fps":    data.String("@"),
 			}
 			for k, v := range testMap {
 				v := v

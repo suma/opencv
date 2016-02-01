@@ -18,7 +18,6 @@ var (
 	uriPath            = data.MustCompilePath("uri")
 	formatPath         = data.MustCompilePath("format")
 	frameSkipPath      = data.MustCompilePath("frame_skip")
-	cameraIDPath       = data.MustCompilePath("camera_id")
 	nextFrameErrorPath = data.MustCompilePath("next_frame_error")
 	rewindPath         = data.MustCompilePath("rewind")
 )
@@ -31,8 +30,6 @@ var (
 //  format:           output format style, default is "cvmat".
 //  frame_skip:       The number of frame skip, if set empty or "0" then read
 //                    all frames. FPS is depended on the URI's file (or device).
-//  camera_id:        The unique ID of this source if set empty then the ID will
-//                    be 0.
 //  next_frame_error: When this source cannot read a new frame, occur error or
 //                    not decided by the flag. If the flag set `true` then
 //                    return error. Default value is true.
@@ -87,15 +84,6 @@ func (c *FromURICreator) createCaptureFromURI(ctx *core.Context,
 		return nil, err
 	}
 
-	cid, err := params.Get(cameraIDPath)
-	if err != nil {
-		cid = data.Int(0)
-	}
-	cameraID, err := data.AsInt(cid)
-	if err != nil {
-		return nil, err
-	}
-
 	endErrFlag, err := params.Get(nextFrameErrorPath)
 	if err != nil {
 		endErrFlag = data.True
@@ -108,7 +96,6 @@ func (c *FromURICreator) createCaptureFromURI(ctx *core.Context,
 	cs := &captureFromURI{
 		uri:        uriStr,
 		frameSkip:  frameSkip,
-		cameraID:   cameraID,
 		endErrFlag: endErr,
 	}
 	if c.RawMode {
@@ -126,7 +113,6 @@ func (c *FromURICreator) createCaptureFromURI(ctx *core.Context,
 type captureFromURI struct {
 	uri        string
 	frameSkip  int64
-	cameraID   int64
 	endErrFlag bool
 	foramtFunc func(m *bridge.MatVec3b) data.Map
 }
@@ -138,8 +124,6 @@ type captureFromURI struct {
 // Output:
 //  capture:   The frame image binary data ('data.Blob'), serialized from
 //             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
-//  camera_id: The camera ID.
-//  timestamp: The timestamp of capturing. (reed below details)
 //
 // Output (raw mode):
 //  format:    The frame's format style, ex) "cvmat", "jpeg",...
@@ -147,11 +131,9 @@ type captureFromURI struct {
 //  width:     The frame's width.
 //  height:    The frame's height.
 //  image:     The binary data of frame image.
-//  camera_id: The camera ID.
-//  timestamp: The timestamp of capturing. (reed below details)
 //
-// When a capture source is a file-style (e.g. AVI file), a "timestamp" value is
-// NOT correspond with the file created time. The "timestamp" value is the time
+// When a capture source is a file-style (e.g. AVI file), tuples' timestamp is
+// NOT correspond with the file created time. The timestamp value is the time
 // of this source capturing a new frame.
 // And when complete to read the file's all frames, video capture cannot read a
 // new frame. If the key "next_frame_error" set `false` then a no new frame
@@ -184,8 +166,6 @@ func (c *captureFromURI) GenerateStream(ctx *core.Context, w core.Writer) error 
 
 		now := time.Now()
 		m := c.foramtFunc(&buf)
-		m["camera_id"] = data.Int(c.cameraID)
-		m["timestamp"] = data.Timestamp(now)
 		t := core.Tuple{
 			Data:          m,
 			Timestamp:     now,
