@@ -77,6 +77,18 @@ func ConvertMapToRawData(dm data.Map) (RawData, error) {
 	}, nil
 }
 
+// ConvertToDataMap returns data.map. This function is utility method for
+// other plug-in.
+func (r *RawData) ConvertToDataMap() data.Map {
+	// TODO format error
+	return data.Map{
+		"format": data.String("cvmat"),
+		"width":  data.Int(r.Width),
+		"height": data.Int(r.Height),
+		"image":  data.Blob(r.Data),
+	}
+}
+
 // ToJpegData convert JPGE format image bytes.
 func (r *RawData) ToJpegData(quality int) ([]byte, error) {
 	// BGR to RGB
