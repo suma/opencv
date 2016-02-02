@@ -124,7 +124,7 @@ func TestGetDeviceSourceCreatorWithRawMode(t *testing.T) {
 	ctx := &core.Context{}
 	ioParams := &bql.IOParams{}
 	Convey("Given a raw mode enabled capture source creator", t, func() {
-		sc := FromDeviceCreator{RawMode: true}
+		sc := FromDeviceCreator{}
 		Convey("When create source with not supported format", func() {
 			params := data.Map{
 				"device_id": data.Int(0),

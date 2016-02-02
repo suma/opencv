@@ -10,9 +10,7 @@ import (
 )
 
 // FromDeviceCreator is a creator of a capture from device.
-type FromDeviceCreator struct {
-	RawMode bool
-}
+type FromDeviceCreator struct{}
 
 var (
 	deviceIDPath = data.MustCompilePath("device_id")
@@ -24,12 +22,17 @@ var (
 // CreateSource creates a frame generator using OpenCV video capture
 // (`VideoCapture::open`).
 //
-// Usage of WITH parameters:
-//  device_id: [required] The ID of associated device.
-//  format:    output format style, default is "cvmat".
-//  width:     Frame width, if set empty or "0" then will be ignore.
-//  height:    Frame height, if set empty or "0" then will be ignore.
-//  fps:       Frame per second, if set empty or "0" then will be ignore.
+// WITH parameters.
+//
+// device_id: [required] The ID of associated device.
+//
+// format: Output format style, default is "cvmat".
+//
+// width: Frame width, if set empty or "0" then will be ignore.
+//
+// height: Frame height, if set empty or "0" then will be ignore.
+//
+// fps: Frame per second, if set empty or "0" then will be ignore.
 func (c *FromDeviceCreator) CreateSource(ctx *core.Context, ioParams *bql.IOParams,
 	params data.Map) (core.Source, error) {
 	cs, err := c.createCaptureFromDevice(ctx, ioParams, params)
@@ -93,14 +96,10 @@ func (c *FromDeviceCreator) createCaptureFromDevice(ctx *core.Context,
 		height:   height,
 		fps:      fps,
 	}
-	if c.RawMode {
-		if format == "cvmat" {
-			cs.formatFunc = toRawMap
-		} else {
-			return nil, fmt.Errorf("'%v' format is not supported", format)
-		}
+	if format == "cvmat" {
+		cs.formatFunc = toRawMap
 	} else {
-		cs.formatFunc = toSerializedMap
+		return nil, fmt.Errorf("'%v' format is not supported", format)
 	}
 	return cs, nil
 }
@@ -116,16 +115,17 @@ type captureFromDevice struct {
 // GenerateStream streams video capture data. OpenCV parameters
 // (e.g width, height...) are set when the source is initialized.
 //
-// Output:
-//  capture:   The frame image binary data ('data.Blob'), serialized from
-//             OpenCV's matrix data format (`cv::Mat_<cv::Vec3b>`).
+// Output
 //
-// Output (raw mode):
-//  format:    The frame's format style, ex) "cvmat", "jpeg",...
-//  mode:      The frame's format mode, ex) "BGR", "RGBA",...
-//  width:     The frame's width.
-//  height:    The frame's height.
-//  image:     The binary data of frame image.
+// format: The frame's format style, ex) "cvmat", "jpeg",...
+//
+// mode: The frame's format mode, ex) "BGR", "RGBA",...
+//
+// width: The frame's width.
+//
+// height: The frame's height.
+//
+// image: The binary data of frame image.
 func (c *captureFromDevice) GenerateStream(ctx *core.Context, w core.Writer) error {
 	vcap := bridge.NewVideoCapture()
 	defer vcap.Delete()
