@@ -14,6 +14,7 @@ var (
 
 // RawData is represented of `cv::Mat_<cv::Vec3b>` structure.
 type RawData struct {
+	Format string
 	Width  int
 	Height int
 	Data   []byte
@@ -23,6 +24,7 @@ type RawData struct {
 func ToRawData(m bridge.MatVec3b) RawData {
 	w, h, data := m.ToRawData()
 	return RawData{
+		Format: "cvmat",
 		Width:  w,
 		Height: h,
 		Data:   data,
@@ -32,13 +34,14 @@ func ToRawData(m bridge.MatVec3b) RawData {
 // ToMatVec3b converts RawData to MatVec3b. Returned MatVec3b is required to
 // delete after using.
 func (r *RawData) ToMatVec3b() bridge.MatVec3b {
+	// TODO format error, RawData is supposed for cv::Mat structure.
 	return bridge.ToMatVec3b(r.Width, r.Height, r.Data)
 }
 
 func toRawMap(m *bridge.MatVec3b) data.Map {
 	r := ToRawData(*m)
 	return data.Map{
-		"format": data.String("cvmat"), // = cv::Mat_<cv::Vec3b>
+		"format": data.String(r.Format), // = cv::Mat_<cv::Vec3b> = "cvmat"
 		"width":  data.Int(r.Width),
 		"height": data.Int(r.Height),
 		"image":  data.Blob(r.Data),
@@ -48,7 +51,6 @@ func toRawMap(m *bridge.MatVec3b) data.Map {
 // ConvertMapToRawData returns RawData from data.Map. This function is
 // utility method for other plug-in.
 func ConvertMapToRawData(dm data.Map) (RawData, error) {
-	// TODO format error, RawData is supposed for cv::Mat structure.
 	var width int64
 	if w, err := dm.Get(widthPath); err != nil {
 		return RawData{}, err
@@ -70,7 +72,15 @@ func ConvertMapToRawData(dm data.Map) (RawData, error) {
 		return RawData{}, err
 	}
 
+	format := "" // TODO should be as required parameter
+	if fm, err := dm.Get(formatPath); err == nil {
+		if format, err = data.AsString(fm); err != nil {
+			return RawData{}, err
+		}
+	}
+
 	return RawData{
+		Format: format,
 		Width:  int(width),
 		Height: int(height),
 		Data:   img,
@@ -80,9 +90,8 @@ func ConvertMapToRawData(dm data.Map) (RawData, error) {
 // ConvertToDataMap returns data.map. This function is utility method for
 // other plug-in.
 func (r *RawData) ConvertToDataMap() data.Map {
-	// TODO format error
 	return data.Map{
-		"format": data.String("cvmat"),
+		"format": data.String(r.Format),
 		"width":  data.Int(r.Width),
 		"height": data.Int(r.Height),
 		"image":  data.Blob(r.Data),
@@ -91,6 +100,7 @@ func (r *RawData) ConvertToDataMap() data.Map {
 
 // ToJpegData convert JPGE format image bytes.
 func (r *RawData) ToJpegData(quality int) ([]byte, error) {
+	// TODO format error, RawData is supposed for cv::Mat structure.
 	// BGR to RGB
 	rgba := image.NewRGBA(image.Rect(0, 0, r.Width, r.Height))
 	for i, j := 0, 0; i < len(rgba.Pix); i, j = i+4, j+3 {
