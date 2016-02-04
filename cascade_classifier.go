@@ -9,6 +9,8 @@ import (
 
 var (
 	configFilePath = data.MustCompilePath("file")
+	xPath          = data.MustCompilePath("x")
+	yPath          = data.MustCompilePath("y")
 )
 
 // NewCascadeClassifier returns cascadeClassifier state.
@@ -87,4 +89,61 @@ func DetectMultiScale(ctx *core.Context, classifierName string, img data.Map) (
 		ret[i] = rect
 	}
 	return ret, nil
+}
+
+// DrawRectsToImage draws rectangle information on target image. The image is
+// required to structured as RawData.
+func DrawRectsToImage(img data.Map, rects data.Array) (data.Map, error) {
+	if len(rects) == 0 {
+		return img, nil
+	}
+	raw, err := ConvertMapToRawData(img)
+	if err != nil {
+		return nil, err
+	}
+	mat := raw.ToMatVec3b()
+	defer mat.Delete()
+
+	brRects := make([]bridge.Rect, len(rects))
+	for i, r := range rects {
+		rmap, err := data.AsMap(r)
+		if err != nil {
+			return nil, err
+		}
+		var x int64
+		if xv, err := rmap.Get(xPath); err != nil {
+			return nil, err
+		} else if x, err = data.ToInt(xv); err != nil {
+			return nil, err
+		}
+		var y int64
+		if yv, err := rmap.Get(yPath); err != nil {
+			return nil, err
+		} else if y, err = data.ToInt(yv); err != nil {
+			return nil, err
+		}
+		var width int64
+		if wv, err := rmap.Get(widthPath); err != nil {
+			return nil, err
+		} else if width, err = data.ToInt(wv); err != nil {
+			return nil, err
+		}
+		var height int64
+		if hv, err := rmap.Get(heightPath); err != nil {
+			return nil, err
+		} else if height, err = data.ToInt(hv); err != nil {
+			return nil, err
+		}
+		rect := bridge.Rect{
+			X:      int(x),
+			Y:      int(y),
+			Width:  int(width),
+			Height: int(height),
+		}
+		brRects[i] = rect
+	}
+
+	bridge.DrawRectsToImage(mat, brRects)
+	retRaw := ToRawData(mat)
+	return retRaw.ConvertToDataMap(), nil
 }

@@ -24,4 +24,6 @@ func init() {
 		udf.UDSCreatorFunc(opencv.NewCascadeClassifier))
 	udf.MustRegisterGlobalUDF("opencv_detect_multi_scale",
 		udf.MustConvertGeneric(opencv.DetectMultiScale))
+	udf.MustRegisterGlobalUDF("opencv_draw_rects",
+		udf.MustConvertGeneric(opencv.DrawRectsToImage))
 }

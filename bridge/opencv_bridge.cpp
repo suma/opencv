@@ -137,3 +137,11 @@ struct Rects CascadeClassifier_DetectMultiScale(CascadeClassifier cs, MatVec3b i
 void Rects_Delete(struct Rects rs) {
   delete rs.rects;
 }
+
+void DrawRectsToImage(MatVec3b img, struct Rects rects) {
+  for (int i = 0; i < rects.length; ++i) {
+    Rect r = rects.rects[i];
+    cv::rectangle(*img, cv::Point(r.x, r.y), cv::Point(r.x+r.width, r.y+r.height),
+      cv::Scalar(0, 200, 0), 3, CV_AA);
+  }
+}

@@ -68,6 +68,7 @@ void CascadeClassifier_Delete(CascadeClassifier cs);
 int CascadeClassifier_Load(CascadeClassifier cs, const char* name);
 struct Rects CascadeClassifier_DetectMultiScale(CascadeClassifier cs, MatVec3b img);
 void Rects_Delete(struct Rects rs);
+void DrawRectsToImage(MatVec3b img, struct Rects rects);
 
 #ifdef __cplusplus
 }
