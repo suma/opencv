@@ -70,7 +70,10 @@ func DetectMultiScale(ctx *core.Context, classifierName string, img data.Map) (
 	if err != nil {
 		return nil, err
 	}
-	mat := raw.ToMatVec3b()
+	mat, err := raw.ToMatVec3b()
+	if err != nil {
+		return nil, err
+	}
 	defer mat.Delete()
 
 	classifier, err := lookupCascadeClassifier(ctx, classifierName)
@@ -101,7 +104,10 @@ func DrawRectsToImage(img data.Map, rects data.Array) (data.Map, error) {
 	if err != nil {
 		return nil, err
 	}
-	mat := raw.ToMatVec3b()
+	mat, err := raw.ToMatVec3b()
+	if err != nil {
+		return nil, err
+	}
 	defer mat.Delete()
 
 	brRects, err := convertToBridgeRects(rects)
@@ -207,7 +213,10 @@ func MountAlphaImage(ctx *core.Context, imgName string, back data.Map,
 	if err != nil {
 		return nil, err
 	}
-	mat := raw.ToMatVec3b()
+	mat, err := raw.ToMatVec3b()
+	if err != nil {
+		return nil, err
+	}
 	defer mat.Delete()
 
 	brRects, err := convertToBridgeRects(rects)
