@@ -2,6 +2,7 @@ package opencv
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"pfi/sensorbee/opencv/bridge"
@@ -12,9 +13,48 @@ var (
 	imagePath = data.MustCompilePath("image")
 )
 
+// TypeImageFormat is an ID of image format type.
+type TypeImageFormat int
+
+const (
+	typeUnknownFormat TypeImageFormat = iota
+	// TypeCVMAT is OpenCV cv::Mat_<cv::Vec3b> format
+	TypeCVMAT
+	// TypeCVMAT4b is OpenCV cv::Mat_<cv::Vec4b> format
+	TypeCVMAT4b
+	// TypeJPEG is JPEG format
+	TypeJPEG
+)
+
+func (t TypeImageFormat) String() string {
+	switch t {
+	case TypeCVMAT:
+		return "cvmat"
+	case TypeCVMAT4b:
+		return "cvmat4b"
+	case TypeJPEG:
+		return "jpeg"
+	default:
+		return "unknown"
+	}
+}
+
+func GetTypeImageFormat(str string) TypeImageFormat {
+	switch str {
+	case "cvmat":
+		return TypeCVMAT
+	case "cvmat4b":
+		return TypeCVMAT4b
+	case "jpeg":
+		return TypeJPEG
+	default:
+		return typeUnknownFormat
+	}
+}
+
 // RawData is represented of `cv::Mat_<cv::Vec3b>` structure.
 type RawData struct {
-	Format string
+	Format TypeImageFormat
 	Width  int
 	Height int
 	Data   []byte
@@ -24,7 +64,7 @@ type RawData struct {
 func ToRawData(m bridge.MatVec3b) RawData {
 	w, h, data := m.ToRawData()
 	return RawData{
-		Format: "cvmat",
+		Format: TypeCVMAT,
 		Width:  w,
 		Height: h,
 		Data:   data,
@@ -41,7 +81,7 @@ func (r *RawData) ToMatVec3b() bridge.MatVec3b {
 func toRawMap(m *bridge.MatVec3b) data.Map {
 	r := ToRawData(*m)
 	return data.Map{
-		"format": data.String(r.Format), // = cv::Mat_<cv::Vec3b> = "cvmat"
+		"format": data.String(r.Format.String()), // = cv::Mat_<cv::Vec3b> = "cvmat"
 		"width":  data.Int(r.Width),
 		"height": data.Int(r.Height),
 		"image":  data.Blob(r.Data),
@@ -72,10 +112,15 @@ func ConvertMapToRawData(dm data.Map) (RawData, error) {
 		return RawData{}, err
 	}
 
-	format := "" // TODO should be as required parameter
-	if fm, err := dm.Get(formatPath); err == nil {
-		if format, err = data.AsString(fm); err != nil {
-			return RawData{}, err
+	var format TypeImageFormat
+	if f, err := dm.Get(formatPath); err != nil {
+		return RawData{}, err
+	} else if fmtStr, err := data.AsString(f); err != nil {
+		return RawData{}, err
+	} else {
+		format = GetTypeImageFormat(fmtStr)
+		if format == typeUnknownFormat {
+			return RawData{}, fmt.Errorf("'%v' is not supported", fmtStr)
 		}
 	}
 
@@ -91,7 +136,7 @@ func ConvertMapToRawData(dm data.Map) (RawData, error) {
 // other plug-in.
 func (r *RawData) ConvertToDataMap() data.Map {
 	return data.Map{
-		"format": data.String(r.Format),
+		"format": data.String(r.Format.String()),
 		"width":  data.Int(r.Width),
 		"height": data.Int(r.Height),
 		"image":  data.Blob(r.Data),
