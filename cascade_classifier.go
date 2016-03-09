@@ -2,9 +2,9 @@ package opencv
 
 import (
 	"fmt"
-	"pfi/sensorbee/opencv/bridge"
-	"pfi/sensorbee/sensorbee/core"
-	"pfi/sensorbee/sensorbee/data"
+	"gopkg.in/sensorbee/opencv.v0/bridge"
+	"gopkg.in/sensorbee/sensorbee.v0/core"
+	"gopkg.in/sensorbee/sensorbee.v0/data"
 )
 
 var (
