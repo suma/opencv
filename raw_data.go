@@ -3,10 +3,10 @@ package opencv
 import (
 	"bytes"
 	"fmt"
+	"gopkg.in/sensorbee/opencv.v0/bridge"
+	"gopkg.in/sensorbee/sensorbee.v0/data"
 	"image"
 	"image/jpeg"
-	"pfi/sensorbee/opencv/bridge"
-	"pfi/sensorbee/sensorbee/data"
 )
 
 var (

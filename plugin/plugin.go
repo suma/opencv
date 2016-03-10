@@ -1,16 +1,16 @@
 package plugin
 
 import (
-	"pfi/sensorbee/opencv"
-	"pfi/sensorbee/sensorbee/bql"
-	"pfi/sensorbee/sensorbee/bql/udf"
+	"gopkg.in/sensorbee/opencv.v0"
+	"gopkg.in/sensorbee/sensorbee.v0/bql"
+	"gopkg.in/sensorbee/sensorbee.v0/bql/udf"
 )
 
 // initialize scouter components. this init method will be called by
 // SensorBee customized main.go.
 //
 //  import(
-//      _ "pfi/sensorbee/opencv/plugin"
+//      _ "gopkg.in/sensorbee/opencv.v0/plugin"
 //  )
 func init() {
 	// capture
