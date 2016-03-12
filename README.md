@@ -8,7 +8,7 @@ This plug-in is a library to use [OpenCV](http://opencv.org) library, User can u
     * attention that ffmpeg version.
     * ex) Mac OS X `brew install opencv --with-ffmpeg`
 * SensorBee
-    * later v0.1
+    * later v0.5
 
 # Usage
 
@@ -30,7 +30,7 @@ plugins:
 ```sql
 -- capturing
 CREATE PAUSED SOURCE camera1_avi TYPE opencv_capture_from_uri WITH
-    uri='video/camera1.avi',
+    uri="video/camera1.avi",
     frame_skip=4, next_frame_error=false;
 ```
 
