@@ -1,0 +1,22 @@
+box: suma/opencv-dev-sensorbee-go1.6
+build:
+  steps:
+    - wercker/setup-go-workspace
+    - script:
+        name: go version
+        code: |
+          go version
+          sensorbee --version
+    - script:
+        name: Install import packages and build
+        code: |
+          go get -t -d -v ./...
+          go build -v ./...
+    - script:
+        name: Run test
+        code: |
+          gotestcover -v -covermode=count -coverprofile=.profile.cov -parallelpackages=1 ./...
+    - script:
+        name: Coveralls.io
+        code: |
+          goveralls -coverprofile=.profile.cov -service='wercker.com' -repotoken $COVERALLS_TOKEN
