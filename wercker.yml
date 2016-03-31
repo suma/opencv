@@ -8,6 +8,10 @@ build:
           go version
           sensorbee --version
     - script:
+        name: Check code style
+        code: |
+          golint ./...
+    - script:
         name: Install import packages and build
         code: |
           go get -t -d -v ./...
