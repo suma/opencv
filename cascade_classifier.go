@@ -55,7 +55,7 @@ func lookupCascadeClassifier(ctx *core.Context, name string) (*cascadeClassifier
 	if s, ok := st.(*cascadeClassifier); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be canverted to cascade_classifier.state",
+	return nil, fmt.Errorf("state '%v' cannot be converted to cascade_classifier.state",
 		name)
 }
 
@@ -104,6 +104,10 @@ func DrawRectsToImage(img data.Map, rects data.Array) (data.Map, error) {
 	if err != nil {
 		return nil, err
 	}
+	// copy image binary
+	temp := make([]byte, len(raw.Data))
+	copy(temp, raw.Data)
+	raw.Data = temp
 	mat, err := raw.ToMatVec3b()
 	if err != nil {
 		return nil, err
@@ -194,7 +198,7 @@ func lookupSharedImage(ctx *core.Context, name string) (*sharedImage, error) {
 	if s, ok := st.(*sharedImage); ok {
 		return s, nil
 	}
-	return nil, fmt.Errorf("state '%v' cannot be canverted to shared_image.state",
+	return nil, fmt.Errorf("state '%v' cannot be converted to shared_image.state",
 		name)
 }
 
@@ -213,6 +217,10 @@ func MountAlphaImage(ctx *core.Context, imgName string, back data.Map,
 	if err != nil {
 		return nil, err
 	}
+	// copy image binary
+	temp := make([]byte, len(raw.Data))
+	copy(temp, raw.Data)
+	raw.Data = temp
 	mat, err := raw.ToMatVec3b()
 	if err != nil {
 		return nil, err
