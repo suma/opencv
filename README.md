@@ -1,5 +1,4 @@
 [![wercker status](https://app.wercker.com/status/4db748e2b586121e924f83ef991a5f7b/s "wercker status")](https://app.wercker.com/project/bykey/4db748e2b586121e924f83ef991a5f7b)
-[![Coverage Status](https://coveralls.io/repos/github/sensorbee/opencv/badge.svg?branch=master)](https://coveralls.io/github/sensorbee/opencv?branch=master)
 
 # OpenCV plug-in for SensorBee
 
