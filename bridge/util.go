@@ -1,7 +1,6 @@
 package bridge
 
 /*
-#cgo LDFLAGS: -lmsgpack
 #include "util.h"
 */
 import "C"
